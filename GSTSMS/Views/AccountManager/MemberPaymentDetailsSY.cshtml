@@ -1,0 +1,589 @@
+﻿
+
+@model List<GSTSMSLibrary.AccountManager.AccountManager>
+
+@if (Model != null && Model.Any())
+{
+    var first = Model.First();
+    decimal total = 0;
+    <link rel="stylesheet" href="~/Content/css/style.css" />
+    <link rel="stylesheet" href="~/Content/css/components.css" />
+    <link rel="stylesheet" href="~/Content/css/MaintainanceManagementSY.css" />
+    <style>
+        .modal-body {
+            overflow: visible !important;
+            max-height: unset;
+        }
+
+
+
+        #chargeSection {
+            display: none;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+
+        .close-square-btn {
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            border-radius: 5px !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            line-height: 1;
+            background-color: red;
+            color: white;
+            border: none;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+        .title {
+            font-size: 16px;
+            color: black !important;
+            font-weight: bold;
+            padding-left: 12px;
+            margin-bottom: 15px;
+        }
+
+        .sec-divider {
+            border: none;
+            border-top: 2px dotted black;
+            margin-top: 0px;
+            margin-bottom: 15px;
+        }
+
+        .charge-item {
+            padding: 6px 12px;
+            font-size: 0.95rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* Hidden Charge Section */
+        #chargeSection {
+            display: none;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        /* Modal width control */
+
+
+
+        /* Card alignment */
+        #MemberpaymentModal .card {
+            width: 100%;
+            margin: 0 auto;
+        }
+
+
+        /* Modal dialog */
+        #MemberpaymentModal .modal-dialog {
+            max-height: 90vh;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Modal content */
+        #MemberpaymentModal .modal-content {
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+        }
+
+        /* Header fixed (sticky) */
+        #MemberpaymentModal .modal-header,
+        #MemberpaymentModal .card-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #615677; /* header color */
+            color: white;
+        }
+
+
+
+        #MemberpaymentModal .modal-body {
+            flex: 1 1 auto;
+            overflow-y: auto;
+            max-height: calc(90vh - 60px);
+            margin-top: 0;
+        }
+
+
+        /* Charge details scroll area inside modal body */
+        #chargeSection {
+            display: none;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .error-icon {
+            color: red;
+        }
+
+        .valid-icon {
+            color: green;
+        }
+
+        .is-invalid + .error-icon {
+            display: inline;
+        }
+
+        .is-valid + .valid-icon {
+            display: inline;
+        }
+
+        .validation-message {
+            color: red;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        .field-label {
+            font-weight: 600;
+            color: #333;
+            min-width: 130px;
+            display: inline-block;
+        }
+
+        /* Page scroll disable when modal open */
+        body.modal-open {
+            overflow: hidden !important;
+            padding-right: 0 !important;
+        }
+
+
+        .field-value {
+            color: #000;
+        }
+    </style>
+
+    <div class="card card-primary shadow-sm mx-auto" style="width: 550px; margin-top:70px">
+        <div class="custom-header d-flex justify-content-between align-items-center"
+             style="background-color: #615677; min-height: 45px !important; color: white">
+            <h4 class="mb-0" style="font-size: 18px; margin-left: 149px !important;">Maintenance Payment</h4>
+            <button type="button" class="btn btn-danger btn-sm close-square-btn" onclick="closeModal()" title="Close" style="margin-right: 10px;">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+
+        <div class="card-body px-4 py-4">
+            <input type="hidden" id="hdnMemberCode" value="@first.MemberCode" />
+            <input type="hidden" id="hdnEntityCode" value="@first.EntityCode" />
+            <input type="hidden" id="hdnMaintainanceTypeId" value="@first.MaintananceTypeId" />
+
+            <!-- Member Info -->
+            <div class="title">Member Info</div>
+            <hr class="expense-divider" />
+            <div class="row mb-2">
+                <div class="col-md-8">
+                    <span class="field-label">Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp; </span>
+                    <span class="text-dark">@first.FullName</span>
+                </div>
+                <div class="col-md-4 text-end">
+                    <span class="field-label" style="min-width: 62px;">Flat No &nbsp;&nbsp;:&nbsp;&nbsp; </span>
+                    <span class="text-dark" style="min-width: 62px;">@first.FlatCode</span>
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-6 d-flex align-items-center">
+                    <span class="field-label" style=" min-width: 155px;">Maintenance Month  &nbsp;&nbsp;:&nbsp;</span>
+                    <span class="text-dark fw-bold ms-2" style=" min-width: 155px;">
+                        @(first.ScheduleDate?.ToString("MMMM yyyy") ?? "-")
+                    </span>
+                </div>
+            </div>
+
+
+
+            <!-- Charge Details -->
+            <button type="button" id="btnChargeToggle" class="expandable-section w-100 mb-2 text-primary" onclick="toggleChargeDetails()">
+                <i class="fas fa-eye"></i> View Charge Details
+            </button>
+
+            <div id="chargeSection">
+                <div class="title">Charge Details</div>
+                <hr class="expense-divider" />
+                <div class="list-group">
+                    @{
+                        foreach (var item in Model)
+                        {
+                            total += item.ChargeAmount;
+                            <div class="list-group-item d-flex justify-content-between align-items-center charge-item">
+                                <span>@item.MaintenanceName</span>
+                                <span class="text-dark">₹ @item.ChargeAmount.ToString("0.00")</span>
+                            </div>
+                        }
+                    }
+                </div>
+                @*<div class="d-flex justify-content-between align-items-center px-3 py-2 border-top">
+                        <span style="font-weight:bold; color:black" class="fw-bold">Total Amount</span>
+                        <span style="font-weight:bold; color:black" class="fw-bold">₹ @total.ToString("0.00")</span>
+                    </div>*@
+            </div>
+
+            <input type="hidden" id="hdnTotalAmount" value="@first.FinalPayable.ToString("0.00")" />
+
+            <div class="title mt-4">Maintenance Summary</div>
+            <hr class="expense-divider" />
+
+            <div class="row mb-2">
+                <div class="col-md-6 d-flex">
+                    <span class="field-label">Maintenance Amount &nbsp;&nbsp;:&nbsp;&nbsp;</span>
+                    <span class="field-value">₹ @first.MaintenanceAmount.ToString("N2")</span>
+                </div>
+            </div>
+
+            <div class="row mb-2">
+                <div class="col-md-6 d-flex">
+                    <span class="field-label">Penalty Amount&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;</span>
+                    <span class="field-value">₹ @first.PenaltyAmount.ToString("N2")</span>
+                </div>
+                <div class="col-md-6 d-flex justify-content-md-end">
+                    <span class="field-label">Final Payable &nbsp;&nbsp;:</span>
+                    <span class="field-value">₹ @first.FinalPayable.ToString("N2")</span>
+                </div>
+            </div>
+
+
+
+
+            <!-- Transaction Id -->
+            <div class="form-group mt-3">
+                <div class="d-flex align-items-center">
+                    <label for="txtPayAmount" class="field-label">
+                        Enter Transaction Id &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:
+                    </label>
+
+                    <div class="input-icon flex-grow-1" style="max-width: 300px; margin-left: 19px;">
+                        <input type="text" id="txtPayAmount" class="form-control required-field" placeholder="Enter Transaction Id" />
+
+                        <!-- Validation Icons -->
+
+                    </div>
+                </div>
+
+                <!-- Validation Message -->
+                <div class="validation-message" id="amountError" style=" margin-left: 180px;"></div>
+            </div>
+
+            <h6 class="expense-section-heading mt-3">Society Bank Details</h6>
+            <hr class="expense-divider" />
+            <div class="form-group mt-3">
+                <div class="d-flex align-items-center mb-2">
+                    <label for="ddlBanks" class="field-label">
+                        Select Bank <span class="text-danger">*</span>  &nbsp;&nbsp;&nbsp;&nbsp;:
+                    </label>
+                    <select id="ddlBanks" class="form-control" style="max-width: 320px; margin-left: 20px; ">
+                        <option value="">-- Select Bank --</option>
+                    </select>
+                </div>
+
+                <div class="row mt-2">
+                    <div class="col-md-6 d-flex">
+                        <span class="field-label me-2">Bank Balance&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;</span>
+                        <span class="field-value" id="lblOpeningBalance">₹@String.Format("{0:N2}", first.OpeningBalance)</span>
+
+                    </div>
+                    <div class="col-md-6 d-flex justify-content-md-end">
+                        <span class="field-label me-2">Cash In Hand&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;</span>
+                        <span class="field-value"> ₹@Math.Ceiling(first.CashInHand).ToString("N2")</span>
+
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Footer Buttons -->
+            <div class="maintainance-footer-btns mt-3">
+                <button type="button" class="maintainance-btn-online" style=" justify-content: space-around;" onclick="confirmAndPay()">
+                    <i class="fas fa-wallet"></i> Confirm & Pay
+                </button>
+                <button type="button" class="maintainance-btn-cash" style=" justify-content: space-around;" onclick="redirectToCash()">
+                    <i class="fas fa-plus-circle"></i> Pay By Cash
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+}
+else
+{
+    <div class="alert alert-warning text-center rounded shadow-sm">
+        <i class="fas fa-info-circle me-1"></i> No maintenance details found.
+    </div>
+}
+
+<!-- ✅ Cash Payment Modal -->
+<div class="modal fade" id="MemberCashpaymentModal" tabindex="-1" aria-labelledby="cashPaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-body" id="modalMaintenanceCashPaymentContent">
+                <!-- Partial view will load here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ✅ Modal Close
+    function closeModal() {
+        $('#MemberpaymentModal').modal('hide');
+    }
+
+    // ✅ Toggle Charge Details
+    function toggleChargeDetails() {
+        const section = document.getElementById("chargeSection");
+        const btn = document.querySelector("#btnChargeToggle");
+
+        if (section.style.display === "none" || section.style.display === "") {
+            section.style.display = "block";
+            btn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Charge Details';
+        } else {
+            section.style.display = "none";
+            btn.innerHTML = '<i class="fas fa-eye"></i> View Charge Details';
+        }
+    }
+
+
+    function redirectToCash() {
+        const memberCode = $("#hdnMemberCode").val();
+        const maintainanceTypeId = $("#hdnMaintainanceTypeId").val();
+        const entityCode = $("#hdnEntityCode").val();
+
+        let reopenParent = true;
+
+        // जुने event clear करा (namespace वापरून)
+        $('#MemberpaymentModal').off('.cash');
+        $('#MemberCashpaymentModal').off('.cash');
+
+        // मुख्य modal hide करा
+        $('#MemberpaymentModal').modal('hide');
+
+        // 👉 Parent बंद झाल्यावर Cash modal उघडा
+        $('#MemberpaymentModal').on('hidden.bs.modal.cash', function () {
+            if (reopenParent) {
+                $('#modalMaintenanceCashPaymentContent').html(
+                    '<div class="text-center p-4"><i class="fas fa-spinner fa-spin"></i> Loading...</div>'
+                );
+
+                $('#MemberCashpaymentModal').appendTo("body").modal('show');
+            }
+        });
+
+        // 👉 Cash modal fully open झाल्यावर AJAX चालवा
+        $('#MemberCashpaymentModal').on('shown.bs.modal.cash', function () {
+            $.ajax({
+                url: '/AccountManager/MemberCashPaymentDetailsSY',
+                type: 'POST',
+                data: {
+                    memberCode: memberCode,
+                    maintainanceTypeId: maintainanceTypeId,
+                    EntityCode: entityCode
+                },
+                success: function (result) {
+                    $('#modalMaintenanceCashPaymentContent').html(result);
+                },
+                error: function (xhr, status, error) {
+                    $('#modalMaintenanceCashPaymentContent').html(
+                        '<div class="alert alert-danger">Error loading payment details: ' + error + '</div>'
+                    );
+                    console.error("Cash Modal Error:", xhr.responseText);
+                }
+            });
+        });
+
+        // 👉 Cash बंद झाल्यावर Parent परत उघडा
+        $('#MemberCashpaymentModal').on('hidden.bs.modal.cash', function () {
+            if (reopenParent) {
+                $('#MemberpaymentModal').modal('show');
+            }
+        });
+
+        // जर Cash modal उघडलाच नाही तर Parent पुन्हा reopen करू नको
+        $('#MemberpaymentModal').on('hide.bs.modal.cash', function () {
+            if (!$('#MemberCashpaymentModal').hasClass('show')) {
+                reopenParent = false;
+            }
+        });
+    }
+
+
+
+    // Load Society Bank Dropdown
+    $.get("/AccountManager/GetBanksByAllCodeSY?allCode=SC001", function (banks) {
+        if (!banks || banks.length === 0) return;
+
+        $("#ddlBanks").empty(); // clear existing options
+
+        // ✅ Add default option at top
+        $("#ddlBanks").append(`<option value="">-- Select Bank --</option>`);
+
+        $.each(banks, function (i, bank) {
+            const accountNo = (bank.AccountNo || "").trim();
+            const last4 = accountNo.slice(-4) || "XXXX";
+            const ifsc = (bank.IFSC || "").trim();
+            const subTypeName = (bank.SubTypeName || "").trim(); // Get SubTypeName
+
+            const appendOption = (optionText) => {
+                const option = `<option value="${bank.BankCode}"
+                         data-accountno="${accountNo}"
+                         data-ifsc="${ifsc}"
+                         data-subtypename="${subTypeName}">
+                         ${optionText}
+                     </option>`;
+                $("#ddlBanks").append(option);
+            };
+
+            if (ifsc) {
+                $.ajax({
+                    url: "https://ifsc.razorpay.com/" + ifsc,
+                    method: "GET",
+                    cache: false,
+                    success: function (data) {
+                        const bankName = data.BANK || "Unknown Bank";
+                        const optionText = `${bankName} - A/c ****${last4} [${subTypeName}]`; // ✅ BankName - AccountNo [SubTypeName]
+                        appendOption(optionText);
+                    },
+                    error: function () {
+                        const optionText = `Unknown Bank - A/c ****${last4} [${subTypeName}]`;
+                        appendOption(optionText);
+                    }
+                });
+            } else {
+                const optionText = `Unknown Bank - A/c ****${last4} [${subTypeName}]`;
+                appendOption(optionText);
+            }
+        });
+
+        // ✅ Ensure default is selected
+        $("#ddlBanks").val("");
+    });
+
+
+    // Show bank balance when bank selected
+    $("#ddlBanks").change(function () {
+        const accountNo = $(this).find(":selected").data("accountno");
+        const enteredAmount = parseFloat($("#txtPayAmount").val() || 0);
+        const balanceLabel = $("#lblOpeningBalance");
+
+        if (accountNo) {
+            $.get("/AccountManager/GetOpeningBalancePS", { accountNo }, function (res) {
+                const balance = res.success ? parseFloat(res.balance) : 0;
+                balanceLabel.text("₹" + balance.toLocaleString('en-IN', { minimumFractionDigits: 2 }));
+
+                balanceLabel.css("color", "green");
+
+            });
+        } else {
+            balanceLabel.text("₹0.00").css("color", "black");
+        }
+    });
+
+    function confirmAndPay() {
+        var memberCode = $("#hdnMemberCode").val();
+        var entityCode = $("#hdnEntityCode").val();
+        var totalAmount = parseFloat($("#hdnTotalAmount").val() || 0);
+        var txnId = $("#txtPayAmount").val().trim();
+        var bankCode = $("#ddlBanks").val();
+        var maintananceTypeId = $("#hdnMaintainanceTypeId").val();  // ✅ include
+        var isValid = true;
+
+        // ✅ Transaction Id Validation
+        if (!txnId) {
+            $("#txtPayAmount").removeClass("is-valid").addClass("is-invalid");
+            $("#amountError").text("Transaction Id is required").css("color", "red");
+            isValid = false;
+        } else {
+            $("#txtPayAmount").removeClass("is-invalid").addClass("is-valid");
+            $("#amountError").text("");
+        }
+
+        // ✅ Bank Validation
+        if (!bankCode) {
+            iziToast.warning({
+                title: 'Required',
+                message: 'Please select a Bank.',
+                position: 'topCenter'
+            });
+            isValid = false;
+        }
+        if (!isValid) {
+            return;
+        }
+
+        $.ajax({
+            url: "/AccountManager/ConfirmPayment",
+            type: "POST",
+            data: {
+                MemberCode: memberCode,
+                EntityCode: entityCode,
+                Amount: totalAmount,
+                TransactionId: txnId,
+                BankCode: bankCode,
+                MaintananceTypeId: maintananceTypeId   // ✅ pass to backend
+            },
+            success: function (res) {
+                if (res.success) {
+                    swal({
+                        icon: 'success',
+                        title: 'Payment Confirmed',
+                        text: 'Your payment has been recorded successfully!',
+                        timer: 2000,
+                        buttons: false
+                    }).then(() => {
+                        // ✅ Page refresh
+                        location.reload();
+                    });
+                } else {
+                    iziToast.error({
+                        title: 'Error',
+                        message: res.message || 'Something went wrong',
+                        position: 'topCenter'
+                    });
+                }
+            }
+
+
+        });
+    }
+    $(document).ready(function () {
+        $("#txtPayAmount").on("blur", function () {
+            let val = $(this).val().trim();
+            if (val === "") {
+                $(this).removeClass("is-valid").addClass("is-invalid");
+                $("#amountError").text("Transaction Id is required");
+            } else {
+                $(this).removeClass("is-invalid").addClass("is-valid");
+                $("#amountError").text("");
+            }
+        });
+    });
+
+
+
+    // Expand / Collapse Details
+    function toggleExpand(element) {
+        element.classList.toggle('expanded');
+        const icon = element.querySelector('i');
+        icon.classList.toggle('fa-plus');
+        icon.classList.toggle('fa-minus');
+
+        const detailsSection = element.nextElementSibling;
+        if (detailsSection && detailsSection.classList.contains('hidden-details')) {
+            if (detailsSection.style.display === 'block') {
+                detailsSection.style.display = 'none';
+            } else {
+                detailsSection.style.display = 'block';
+                detailsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+    }
+</script>

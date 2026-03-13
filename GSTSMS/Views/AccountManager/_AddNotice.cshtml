@@ -1,0 +1,562 @@
+﻿@model GSTSMSLibrary.AccountManager.AccountManager
+
+@{
+    ViewBag.Title = "AddNotice";
+    Layout = null;
+
+    var selectedWing = ViewBag.SelectedWing as string ?? "All";
+    var members = ViewBag.MemberList as List<GSTSMSLibrary.AccountManager.AccountManager> ?? new List<GSTSMSLibrary.AccountManager.AccountManager>();
+    var today = DateTime.Now.ToString("yyyy-MM-dd");
+    var after2Days = DateTime.Now.AddDays(2).ToString("yyyy-MM-dd");
+}
+
+<link href="~/Content/css/noticeRM.css" rel="stylesheet" />
+
+
+
+<div class="card-body">
+
+    <!-- ✅ Loader for email sending -->
+    <!--<div id="emailLoader" class="custom-loader-container hidden">
+        <div class="loader"></div>
+        <div class="text-center text-muted mt-2">Sending notice, please wait...</div>
+    </div>-->
+
+    @using (Html.BeginForm("AddNotice", "AccountManager", FormMethod.Post, new { enctype = "multipart/form-data", id = "noticeForm", @novalidate = "novalidate" }))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="row">
+            <div class="form-group col-md-6">
+                <label>Notice Title : <span class="text-danger">*</span></label>
+                @Html.TextBoxFor(m => m.NoticeTitle, new { @class = "form-control", id = "noticeTitle", placeholder = "Enter title", required = "required", maxlength = "80" })
+                <div id="noticeTitleError" class="text-danger small mt-1 d-none">Notice title is required.</div>
+            </div>
+
+            <div class="form-group col-md-6">
+                <label>Select Wing :</label>
+                @Html.HiddenFor(m => m.WingName, new { id = "hiddenWingName" })
+                <select id="wingSelector" name="wingSelect" class="form-control" onchange="handleWingSelection(this)">
+                    <option value="">-- Select --</option>
+                    <option value="All" @(selectedWing == "All" ? "" : "")>All Members</option>
+                    <option value="A" @(selectedWing == "A" ? "selected" : "")>Wing A</option>
+                    <option value="B" @(selectedWing == "B" ? "selected" : "")>Wing B</option>
+                    <option value="C" @(selectedWing == "C" ? "selected" : "")>Wing C</option>
+                    <option value="Manual" @(selectedWing == "Manual" ? "selected" : "")>Manual Selection</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Select Member : <span class="text-danger">*</span></label>
+            <div class="d-flex flex-row flex-wrap border p-2 rounded justify-content-start align-items-start select-member-section" style="gap: 0.75rem; max-height: 250px; overflow-y: auto;">
+                @foreach (var wing in new[] { "A", "B", "C" })
+                {
+                    <div style="flex: 1 1 30%; min-width: 200px; max-width: 32%;">
+                        <details class="border rounded p-2" id="details_@wing">
+                            <summary class="fw-bold mb-2">Wing @wing</summary>
+                            <div id="members_@wing" class="ml-2">
+                                @foreach (var member in members.Where(m => m.FlatCode.StartsWith(wing)))
+                                {
+                                    <div class="form-check">
+                                        <input type="checkbox"
+                                               class="form-check-input memberCheckbox member-@wing"
+                                               name="ToEmailAddresses"
+                                               value="@member.ToEmailAddress"
+                                               id="chk_@member.MemberCode" />
+
+                                        <label class="form-check-label" for="chk_@member.MemberCode">
+                                            @member.FullName (@member.FlatCode)
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                        </details>
+                    </div>
+                }
+            </div>
+            <div id="memberError" class="text-danger small mt-1 d-none">Please select at least one member.</div>
+        </div>
+
+        <div class="row">
+            <div class="form-group col-md-6">
+                <label>Publish Date : <span class="text-danger">*</span></label>
+                <input type="date" name="PublishDate" id="publishDate" class="form-control" value="@today" min="@today" onchange="validateDates()" />
+                <div id="publishDateError" class="text-danger small mt-1 d-none">Publish date is required.</div>
+            </div>
+
+            <div class="form-group col-md-6">
+                <label>End Date : <span class="text-danger">*</span></label>
+                <input type="date" name="EndDate" id="endDate" class="form-control" value="@after2Days" min="@today" onchange="validateDates()" />
+                <div id="endDateError" class="text-danger small mt-1 d-none">End date must be equal to or after publish date.</div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Description : <span class="text-danger">*</span></label>
+            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", id = "description", rows = 4, placeholder = "Enter notice description", required = "required", maxlength = "250" })
+            <div id="descriptionError" class="text-danger small mt-1 d-none">Description is required.</div>
+        </div>
+
+        <!-- Updated File Attachment Section with reduced width -->
+        <div class="form-group mt-4" style="max-width: 100%;">
+            <label id="label">Attachment : </label>
+            <div class="custom-file">
+                <input type="file" name="PostedFiles" id="PostedFiles" class="custom-file-input" multiple accept=".pdf,.jpg,.jpeg,.png" onchange="handleFilePreview(this)">
+                <label class="custom-file-label" for="PostedFiles">Choose files</label>
+            </div>
+            <div id="filePreviewList" class="mt-2"></div>
+        </div>
+
+        <div class="text-center mt-3">
+            <button type="submit" class="btn btn-success me-2"
+                    style="background-color: #28a745;
+                   border-color: #28a745;
+                   color: white;
+                   transition: all 0.3s ease;">
+                <i class="fa fa-plus"></i> Add Notice
+            </button>
+        </div>
+    }
+</div>
+
+
+<script>
+    function validateDates() {
+        const publishDate = document.getElementById("publishDate");
+        const endDate = document.getElementById("endDate");
+        const publishDateError = document.getElementById("publishDateError");
+        const endDateError = document.getElementById("endDateError");
+
+        // Reset error states
+        publishDate.classList.remove("is-invalid", "is-valid");
+        endDate.classList.remove("is-invalid", "is-valid");
+        publishDateError.classList.add("d-none");
+        endDateError.classList.add("d-none");
+
+        if (!publishDate.value) {
+            publishDate.classList.add("is-invalid");
+            publishDateError.classList.remove("d-none");
+            return false;
+        }
+
+        if (!endDate.value) {
+            endDate.classList.add("is-invalid");
+            endDateError.textContent = "End date is required.";
+            endDateError.classList.remove("d-none");
+            return false;
+        }
+
+        const publishDateObj = new Date(publishDate.value);
+        const endDateObj = new Date(endDate.value);
+
+        if (endDateObj < publishDateObj) {
+            endDate.classList.add("is-invalid");
+            endDateError.textContent = "End date must be equal to or after publish date.";
+            endDateError.classList.remove("d-none");
+            return false;
+        }
+
+        // If all valid
+        publishDate.classList.add("is-valid");
+        endDate.classList.add("is-valid");
+        return true;
+    }
+
+    function handleWingSelection(dropdown) {
+        const value = dropdown.value;
+        document.getElementById("hiddenWingName").value = value;
+
+        // Uncheck all checkboxes first
+        document.querySelectorAll(".memberCheckbox").forEach(cb => {
+            cb.checked = false;
+        });
+
+        // Close all details elements
+        document.querySelectorAll("details").forEach(d => d.removeAttribute("open"));
+
+        if (value === "All") {
+            document.querySelectorAll(".memberCheckbox").forEach(cb => {
+                cb.checked = true;
+            });
+            // Open all details elements when "All Members" is selected
+            document.querySelectorAll("details").forEach(d => d.setAttribute("open", true));
+        } else if (["A", "B", "C"].includes(value)) {
+            document.querySelectorAll(".member-" + value).forEach(cb => {
+                cb.checked = true;
+            });
+            // Open the specific wing's details element
+            const detailElement = document.getElementById("details_" + value);
+            if (detailElement) detailElement.setAttribute("open", true);
+        }
+    }
+
+    // Event listener for individual member checkboxes
+    document.addEventListener('change', function(event) {
+        if (event.target.classList.contains('memberCheckbox')) {
+            const wingSelector = document.getElementById('wingSelector');
+            const hiddenWingName = document.getElementById('hiddenWingName');
+
+            // Set the dropdown to "Manual Selection" and update the hidden field
+            wingSelector.value = "Manual";
+            hiddenWingName.value = "Manual";
+        }
+    });
+
+    let selectedFiles = [];
+
+    function handleFilePreview(input) {
+        const newFiles = Array.from(input.files);
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+        const previewContainer = document.getElementById("filePreviewList");
+        const attachmentDiv = document.querySelector(".custom-file");
+
+        if (selectedFiles.length + newFiles.length > 3) {
+            iziToast.warning({
+                title: 'Limit Reached',
+                message: 'You can only attach up to 3 files total.',
+                position: 'topCenter',
+                timeout: 3000
+            });
+            input.value = "";
+            return;
+        }
+
+        for (let file of newFiles) {
+            if (!selectedFiles.find(f => f.name === file.name && f.size === file.size)) {
+                selectedFiles.push(file);
+            }
+        }
+
+        if (selectedFiles.length > 3) {
+            selectedFiles = selectedFiles.slice(0, 3);
+            iziToast.warning({
+                title: 'Limit Reached',
+                message: 'You can only attach up to 3 files.',
+                position: 'topCenter',
+                timeout: 3000
+            });
+        }
+
+        // Enable/disable attachment div based on file count
+        if (selectedFiles.length >= 3) {
+            attachmentDiv.classList.add("attachment-disabled");
+        } else {
+            attachmentDiv.classList.remove("attachment-disabled");
+        }
+
+        input.value = "";
+        renderFilePreview(previewContainer);
+    }
+
+    function renderFilePreview(container) {
+        container.innerHTML = "";
+
+        selectedFiles.forEach((file) => {
+            const fileURL = URL.createObjectURL(file);
+
+            const wrapper = document.createElement("span");
+            wrapper.style.marginRight = "15px";
+
+            const link = document.createElement("a");
+            link.href = fileURL;
+            link.target = "_blank";
+            link.textContent = file.name;
+            link.style.marginRight = "6px";
+            link.style.textDecoration = "underline";
+            link.style.color = "#007bff";
+
+            const remove = document.createElement("span");
+            remove.textContent = "×";
+            remove.style.cursor = "pointer";
+            remove.style.color = "red";
+            remove.style.fontWeight = "bold";
+            remove.onclick = function () {
+                removeFile(file.name, file.size);
+                URL.revokeObjectURL(fileURL);
+            };
+
+            wrapper.appendChild(link);
+            wrapper.appendChild(remove);
+            container.appendChild(wrapper);
+        });
+    }
+
+    function removeFile(name, size) {
+        selectedFiles = selectedFiles.filter(f => !(f.name === name && f.size === size));
+        renderFilePreview(document.getElementById("filePreviewList"));
+
+        // Re-enable attachment div if less than 3 files
+        const attachmentDiv = document.querySelector(".custom-file");
+        if (selectedFiles.length < 3) {
+            attachmentDiv.classList.remove("attachment-disabled");
+        }
+    }
+
+    // Modify your form submit validation section to use AJAX
+    $(document).on('submit', '#noticeForm', function (e) {
+        e.preventDefault(); // Prevent default form submission
+
+        let isFormValid = true;
+
+        // Validate Notice Title
+        const noticeTitle = document.getElementById("noticeTitle");
+        const titleError = document.getElementById("noticeTitleError");
+
+        if (!noticeTitle.value.trim()) {
+            noticeTitle.classList.add("is-invalid");
+            titleError.classList.remove("d-none");
+            isFormValid = false;
+            // Hide after 3 seconds
+            setTimeout(() => {
+                titleError.classList.add("d-none");
+                noticeTitle.classList.remove("is-invalid");
+            }, 3000);
+        } else {
+            noticeTitle.classList.remove("is-invalid");
+            noticeTitle.classList.add("is-valid");
+            titleError.classList.add("d-none");
+        }
+
+        // Validate Member Selection
+        const selectedMembers = document.querySelectorAll('.memberCheckbox:checked');
+        const memberSection = document.querySelector(".select-member-section");
+        const memberError = document.getElementById("memberError");
+
+        if (selectedMembers.length === 0) {
+            memberSection.classList.remove("is-valid");
+            memberSection.classList.add("border-danger");
+            memberError.classList.remove("d-none");
+            isFormValid = false;
+            // Hide after 3 seconds
+            setTimeout(() => {
+                memberError.classList.add("d-none");
+                memberSection.classList.remove("border-danger");
+            }, 3000);
+        } else {
+            memberSection.classList.remove("border-danger");
+            memberSection.classList.add("is-valid");
+            memberError.classList.add("d-none");
+        }
+
+        // Validate Description
+        const description = document.getElementById("description");
+        const descriptionError = document.getElementById("descriptionError");
+
+        if (!description.value.trim()) {
+            description.classList.add("is-invalid");
+            description.classList.remove("is-valid");
+            descriptionError.classList.remove("d-none");
+            isFormValid = false;
+            // Hide after 3 seconds
+            setTimeout(() => {
+                descriptionError.classList.add("d-none");
+                description.classList.remove("is-invalid");
+            }, 3000);
+        } else {
+            description.classList.remove("is-invalid");
+            description.classList.add("is-valid");
+            descriptionError.classList.add("d-none");
+        }
+
+        // Validate Dates
+        const publishDate = document.getElementById("publishDate");
+        const endDate = document.getElementById("endDate");
+        const publishDateError = document.getElementById("publishDateError");
+        const endDateError = document.getElementById("endDateError");
+
+        // Reset date validation
+        publishDate.classList.remove("is-invalid", "is-valid");
+        endDate.classList.remove("is-invalid", "is-valid");
+        publishDateError.classList.add("d-none");
+        endDateError.classList.add("d-none");
+
+        if (!publishDate.value) {
+            publishDate.classList.add("is-invalid");
+            publishDateError.classList.remove("d-none");
+            isFormValid = false;
+            // Hide after 3 seconds
+            setTimeout(() => {
+                publishDateError.classList.add("d-none");
+                publishDate.classList.remove("is-invalid");
+            }, 3000);
+        }
+
+        if (!endDate.value) {
+            endDate.classList.add("is-invalid");
+            endDateError.textContent = "End date is required.";
+            endDateError.classList.remove("d-none");
+            isFormValid = false;
+            // Hide after 3 seconds
+            setTimeout(() => {
+                endDateError.classList.add("d-none");
+                endDate.classList.remove("is-invalid");
+            }, 3000);
+        }
+
+        const publishDateObj = new Date(publishDate.value);
+        const endDateObj = new Date(endDate.value);
+
+        if (endDateObj < publishDateObj) {
+            endDate.classList.add("is-invalid");
+            endDateError.textContent = "End date must be equal to or after publish date.";
+            endDateError.classList.remove("d-none");
+            isFormValid = false;
+            // Hide after 3 seconds
+            setTimeout(() => {
+                endDateError.classList.add("d-none");
+                endDate.classList.remove("is-invalid");
+            }, 3000);
+        }
+
+        // If dates are valid
+        if (publishDate.value && endDate.value && endDateObj >= publishDateObj) {
+            publishDate.classList.add("is-valid");
+            endDate.classList.add("is-valid");
+        }
+
+        if (!isFormValid) {
+            return false;
+        }
+
+        // Set files to input
+        const fileInput = document.getElementById("PostedFiles");
+        const dataTransfer = new DataTransfer();
+        selectedFiles.forEach(f => dataTransfer.items.add(f));
+        fileInput.files = dataTransfer.files;
+
+        // Create FormData object
+        const formData = new FormData(document.getElementById("noticeForm"));
+
+        // Show loader
+        // document.getElementById("emailLoader").classList.remove("hidden");
+
+        // Submit form via AJAX
+        $.ajax({
+            url: $('#noticeForm').attr('action'),
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    // Close the modal
+                    $('#noticeModal').modal('hide');
+
+                    // Show success message
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Notice Saved!',
+                        text: response.message,
+                        showConfirmButton: false,
+                        timer: 3000
+                    }).then(() => {
+                        // Redirect to NoticeList after success
+                        window.location.href = '@Url.Action("NoticeList", "AccountManager")';
+                    });
+                } else {
+                    // Show error message
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Failed to Send Notice',
+                        text: response.message,
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                // Show error message
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Failed to Send Notice',
+                    text: 'An error occurred while saving the notice.',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+            }
+        });
+    });
+
+    // Optional: Reset form on modal close to clear validation state and previews
+    $('#noticeModal').on('hidden.bs.modal', function () {
+        const form = document.getElementById("noticeForm");
+
+        // Reset form fields
+        form.reset();
+
+        // Clear validation states
+        form.querySelectorAll(".is-valid, .is-invalid, .border-danger").forEach(el => {
+            el.classList.remove("is-valid", "is-invalid", "border-danger");
+        });
+
+        // Hide error messages
+        document.getElementById("noticeTitleError").classList.add("d-none");
+        document.getElementById("memberError").classList.add("d-none");
+        document.getElementById("descriptionError").classList.add("d-none");
+        document.getElementById("publishDateError").classList.add("d-none");
+        document.getElementById("endDateError").classList.add("d-none");
+
+        // Reset file input and preview
+        selectedFiles = [];
+        renderFilePreview(document.getElementById("filePreviewList"));
+
+        // Reset member selections and wing dropdown
+        document.getElementById("hiddenWingName").value = "";
+        document.querySelectorAll("details").forEach(d => d.removeAttribute("open"));
+        document.querySelectorAll(".memberCheckbox").forEach(cb => cb.checked = false);
+        // Reset attachment div state
+        document.querySelector(".custom-file").classList.remove("attachment-disabled");
+    });
+
+    $(document).ready(function() {
+        $('#noticeModal').on('shown.bs.modal', function() {
+            const modalContent = $(this).find('.modal-content');
+            const viewportHeight = $(window).height();
+            modalContent.css('max-height', Math.min(viewportHeight * 0.85, 650) + 'px');
+        });
+    });
+</script>
+
+<style>
+    .btn.btn-danger.btn-sm {
+        margin-right: -14px;
+    }
+
+    .btn.btn-success {
+        width: 150px;
+        height: 40px;
+        font-size: 16px;
+        background-color: #28a745 !important;
+        border-color: #28a745 !important;
+        color: white !important;
+        transition: all 0.3s ease;
+    }
+
+        .btn.btn-success:hover {
+            background-color: #00b67a !important;
+            border-color: #00b67a !important;
+            color: black !important;
+        }
+
+    .custom-file-input:focus ~ .custom-file-label {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    .custom-file-label::after {
+        content: "Browse";
+    }
+
+    .attachment-disabled {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    /* For the close (×) button in modal header */
+    .modal-header .btn-danger {
+        margin-right: -14px !important;
+        padding: 5px 6px;
+        font-size: 18px;
+    }
+</style>

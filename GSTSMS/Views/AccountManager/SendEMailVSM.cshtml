@@ -1,0 +1,845 @@
+﻿@model GSTSMSLibrary.AccountManager.AccountManager
+
+@{
+    ViewBag.Title = "Send Email";
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var selectedWing = ViewBag.SelectedWing as string ?? "All";
+    var members = ViewBag.MemberList as List<GSTSMSLibrary.AccountManager.AccountManager>;
+    var staff = ViewBag.StaffList as List<GSTSMSLibrary.AccountManager.AccountManager> ?? new List<GSTSMSLibrary.AccountManager.AccountManager>();
+
+}
+
+
+
+<script src="~/Content/modules/sweetalert/sweetalert.min.js"></script>
+
+<link href="~/Content/css/Sendemail.css" rel="stylesheet" />
+
+
+
+
+<div class="form-wrapper position-relative" style=" margin-top: -90px; overflow-x:hidden">
+    <div id="loadingSpinner">
+        <div class="loader"></div>
+        <p id="emailProgressText" class="mt-3 font-weight-bold text-white"> Please wait...</p>
+    </div>
+
+
+    <div id="mainContentArea">
+
+        <div id="content">
+
+
+            <label class="heading">Send Email</label>
+
+ @using (Html.BeginForm("SendEMailVSM", "AccountManager", FormMethod.Post, new { enctype = "multipart/form-data", id = "emailForm" }))
+  {
+               
+
+                <div>
+
+
+                    <!-- Receiver selection dropdown -->
+                    <div class="form-group d-flex align-items-center">
+                        <!-- Label on the left -->
+                        <label id="label" for="wingSelector" style="min-width: 150px;">
+                            Receiver <span class="text-danger">*</span> <span style="margin-left:78px;">:</span>
+                        </label>
+
+                        <!-- Dropdown + error on the right -->
+                        <div class="flex-grow-1">
+                            <select id="wingSelector" class="form-control mt-1" style="max-width: 300px;">
+                                <option value="">-- Select --</option>
+                                <option value="All">All Wing</option>
+                                <option value="A">Wing A</option>
+                                <option value="B">Wing B</option>
+                                <option value="C">Wing C</option>
+                                <option value="MANUAL">Selected Members</option>
+                                <option value="OTHER">Other</option>
+                            </select>
+                            <span id="wingSelectorError" class="text-danger small validation" style="display:none; margin-left:37px;">Please select receiver group.</span>
+                        </div>
+                    </div>
+
+
+
+
+
+
+                    <div class="member-div">
+
+                        <!-- Wing-wise Member Dropdown Section (Horizontal Layout) -->
+                        <div class="form-group d-flex align-items-start">
+                            <!-- Label on the left -->
+                            <label id="label" class="mr-3 pt-2" style="min-width: 150px;">Resident Member <span class="text-danger">*</span> <span style="margin-left:2px;">:</span></label>
+
+                            <!-- Member checkboxes container on the right -->
+                            <div class="flex-fill">
+                                <div id="allWingsContainer" class="wings-container d-flex flex-wrap">
+                                    @foreach (var wing in new[] { "A", "B", "C" })
+                                    {
+                                        <div class="wing-column mr-3 mb-2" style="min-width: 200px;">
+                                            <details class="wing-details" id="details_@wing">
+                                                <summary class="wing-summary"><span>Wing @wing</span></summary>
+
+                                                <!-- ✅ Wing level ALL checkbox -->
+                                                <div class="form-check mb-1" style=" margin-left: 11px;">
+                                                    <input type="checkbox"
+                                                           class="form-check-input wing-select-all"
+                                                           data-wing="@wing"
+                                                           id="chk_all_@wing" />
+                                                    <label class="form-check-label" for="chk_all_@wing">
+                                                        <strong>Select All in Wing @wing</strong>
+                                                    </label>
+                                                </div>
+
+
+
+
+
+                                                <div id="members_@wing" class="members-box">
+                                                    @foreach (var member in members.Where(m => m.FlatCode.StartsWith(wing)))
+                                                    {
+                                                        <div class="member-box">
+                                                            <div class="form-check">
+                                                                <input type="checkbox"
+                                                                       class="form-check-input memberCheckbox member-@wing"
+                                                                       name="ToEmailAddresses"
+                                                                       value="@member.ToEmailAddress"
+                                                                       id="chk_@member.ToEmailAddress"
+                                                                       @(member.IsSelected ? "checked" : "") />
+                                                                <label class="form-check-label" for="chk_@member.ToEmailAddress">
+                                                                    <span class="member-name">@member.FullName</span> (@member.FlatCode)
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </details>
+                                        </div>
+                                    }
+                                </div>
+                                <span id="MemberSelectionError" class="text-danger small" style="display:none;"></span>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+
+
+
+
+
+
+
+                    <!--   Manual Email Address  -->
+                    <div id="manualEmailBox" class="form-group" style="display:none;">
+                        <div class="d-flex align-items-center">
+                            <label id="label" class="mb-0 mr-2" style="white-space: nowrap;">Enter Email   <span class="text-danger">*</span> <span style="margin-left:58px;">:</span></label>
+                            <input type="text" class="form-control" name="ManualEmail" placeholder="abc@gmail.com" style="max-width: 300px; margin-left:30px;" />
+                        </div>
+                        <span id="ManualEmailError" class="text-danger small" style="display: none; margin-left: 200px; "></span>
+                    </div>
+
+
+
+
+
+
+
+
+
+                    <div class="ccstaff-div">
+                        <div class="form-group d-flex align-items-start">
+                            <!-- Label on the left -->
+                            <label id="label" class="mr-3 pt-2" style="min-width: 150px;">
+                                CC Member  <span class="text-danger">*</span> <span style="margin-left:48px;">:</span>
+                            </label>
+
+                            <!-- Dropdown container on the right -->
+                            <div class="flex-fill">
+                                <div id="ccStaffContainer" class="wings-container d-flex flex-wrap">
+                                    <div class="wing-column mr-3 mb-2" style="min-width: 200px;">
+                                        <details class="wing-details" id="details_staff">
+                                            <summary class="wing-summary"><span>Staff Members</span></summary>
+
+                                            <!-- ✅ Staff level ALL checkbox -->
+                                            <div class="form-check mb-1" style="margin-left: 11px;">
+                                                <input type="checkbox"
+                                                       class="form-check-input"
+                                                       id="chk_all_staff" />
+                                                <label class="form-check-label" for="chk_all_staff">
+                                                    <strong>Select All Staff</strong>
+                                                </label>
+                                            </div>
+
+                                            <!-- ✅ Staff list -->
+                                            <div id="staff_list" class="members-box">
+                                                @foreach (var staffMember in staff)
+                                                {
+                                                    <div class="member-box">
+                                                        <div class="form-check">
+                                                            <input type="checkbox"
+                                                                   class="form-check-input staffCheckbox"
+                                                                   name="CcEmailAddresses"
+                                                                   value="@staffMember.Email"
+                                                                   id="chk_@staffMember.StaffCode" />
+                                                            <label class="form-check-label" for="chk_@staffMember.StaffCode">
+                                                                <span class="member-name">@staffMember.WingName</span> - @staffMember.StaffName - <b> @staffMember.RoleName </b>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </details>
+                                    </div>
+                                </div>
+                                <span id="CcStaffSelectionError" class="text-danger small" style="display: none; margin-left: 22px;"></span>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <br />
+
+
+
+                    <!--   Subject  -->
+                    <!-- Subject -->
+                    <div class="form-group d-flex align-items-start">
+                        <!-- Label on the left -->
+                        <label id="label" for="Subject" class="pt-2" style="min-width: 150px;">
+                            Subject  <span class="text-danger">*</span> <span style="margin-left:76px;">:</span>
+                        </label>
+
+                        <!-- Textbox + error in vertical layout -->
+                        <div class="flex-grow-1">
+                            @Html.TextBoxFor(m => m.Subject, new { @class = "form-control", style = "max-width: 500px;  margin-left: 35px;  " })
+                            <span id="SubjectError" class="text-danger small validation" style="display: none; margin-left: 37px;">Please enter subject.</span>
+                        </div>
+                    </div>
+
+
+
+                </div>
+
+
+                <!-- Message Body -->
+                <div class="form-group message-wrapper d-flex align-items-start">
+                    <label id="label" class="message-label">Message <span class="text-danger">*</span> <span style="margin-left:65px;">:</span> </label>
+
+                    <div class="message-editor-container flex-grow-1 " style="margin-left:-41px">
+                            <div class="card-body p-2">
+                                <div id="emailBody" class="email-editor" contenteditable="true" required="required">
+                                    @Html.Raw(Model.EmailBodyMessage)
+                                </div>
+                            </div>
+                    </div>
+                </div>
+
+                <input type="hidden" name="EmailBodyMessage" id="hiddenEmailBody" />
+
+
+
+
+
+
+                <div class="form-groupp d-flex align-items-start">
+                    <!-- Label -->
+                    <label id="label" for="PostedFile" class="pt-2" style="min-width: 150px;">
+                        Attachment <span style="margin-left:47px;">:</span>
+                    </label>
+
+                    <!-- File input + error + preview -->
+                    <div class="flex-grow-1" style=" margin-left: 26px;">
+                        <div class="custom-file w-110" style="max-width: 300px;">
+                            <input type="file" name="PostedFile" id="PostedFile" class="custom-file-input" multiple>
+                            <label class="custom-file-label chooseattachment" for="PostedFile">Choose files</label>
+                        </div>
+
+                        <!-- File preview and error -->
+                        <div id="filePreviewList" class="file-preview-list mt-3"></div>
+                        <span id="fileLimitError" class="text-danger small file-limit-error mt-1" style="display:none;">
+                            Max limit is 5 files.
+                        </span>
+                    </div>
+                </div>
+
+
+
+
+                /*  Send Buttons */
+
+                <div class="form-group mt-3  buttonss">
+                    <button type="submit" class="btn btn-send equal-width-btn">Send Email</button>
+                    <a href="@Url.Action("SendEMailVSM", "AccountManager")" class="btn btn-danger equal-width-btn btn-cancel">Cancel</a>
+                </div>
+
+            }
+
+
+        </div>
+    </div>
+</div>
+
+
+
+
+<script>
+
+
+    $(document).ready(function () {
+        let uploadedFiles = [];
+
+
+        document.getElementById("chk_all_staff").addEventListener("change", function () {
+            let checkboxes = document.querySelectorAll(".staffCheckbox");
+            checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+
+
+        let fullTemplate = "";   // original full message
+        let warmTemplate = "";   // only warm regards message
+
+        // Save original full + warm regards block
+        function captureTemplates() {
+            const fullBody = $("#emailBody").html();
+            fullTemplate = fullBody;
+
+            const warmIndex = fullBody.toLowerCase().indexOf("warm regards");
+            if (warmIndex !== -1) {
+                warmTemplate = fullBody.substring(warmIndex);
+            }
+        }
+
+        // Prevent deletion of "warm regards" block
+        function preventWarmDeletion() {
+            const currentContent = $("#emailBody").html();
+            const warmIndex = currentContent.toLowerCase().indexOf("warm regards");
+
+            if (warmIndex === -1 && warmTemplate !== "") {
+                $("#emailBody").html(currentContent + "<br>" + warmTemplate);
+            }
+        }
+
+        // Restore full original message (before trimming)
+        function restoreFullTemplate() {
+            if (fullTemplate !== "") {
+                $("#emailBody").html(fullTemplate);
+            }
+        }
+
+        // Capture initial state
+        captureTemplates();
+
+        // Protect warm regards from accidental delete
+        $("#emailBody").on("blur keyup paste input", function () {
+            preventWarmDeletion();
+        });
+
+        // Dropdown change
+        $("#wingSelector").on("change", function () {
+            const wingVal = $(this).val();
+
+            // Reset manual input and errors
+            $("input[name='ManualEmail']").val("").removeClass("is-invalid is-valid");
+            $("#ManualEmailError").hide();
+
+            if (wingVal === "A", "B", "C", "All", "MANUAL") {
+
+                $(".memberCheckbox").prop("checked", false);
+
+                $(".member-div").show();
+                $("#manualEmailBox").hide();
+
+                // validation error
+            } else {
+                // valid
+            }
+
+            if (wingVal === "OTHER") {
+                // manual email box show code...
+                $(".memberCheckbox").prop("checked", false);
+
+                $(".member-div").hide();
+                $("#manualEmailBox").show();
+
+
+            } else if (wingVal === "MANUAL") {
+                // Show member checkboxes, but DO NOT reset their checked state here
+                $(".memberCheckbox").prop("checked", false);
+
+                $(".member-div").show();
+                $("#manualEmailBox").hide();
+                // Do NOT reset checkboxes here - keep user selections intact
+            } else {
+                // For All or specific wings, reset and select accordingly
+                $(".memberCheckbox").prop("checked", false);
+                $(".wing-select-all").prop("checked", false);
+                if (wingVal === "All") {
+                    $(".memberCheckbox").prop("checked", true);
+                    $(".wing-select-all").prop("checked", true);
+                } else if (["A", "B", "C"].includes(wingVal)) {
+                    $(`.member-${wingVal}`).prop("checked", true);
+                    $(`#chk_all_${wingVal}`).prop("checked", true);
+                }
+            }
+
+            // validate member selection
+            if (["A", "B", "C", "All", "MANUAL"].includes(wingVal)) validateMemberSelection();
+
+            preventWarmDeletion();
+        });
+
+
+
+
+
+        $(document).on("change", ".wing-select-all", function () {
+            const wing = $(this).data("wing");
+            const isChecked = $(this).is(":checked");
+
+            // Toggle all member checkboxes of that wing
+            $(`.member-${wing}`).prop("checked", isChecked);
+
+            // ✅ Update receiver dropdown
+            if (isChecked) {
+                $("#wingSelector").val(wing).trigger("change");
+            } else {
+                // if no members left checked, reset dropdown
+                if ($(".memberCheckbox:checked").length === 0) {
+                    $("#wingSelector").val("").trigger("change");
+                } else {
+                    $("#wingSelector").val("MANUAL").trigger("change");
+                }
+            }
+
+            validateMemberSelection();
+        });
+
+
+
+
+        $(document).on("change", ".memberCheckbox", function () {
+            const classes = $(this).attr("class"); // e.g. "form-check-input memberCheckbox member-A"
+            const wing = classes.match(/member-([ABC])/)[1]; // extract wing letter
+
+            const totalMembers = $(`.member-${wing}`).length;
+            const checkedMembers = $(`.member-${wing}:checked`).length;
+
+            $(`#chk_all_${wing}`).prop("checked", totalMembers === checkedMembers);
+
+            // Re-run validation
+            validateMemberSelection();
+        });
+
+
+
+
+        $("#loadingSpinner").show();
+        $("body").css("overflow", "hidden");
+
+        // Hide loader
+        $("#loadingSpinner").hide();
+        $("body").css("overflow", "");
+
+
+
+        // subject box
+
+
+
+        $("#Subject").on("input blur", function () {
+            const subjectVal = $(this).val().trim();
+
+            if (subjectVal === "") {
+                $(this).addClass("is-invalid").removeClass("is-valid");
+                $("#SubjectError").stop(true, true).text("Please enter subject.").fadeIn();
+
+                clearTimeout(window.subjectErrorTimeout);
+                window.subjectErrorTimeout = setTimeout(() => {
+                    $("#SubjectError").fadeOut();
+                }, 3000);
+            } else {
+                $(this).removeClass("is-invalid").addClass("is-valid");
+                $("#SubjectError").stop(true, true).hide();
+                clearTimeout(window.subjectErrorTimeout);
+            }
+        });
+
+
+
+
+
+        // ✅ Manual Email validation
+        $("input[name='ManualEmail']").on("input", function () {
+            const val = $(this).val().trim();
+            const wingVal = $("#wingSelector").val();
+
+            // ✅ General email regex (single )
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+            if (wingVal === "OTHER" && val === "") {
+                $(this).addClass("is-invalid").removeClass("is-valid");
+                $("#ManualEmailError").text("Please enter at least one email address.").fadeIn();
+                setTimeout(() => $("#ManualEmailError").fadeOut(), 3000);
+            } else if (!emailRegex.test(val)) {
+                $(this).addClass("is-invalid").removeClass("is-valid");
+                $("#ManualEmailError").text("Please enter a valid email address (e.g., user@example.com).").fadeIn();
+                setTimeout(() => $("#ManualEmailError").fadeOut(), 3000);
+            } else {
+                $(this).removeClass("is-invalid").addClass("is-valid");
+                $("#ManualEmailError").hide();
+            }
+        });
+
+
+        // ✅ Member checkbox interaction
+        $(".memberCheckbox").on("change", function () {
+            validateMemberSelection();
+
+            const selected = $(".memberCheckbox:checked").length;
+            if (selected > 0) {
+                $("#wingSelector").val("MANUAL");
+            } else if ($("#wingSelector").val() === "MANUAL") {
+                $("#wingSelector").val("");
+            }
+
+            // Update wing-level "Select All" checkbox states (optional)
+            ['A', 'B', 'C'].forEach(wing => {
+                const totalMembers = $(`.member-${wing}`).length;
+                const checkedMembers = $(`.member-${wing}:checked`).length;
+                $(`#chk_all_${wing}`).prop("checked", totalMembers === checkedMembers);
+            });
+        });
+
+
+
+        // ✅ Wing details toggle (only one open at a time)
+        $(".wing-details summary").on("click", function () {
+            const parent = this.parentElement;
+            setTimeout(() => {
+                if (parent.open) {
+                    $(".wing-details").not(parent).removeAttr("open");
+                }
+            }, 10);
+        });
+
+        // ✅ File upload handling
+        $("#PostedFile").on("change", function () {
+            const newFiles = Array.from(this.files);
+            let fileLimitExceeded = false;
+
+            newFiles.forEach(file => {
+                const exists = uploadedFiles.some(f => f.name === file.name && f.size === file.size);
+                if (!exists) uploadedFiles.push(file);
+            });
+
+            if (uploadedFiles.length > 5) {
+                fileLimitExceeded = true;
+                uploadedFiles = uploadedFiles.slice(0, 5); // Keep only first 5
+                $("#fileLimitError").fadeIn();
+                setTimeout(() => $("#fileLimitError").fadeOut(), 3000);
+            } else {
+                $("#fileLimitError").hide();
+            }
+
+            const dt = new DataTransfer();
+            uploadedFiles.forEach(f => dt.items.add(f));
+            this.files = dt.files;
+
+            renderFilePreview();
+        });
+
+
+        function renderFilePreview() {
+            const preview = $("#filePreviewList").empty();
+            uploadedFiles.forEach((file, index) => {
+                const url = URL.createObjectURL(file);
+                preview.append(`
+                    <div class="preview-item">
+                        <span><a href="${url}" target="_blank">${file.name}</a></span>
+                        <span class="remove-btn" onclick="removeFile(${index})">x</span>
+                    </div>
+                `);
+            });
+        }
+
+        window.removeFile = function (index) {
+            uploadedFiles.splice(index, 1);
+            const dt = new DataTransfer();
+            uploadedFiles.forEach(f => dt.items.add(f));
+            $("#PostedFile")[0].files = dt.files;
+            renderFilePreview();
+        };
+
+
+
+
+
+
+        // ✅ Submit Form
+
+
+        $('#hiddenEmailBody').val($('#emailBody').html());
+
+
+        $("#emailForm").on("submit", function (e) {
+            e.preventDefault();
+            const form = this;
+            let isValid = true;
+            let firstInvalidField = null;
+
+            const wingVal = $("#wingSelector").val();
+            const subjectVal = $("#Subject").val().trim();
+            const manualEmails = $("input[name='ManualEmail']").val().trim();
+            const totalCheckboxes = $(".memberCheckbox:checked").length;
+            const emailBody = $("#emailBody").html().trim();
+            $("#hiddenEmailBody").val(emailBody);
+
+            if (wingVal === "") {
+                $("#wingSelector").addClass("is-invalid").removeClass("is-valid");
+                $("#wingSelectorError").stop(true, true).text("Please select receiver group.").fadeIn();
+
+                clearTimeout(window.wingSelectorErrorTimeout);
+                window.wingSelectorErrorTimeout = setTimeout(() => {
+                    $("#wingSelectorError").fadeOut();
+                }, 3000);
+
+                if (!firstInvalidField) firstInvalidField = $("#wingSelector");
+                isValid = false;
+            }
+
+
+            if (subjectVal === "") {
+                $("#Subject").addClass("is-invalid").removeClass("is-valid");
+                $("#SubjectError").stop(true, true).text("Please enter subject.").fadeIn();
+
+                clearTimeout(window.subjectErrorTimeout);
+                window.subjectErrorTimeout = setTimeout(() => {
+                    $("#SubjectError").fadeOut();
+                }, 3000);
+
+                if (!firstInvalidField) firstInvalidField = $("#Subject");
+                isValid = false;
+            }
+
+            if (["A", "B", "C", "All", "MANUAL"].includes(wingVal) && totalCheckboxes === 0) {
+                $("#MemberSelectionError")
+                    .stop(true, true)
+                    .text("Please select at least one member.")
+                    .fadeIn();
+
+                clearTimeout(window.memberSelectionErrorTimeout);
+                window.memberSelectionErrorTimeout = setTimeout(() => {
+                    $("#MemberSelectionError").fadeOut();
+                }, 3000);
+
+                $(".wing-details select").addClass("is-invalid").removeClass("is-valid"); // <-- key fix
+
+                if (!firstInvalidField) firstInvalidField = $(".wing-details").first();
+                isValid = false;
+            }
+
+
+            if (wingVal === "OTHER" && manualEmails === "") {
+                $("input[name='ManualEmail']").addClass("is-invalid").removeClass("is-valid");
+                $("#ManualEmailError").text("Please enter at least one email address.").fadeIn();
+
+                clearTimeout(window.ManualEmailError);
+                window.ManualEmailError = setTimeout(() => {
+                    $("#ManualEmailError").fadeOut();
+                }, 3000);
+
+                if (!firstInvalidField) firstInvalidField = $("input[name='ManualEmail']");
+                isValid = false;
+            }
+
+
+
+            // cc staff validation new
+
+            if (!validateCcStaffSelection()) {
+                if (!firstInvalidField) firstInvalidField = $(".ccstaff-div");
+                isValid = false;
+            }
+
+
+
+
+            if (!isValid) {
+                $("html, body").animate({
+                    scrollTop: firstInvalidField.offset().top - 100
+                }, 500);
+                firstInvalidField.focus();
+                return;
+            }
+
+            // ✅ Confirm & Submit
+            swal({
+                title: "Are you sure?",
+                text: "Do you want to send this email now?",
+                icon: "warning",
+                buttons: ["Cancel", "Yes, Send it"]
+            }).then((willSend) => {
+                if (willSend) {
+                    $("#loadingSpinner").show();
+                    const formData = new FormData(form);
+                    $.ajax({
+                        url: form.action,
+                        type: form.method,
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function () {
+                            $("#loadingSpinner").hide();
+                            swal({
+                                title: "Success",
+                                text: "Emails sent Successfully!",
+                                icon: "success",
+                                timer: 3000,
+                                buttons: false
+                            }).then(() => {
+                                location.reload();
+                            });
+                        },
+                        error: function () {
+                            $("#loadingSpinner").hide();
+                            swal("Error", "Something went wrong while sending emails.", "error");
+                        }
+
+                    });
+                }
+            });
+        });
+
+        // ✅ Member selection validation
+        function validateMemberSelection() {
+            const wingVal = $("#wingSelector").val();
+            const totalSelected = $("input[name='ToEmailAddresses']:checked").length;
+
+            if (["A", "B", "C", "All", "MANUAL"].includes(wingVal)) {
+                if (totalSelected === 0) {
+                    $("#MemberSelectionError").text("Please select at least one member.").show();
+                    $(".wing-details").removeClass("valid-selection").addClass("invalid-selection");
+                    return false;
+                } else {
+                    $("#MemberSelectionError").hide();
+                    $(".wing-details").removeClass("invalid-selection").addClass("valid-selection");
+                    return true;
+                }
+            } else {
+                $("#MemberSelectionError").hide();
+                $(".wing-details").removeClass("invalid-selection valid-selection");
+                return true;
+            }
+        }
+
+        // staff selection validation new
+
+        function validateCcStaffSelection() {
+            const totalSelected = $("input[name='CcEmailAddresses']:checked").length;
+            if (totalSelected === 0) {
+                $("#CcStaffSelectionError")
+                    .text("Please select at least one CC staff.")
+                    .show();
+
+                // keep red border
+                $(".ccstaff-div .wing-details")
+                    .removeClass("valid-selection")
+                    .addClass("invalid-selection");
+
+                // hide message after 3 seconds
+                setTimeout(() => {
+                    $("#CcStaffSelectionError").fadeOut();
+                }, 3000);
+
+                return false;
+            } else {
+                // hide message instantly
+                $("#CcStaffSelectionError").hide();
+
+                // turn border green when valid
+                $(".ccstaff-div .wing-details")
+                    .removeClass("invalid-selection")
+                    .addClass("valid-selection");
+
+                return true;
+            }
+        }
+
+
+
+        $(document).on("change", ".staffCheckbox", function () {
+            validateCcStaffSelection();
+            // Handle select all staff checkbox state
+            const totalStaff = $(".staffCheckbox").length;
+            const checkedStaff = $(".staffCheckbox:checked").length;
+            $("#chk_all_staff").prop("checked", totalStaff === checkedStaff);
+        });
+
+
+
+
+
+        $('#ddlMemberSelection').change(function () {
+            const selectedValue = $(this).val();
+
+            if (selectedValue === 'ManualEmail') {
+                const emailBodyDiv = document.getElementById('emailBody');
+                const fullHTML = emailBodyDiv.innerHTML;
+
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = fullHTML;
+
+                let keepHTML = '';
+                let foundWarmRegards = false;
+
+                // Loop through each direct child block (e.g., <p>, <div>, etc.)
+                Array.from(tempDiv.childNodes).forEach(node => {
+                    const text = node.textContent || '';
+                    if (!foundWarmRegards && /Warm Regards/i.test(text)) {
+                        foundWarmRegards = true;
+                    }
+
+                    if (foundWarmRegards) {
+                        keepHTML += node.outerHTML || node.textContent;
+                    }
+                });
+
+                // Fallback if "Warm Regards" not found
+                if (!keepHTML.trim()) {
+                    keepHTML = `<p>Warm Regards,</p><p>Society Management Team</p>`;
+                }
+
+                emailBodyDiv.innerHTML = keepHTML;
+            }
+        });
+
+    });
+
+
+
+
+
+
+
+
+</script>

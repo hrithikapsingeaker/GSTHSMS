@@ -1,0 +1,762 @@
+﻿@model GSTSMSLibrary.AccountManager.AccountManager
+
+<link href="~/Content/css/UpdateBudget.css" rel="stylesheet" />
+<style>
+    .modal-container {
+        height: 470px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .modal-header-custom {
+        flex-shrink: 0;
+        background: #615677;
+        color: white;
+        padding: 10px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 4px 4px 0 0;
+    }
+
+    .modal-body-scrollable {
+        overflow-y: auto;
+        flex-grow: 1;
+        padding: 20px;
+    }
+
+    .btn.btn-secondary.category {
+        background-color: rebeccapurple;
+        border-color: rebeccapurple;
+        color: white;
+    }
+
+
+    .btn.btn-secondary.category {
+        background-color: purple !important;
+        border-color: purple !important;
+        color: white !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+        .btn.btn-secondary.category:hover,
+        .btn.btn-secondary.category:focus,
+        .btn.btn-secondary.category:active,
+        .btn.btn-secondary.category:visited,
+        .btn.btn-secondary.category.active {
+            background-color: purple !important;
+            border-color: purple !important;
+            color: white !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+    .file-preview {
+        margin-top: 5px;
+        font-size: 12px;
+    }
+
+    .preview-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+    }
+
+    .remove-file {
+        cursor: pointer;
+        color: red;
+        margin-left: 10px;
+    }
+
+    .distribution-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+        table-layout: fixed;
+    }
+
+        .distribution-table th,
+        .distribution-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .distribution-table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+            text-align: left;
+        }
+
+            .distribution-table th:nth-child(1),
+            .distribution-table td:nth-child(1) {
+                width: 25%;
+            }
+
+            .distribution-table th:nth-child(2),
+            .distribution-table td:nth-child(2) {
+                width: 15%;
+                text-align: right;
+            }
+
+            .distribution-table th:nth-child(3),
+            .distribution-table td:nth-child(3) {
+                width: 20%;
+                text-align: right;
+            }
+
+            .distribution-table th:nth-child(4),
+            .distribution-table td:nth-child(4) {
+                width: 40%;
+            }
+
+
+        .distribution-table thead th {
+            background-color: #f8f9fa;
+            color: #212529;
+            font-weight: bold;
+        }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .mt-2 {
+        margin-top: 10px;
+    }
+
+    .mt-3 {
+        margin-top: 15px;
+    }
+
+    .debug-info {
+        font-size: 12px;
+        color: #666;
+        background: #f9f9f9;
+        padding: 10px;
+        border-radius: 4px;
+        margin-top: 10px;
+    }
+
+    .error-message {
+        color: red;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+
+    .category {
+        height: 27px;
+        background-color: rebeccapurple;
+    }
+
+        .category:hover {
+            height: 27px;
+            background-color: purple;
+        }
+
+    .file-chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 0 5px;
+        margin-right: 8px;
+        font-size: 14px;
+        background: none;
+        color: #213ab5;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+    }
+
+        .file-chip a {
+            color: #213ab5;
+            text-decoration: none;
+            cursor: pointer;
+            display: inline-block;
+            max-width: 220px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+    .file-remove {
+        cursor: pointer;
+        color: red;
+        margin-left: 6px;
+        font-weight: bold;
+        font-size: 18px;
+    }
+
+        .file-remove:hover {
+            color: darkred;
+        }
+
+    .distribution-table th,
+    .distribution-table td {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .distribution-table input.form-control {
+        text-align: center;
+    }
+
+    td span:first-child {
+        margin-right: 2px;
+    }
+
+    /*.Labels {
+        display: inline;
+        font-weight: bold;*/
+    /* Jari asel tar aani kahi paddhaticha style theu shakta */
+    /*}*/
+
+
+</style>
+
+@{
+    var model = Model ?? new GSTSMSLibrary.AccountManager.AccountManager();
+    var eventDistributions = model.EventDistributions ?? new List<GSTSMSLibrary.AccountManager.AccountManager>();
+}
+
+@using (Html.BeginForm("UpdateActualCost", "AccountManager", FormMethod.Post, new { id = "updateForm", enctype = "multipart/form-data" }))
+{
+    <div class="modal-container">
+        <!-- Modal Header -->
+        <div class="modal-header-custom">
+            <span class="modal-title-custom">Update Details</span>
+            <button type="button" class="btn-close-custom" onclick="closeModal()"
+                    style="border: none; outline: none; box-shadow: none; width: 27px; font-size: 20px; height: 27px; display: flex; align-items: center; padding-left:5px; margin-right:-8px">
+                ×
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div style="overflow-y: auto; flex-grow: 1; padding: 20px;">
+            <input type="hidden" name="eventCode" value="@(model.EventCode ?? "")" />
+
+            <!-- Event Information -->
+            <div class="row">
+                <div class="col-half">
+                    <div class="form-control savings-display align-row">
+                        <span class="Labels">Event Name</span>
+                        <span class="Colon" style=" margin-left: 18px;">:</span>
+                        <span class="Content" style=" margin-left: 12px;">@(model.EventName ?? "N/A")</span>
+                    </div>
+                </div>
+                <div class="col-half">
+                    <div class="form-control savings-display align-row">
+                        <span class="Labels">Bank Account</span>
+                        <span class="Colon" style=" margin-left: 36px;">:</span>
+                        <span class="Content" style=" margin-left: 8px;">@(model.BankAccount ?? "N/A")</span>
+                    </div>
+                </div>
+                <div class="col-half">
+                    <div class="form-control savings-display align-row">
+                        <span class="Labels">Event Handler</span>
+                        <span class="Colon" style=" margin-left: 3px;">:</span>
+                        <span class="Content" style=" margin-left: 10px;">@(model.EventHandlerName ?? "N/A")</span>
+                    </div>
+                </div>
+                <div class="col-half">
+                    <div class="form-control savings-display align-row">
+                        <span class="Labels">IFSC Code</span>
+                        <span class="Colon" style=" margin-left: 66px;">:</span>
+                        <span class="Content" style=" margin-left: 7px;">@(model.IFSCCode ?? "N/A")</span>
+                    </div>
+                </div>
+                <div class="col-half">
+                    <div class="form-control savings-display align-row">
+                        <span class="Labels">Contact No.</span>
+                        <span class="Colon" style=" margin-left: 18px;">:</span>
+                        <span class="Content" style=" margin-left: 8px;">@(model.PhoneNumber ?? "N/A")</span>
+                    </div>
+                </div>
+                <div class="col-half">
+                    <div class="form-control savings-display align-row">
+                        <span class="Labels">Allocated Budget</span>
+                        <span class="Colon" style=" margin-left: 10px;">:</span>
+                        <span class="Content" style=" margin-left: 6px;">@(model.AllocatedBudget == 0 ? "₹0.00" : "₹" + model.AllocatedBudget.ToString("N2"))</span>
+                    </div>
+                </div>
+                <div class="col-half">
+                    <div class="form-control savings-display align-row">
+                        <span class="Labels">Created Date</span>
+                        <span class="Colon" style=" margin-left: 9px;">:</span>
+                        <span class="Content" style=" margin-left: 9px;">
+                            @(model.CreatedDate != DateTime.MinValue ? model.CreatedDate.ToString("dd-MM-yyyy") : "-")
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-half">
+                    <div class="form-control savings-display align-row">
+                        <span class="Labels">Event End Date</span>
+                        <span class="Colon" style=" margin-left: 27px;">:</span>
+                        <span class="Content" style=" margin-left: 9px;">
+                            @(model.EventEndDate != DateTime.MinValue ? model.EventEndDate.ToString("dd-MM-yyyy") : "-")
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Distribution Table -->
+            <button class="btn btn-secondary category" type="button" data-bs-toggle="collapse" data-bs-target="#full-table" aria-expanded="false" aria-controls="full-table">
+                Event Distribution
+            </button>
+
+            <div id="full-table" class="collapse">
+                <table class="distribution-table mt-2" id="distrubution">
+                    <thead>
+                        <tr class="bg-light text-dark">
+                            <th style="width:50px; text-align:center">Sr.No</th>
+                            <th style="width: 150px; text-align: center">Category Name</th>
+                            <th style="width: 170px; text-align: center">Allocated Budget</th>
+                            <th style="width: 160px; text-align: center">Actual Cost</th>
+                            <th style="width: 240px; text-align: center">Attachment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (eventDistributions.Count > 0)
+                        {
+                            for (int i = 0; i < eventDistributions.Count; i++)
+                            {
+                                var dist = eventDistributions[i];
+                                <tr>
+                                    <td class="text-center">@(i + 1)</td>
+                                    <td class="text-center">
+                                        @(dist.CategoryName ?? "N/A")
+                                        <input type="hidden" name="eventDCodes[@i]" value="@(dist.EventDCode ?? "")" />
+                                    </td>
+                                    <td style="text-align: center;">
+                                        @(dist.AllocatedBudget == 0 ? "₹0.00" : "₹" + dist.AllocatedBudget.ToString("N2"))
+                                    </td>
+                                    <td>
+                                        <div class="input-group">
+                                            <span class="input-group-text">₹</span>
+                                            <input name="actualCosts[@i]"
+                                                   value="@(dist.ActualBudget != 0 ? dist.ActualBudget.ToString("N2") : "")"
+                                                   class="form-control actual-cost-input" />
+                                        </div>
+                                        <span class="validation-message text-danger" style="display:none; margin-top: 4px; font-size: 12px;">Please Enter Actual Cost</span>
+                                    </td>
+
+                                    <td>
+                                        <div class="file-input-custom" id="fileInputBox-@i" style="display:flex; border:1px solid #ced4da; border-radius:4px; overflow:hidden;">
+                                            <div id="fileNameDisplay-@i" style="flex:1; padding:6px 12px; background:#fff; color:#6c757d; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                                Choose files
+                                            </div>
+                                            <label for="postedFiles-@i" style="margin:0; padding:6px 12px; background:#f1f1f1; cursor:pointer; border-left:1px solid #ced4da;">
+                                                Browse
+                                            </label>
+                                        </div>
+                                        <input type="file" id="postedFiles-@i" name="postedFiles[@i]" multiple class="distribution-file" style="display:none;" />
+                                        <div class="file-selected-list d-flex flex-wrap" id="selectedFilesList-@i"></div>
+                                        <span class="validation-message-files" style="display:none; color:red" id="fileValidationMessage-@i">Please select files.</span>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center">
+                                    No distribution records found.
+                                    @if (model.AllocatedBudget > 0)
+                                    {
+                                        <div style="color: orange; margin-top: 5px;">
+                                            <small>Note: Budget is allocated but no distribution categories found.</small>
+                                        </div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+
+                        <!-- Summary/total row (bottom) -->
+                        <tr style="font-weight: bold; height:5px">
+                            <td colspan="2" class="text-right" style="color:Black">Total</td>
+                            <td style="text-align: center; color:black">
+                                <span style="margin-right: 2px;">₹</span><span>@(model.AllocatedBudget == 0 ? "0.00" : model.AllocatedBudget.ToString("N2"))</span>
+                            </td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="text" id="ActualCost" name="ActualCost"
+                                           class="form-control" maxlength="10" readonly />
+                                </div>
+                            </td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Buttons -->
+            <div class="text-center mt-3">
+                <button type="submit" class="btn-update-green" style="border: none; outline: none; box-shadow: none;">Update</button>
+                <button type="reset" class="btn-custom btn-custom-danger" id="resetButton" style="border: none; outline: none; box-shadow: none;">Clear</button>
+            </div>
+        </div>
+    </div>
+}
+
+<script>
+    // Global variable to store selected files for each input
+    var selectedFilesArr = {};
+
+    // Function to close the modal
+    function closeModal() {
+        $("#updateModal").modal("hide");
+    }
+
+    // Function to initialize all event handlers
+    function initializeEventHandlers() {
+        // Initialize actual cost input validation and calculation
+        $(".actual-cost-input").off("input").on("input", function() {
+            let val = $(this).val();
+
+            // Remove invalid characters except digits and decimal point
+            val = val.replace(/[^0-9.]/g, '');
+
+            // Allow only one decimal point
+            const parts = val.split('.');
+            if (parts.length > 2) {
+                val = parts[0] + '.' + parts.slice(1).join('');
+            }
+
+            // Limit total length to 10 characters
+            if (val.length > 10) {
+                val = val.substr(0, 10);
+            }
+
+            // Restrict decimal part length to 2 digits maximum
+            if (parts.length === 2) {
+                parts[1] = parts[1].substring(0, 2);
+                val = parts[0] + '.' + parts[1];
+            }
+
+            $(this).val(val);
+
+            // Update total actual cost
+            updateActualCost();
+        });
+
+        // Initialize file input change events
+        $(".distribution-file").off("change").on("change", function () {
+            const input = this;
+            const inputId = $(input).attr('id');
+            const index = inputId.split('-')[1];
+            const fileBox = $('#fileInputBox-' + index);
+            const validationMessage = $('#fileValidationMessage-' + index);
+            const newFiles = Array.from(input.files);
+            const browseLabel = $('label[for="postedFiles-' + index + '"]');
+
+            // Initialize array for this index if not exists
+            if (!selectedFilesArr[index]) {
+                selectedFilesArr[index] = [];
+            }
+
+            // Add new files if we have space and avoid duplicates
+            newFiles.forEach(file => {
+                if (selectedFilesArr[index].length < 3 &&
+                    !selectedFilesArr[index].some(f => f.name === file.name && f.size === file.size)) {
+                    selectedFilesArr[index].push(file);
+                }
+            });
+
+            // Handle case where too many files were selected (slice to 3 max)
+            if (selectedFilesArr[index].length > 3) {
+                selectedFilesArr[index] = selectedFilesArr[index].slice(0, 3);
+                fileBox.addClass('is-invalid');
+                validationMessage.text('You can attach up to 3 files only').show();
+            } else {
+                fileBox.removeClass('is-invalid');
+                validationMessage.hide();
+            }
+
+            // Disable or enable browse button based on total selected files length
+            if (selectedFilesArr[index].length >= 3) {
+                browseLabel.css({
+                    'pointer-events': 'none',
+                    'opacity': 0.5
+                }).attr('title', 'Maximum 3 files reached');
+            } else {
+                browseLabel.css({
+                    'pointer-events': '',
+                    'opacity': ''
+                }).removeAttr('title');
+            }
+
+            // Update the file input with selected files (reflect our filtered list)
+            const dt = new DataTransfer();
+            selectedFilesArr[index].forEach(file => dt.items.add(file));
+            input.files = dt.files;
+
+            // Update UI labels and previews
+            $('#fileNameDisplay-' + index).text(selectedFilesArr[index].length + ' file(s) selected');
+            renderFilePreview(index, $('#selectedFilesList-' + index));
+        });
+
+
+
+        // Initialize file remove events
+        $(document).off("click", ".file-remove").on("click", ".file-remove", function() {
+            const inputIndex = $(this).data('input-index');
+            const fileIdx = $(this).data('file-idx');
+
+            if (!selectedFilesArr[inputIndex] || isNaN(fileIdx) || fileIdx < 0 || fileIdx >= selectedFilesArr[inputIndex].length) return;
+
+            // Remove the file
+            selectedFilesArr[inputIndex].splice(fileIdx, 1);
+
+            // Update the file input
+            const fileInput = document.getElementById('postedFiles-' + inputIndex);
+            const dt = new DataTransfer();
+            selectedFilesArr[inputIndex].forEach(file => dt.items.add(file));
+            fileInput.files = dt.files;
+
+            // Update UI
+            renderFilePreview(inputIndex, $('#selectedFilesList-' + inputIndex));
+            const display = $('#fileNameDisplay-' + inputIndex);
+            display.text(selectedFilesArr[inputIndex].length > 0 ? (selectedFilesArr[inputIndex].length + ' file(s) selected') : 'Choose files');
+
+            const fileBox = $('#fileInputBox-' + inputIndex);
+            const validationMessage = $('#fileValidationMessage-' + inputIndex);
+            const browseLabel = $('label[for="postedFiles-' + inputIndex + '"]');
+
+            if (selectedFilesArr[inputIndex].length === 0) {
+                fileBox.addClass('is-invalid');
+                validationMessage.text('Please select files.').show();
+            } else {
+                fileBox.removeClass('is-invalid');
+                validationMessage.hide();
+            }
+
+            // Update browse button state
+            if (selectedFilesArr[inputIndex].length >= 3) {
+                browseLabel.css({
+                    'pointer-events': 'none',
+                    'opacity': 0.5
+                }).attr('title', 'Maximum 3 files reached');
+            } else {
+                browseLabel.css({
+                    'pointer-events': '',
+                    'opacity': ''
+                }).removeAttr('title');
+            }
+        });
+
+        // Initialize form submission
+        $('#updateForm').off('submit').on('submit', function(e) {
+            e.preventDefault();
+            let isValid = true;
+
+            // Validate Actual Cost inputs
+            $(".actual-cost-input").each(function() {
+                if (!validateSingleActualCost($(this))) {
+                    isValid = false;
+                }
+            });
+
+            // Validate File attachments
+            $(".distribution-file").each(function() {
+                if (!validateSingleAttachment($(this))) {
+                    isValid = false;
+                }
+            });
+
+            // If validation fails, show the table and abort submission
+            if (!isValid) {
+                var collapseElement = bootstrap.Collapse.getOrCreateInstance(document.getElementById('full-table'));
+                collapseElement.show();
+                return;
+            }
+
+            // Proceed with AJAX submission
+            const $submitBtn = $("#updateForm button[type='submit']");
+            const originalText = $submitBtn.text();
+
+            $submitBtn.prop("disabled", true).text("Saving...");
+            const formData = new FormData(this);
+
+            $.ajax({
+                url: '@Url.Action("UpdateActualCost", "AccountManager")',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        swal({
+                            title: "Success!",
+                            text: response.message || "Actual cost updated successfully.",
+                            icon: "success",
+                            timer: 3000,
+                            buttons: false
+                        });
+                        setTimeout(function() {
+                            location.reload();
+                        }, 3100);
+                    } else {
+                        swal("Error", response.message || "Update failed.", "error");
+                        $submitBtn.prop("disabled", false).text(originalText);
+                    }
+                },
+                error: function() {
+                    swal("Oops...", "Error saving actual costs!", "error");
+                    $submitBtn.prop("disabled", false).text(originalText);
+                }
+            });
+        });
+
+        // Initialize reset button
+        $('#resetButton').off('click').on('click', function() {
+            // Clear validation styles
+            $(".actual-cost-input, .distribution-file").removeClass("is-invalid is-valid").removeAttr("aria-invalid aria-describedby");
+            $(".validation-message, .validation-message-files").hide();
+
+            // Clear selected files and reset UI for each file input
+            $(".distribution-file").each(function() {
+                const index = $(this).attr('id').split('-')[1];
+                selectedFilesArr[index] = [];
+                $(this).val('');
+                $('#fileNameDisplay-' + index).text('Choose files');
+                $('#selectedFilesList-' + index).empty();
+                $('#fileInputBox-' + index).removeClass('is-invalid');
+                $('#fileValidationMessage-' + index).hide();
+
+                // Re-enable browse button
+                $('label[for="postedFiles-' + index + '"]').css({
+                    'pointer-events': '',
+                    'opacity': ''
+                }).removeAttr('title');
+            });
+
+            // Reset actual cost total
+            $("#ActualCost").val('');
+        });
+
+        // Initialize actual cost on page load
+        updateActualCost();
+    }
+
+    // Function to update the total actual cost
+    function updateActualCost() {
+        let total = 0;
+        $(".actual-cost-input").each(function() {
+            let val = parseFloat($(this).val()) || 0;
+            total += val;
+        });
+        $("#ActualCost").val(total.toFixed(2));
+    }
+
+    // Function to validate a single actual cost input
+    function validateSingleActualCost($input) {
+        const val = $input.val().trim();
+        const $messageSpan = $input.closest('td').find('.validation-message');
+        const numVal = parseFloat(val);
+
+        if (val === "" || isNaN(numVal) || numVal < 0) {
+            $input.addClass("is-invalid").removeClass("is-valid").attr("aria-invalid", "true");
+            $messageSpan.show();
+
+            setTimeout(() => {
+                $messageSpan.hide();
+            }, 3000);
+
+            return false;
+        } else {
+            $input.removeClass("is-invalid").addClass("is-valid").removeAttr("aria-invalid");
+            $messageSpan.hide();
+            return true;
+        }
+    }
+
+    // Function to validate a single attachment input
+    function validateSingleAttachment($input) {
+        const index = $input.attr('id').split('-')[1];
+        const $validationSpan = $('#fileValidationMessage-' + index);
+        const fileCount = $input[0].files.length;
+
+        if (fileCount === 0) {
+            $('#fileInputBox-' + index).addClass('is-invalid');
+            $validationSpan.text('Please select files.').show();
+
+            setTimeout(() => {
+                $validationSpan.hide();
+            }, 3000);
+
+            return false;
+        } else if (fileCount > 3) {
+            $('#fileInputBox-' + index).addClass('is-invalid');
+            $validationSpan.text('You can attach up to 3 files only').show();
+            return false;
+        } else {
+            $('#fileInputBox-' + index).removeClass('is-invalid');
+            $validationSpan.hide();
+            return true;
+        }
+    }
+
+    // Function to render file preview
+    function renderFilePreview(index, container) {
+        container.empty();
+        if (!selectedFilesArr[index] || selectedFilesArr[index].length === 0) return;
+
+        selectedFilesArr[index].forEach(function(file, i) {
+            const url = URL.createObjectURL(file);
+            const chip = $('<span class="file-chip"></span>');
+            const link = $('<a></a>')
+                .attr('href', url)
+                .attr('target', '_blank')
+                .attr('title', file.name)
+                .text(file.name);
+            const removeBtn = $('<span class="file-remove" title="Remove file">&times;</span>')
+                .attr('data-input-index', index)
+                .attr('data-file-idx', i);
+            chip.append(link).append(removeBtn);
+            container.append(chip);
+        });
+    }
+
+    // Initialize when document is ready
+    $(document).ready(function() {
+        initializeEventHandlers();
+
+        // Reinitialize when modal is shown (for Bootstrap modals)
+        $('#updateModal').on('shown.bs.modal', function() {
+            initializeEventHandlers();
+        });
+
+        // Reset when modal is hidden
+        $('#updateModal').on('hidden.bs.modal', function() {
+            // Clear selected files array
+            selectedFilesArr = {};
+
+            // Reset form
+            $('#updateForm')[0].reset();
+
+            // Clear file previews
+            $('.file-selected-list').empty();
+
+            // Reset file input displays
+            $('[id^="fileNameDisplay-"]').text('Choose files');
+
+            // Remove validation classes
+            $('.file-input-custom, .actual-cost-input').removeClass('is-invalid is-valid');
+
+            // Hide validation messages
+            $('.validation-message, .validation-message-files').hide();
+
+            // Re-enable all browse buttons
+            $('label[for^="postedFiles-"]').css({
+                'pointer-events': '',
+                'opacity': ''
+            }).removeAttr('title');
+
+            // Reset actual cost total
+            $("#ActualCost").val('');
+        });
+    });
+</script>

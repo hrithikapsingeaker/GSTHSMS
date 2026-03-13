@@ -1,0 +1,95 @@
+﻿@{
+    ViewBag.Title = "Calendar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="main-content">
+    <section class="section">
+        
+
+        <div class="section-body">
+         
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>Event Calendar</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="fc-overflow">
+                                <div id="myEvent"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- 🔍 Event Details Modal -->
+<div class="modal fade" id="eventDetailsModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Event Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="eventDetailsBody">
+                <p class="text-center">Loading...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link href="~/Content/modules/fullcalendar/fullcalendar.min.css" rel="stylesheet" />
+    <link href="~/Content/modules/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+}
+
+@section Scripts {
+    <script src="~/Content/modules/jquery.min.js"></script>
+    <script src="~/Content/modules/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/Content/modules/moment.min.js"></script>
+    <script src="~/Content/modules/fullcalendar/fullcalendar.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#myEvent').fullCalendar({
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'month,basicWeek,basicDay'
+                },
+                height: 600,
+                editable: false,
+                eventLimit: true,
+                events: '@Url.Action("GetCalendarEvents", "AccountManager")',
+                dayClick: function (date) {
+                    const selectedDate = date.format("YYYY-MM-DD");
+
+                    $('#eventDetailsBody').html('<p class="text-center">Loading...</p>');
+
+                    $.ajax({
+                        url: '@Url.Action("GetEventDetailsByDate", "AccountManager")',
+                        type: 'GET',
+                        data: { date: selectedDate },
+                        success: function (html) {
+                            $('#eventDetailsBody').html(html);
+                            $('#eventDetailsModal').modal('show');
+                        },
+                        error: function () {
+                            $('#eventDetailsBody').html("<div class='alert alert-danger'>Failed to load event details.</div>");
+                            $('#eventDetailsModal').modal('show');
+                        }
+                    });
+                },
+                eventRender: function (event, element) {
+                    element.css('color', '#ffffff'); // ✅ Only change: make event text color white
+                }
+            });
+        });
+    </script>
+}

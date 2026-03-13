@@ -1,0 +1,493 @@
+﻿@model List<GSTSMSLibrary.AccountManager.AccountManager>
+<link href="~/Content/css/CreateBudget.css" rel="stylesheet" />
+
+<style>
+    .is-invalid {
+        border: 2px solid red !important;
+    }
+
+    .is-valid {
+        border: 2px solid green !important;
+    }
+
+    .category {
+        height: 27px;
+        background-color: rebeccapurple;
+    }
+
+    #tblCategoryList thead {
+        background-color: #615677;
+        color: white;
+    }
+
+    .category:hover {
+        height: 27px;
+        background-color: rebeccapurple !important;
+    }
+
+    .category:focus,
+    .category:active {
+        background-color: rebeccapurple !important;
+        outline: none;
+        box-shadow: none;
+    }
+
+    #tblCategoryList td, #tblCategoryList th {
+      /*  /text-align: center !important;
+        / vertical-align: middle;*/
+    }
+
+  /*  .btn.btn-sm{
+        padding:10px 8.4px;
+    }*/
+</style>
+
+@using (Html.BeginForm("SubmitBudget", "AccountManager", FormMethod.Post, new { id = "budgetForm" }))
+{
+    <div class="modal-container" id="createModal">
+        <!-- Modal Header -->
+        <div class="modal-header-custom">
+            <h5 class="modal-title-custom">Create Budget</h5>
+            <button type="button" class="btn-close-custom" onclick="closeModal()"
+                    style="border: none; outline: none; box-shadow: none; font-size: 20px; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; ">
+                ×
+            </button>
+        </div>
+
+
+
+
+
+        <!-- Modal Body -->
+        <div class="modal-body-custom">
+            <div class="row">
+                <!-- Event Name -->
+                <div class="col">
+                    <label class="form-label">Event Name: <span class="text-danger">*</span></label>
+                    <select id="ddlEventName" name="EventName" class="form-select small-input">
+                        <option value="">----Select----</option>
+                        @foreach (var ev in Model)
+                        {
+                            <option value="@ev.EventName" data-fromdate="@ev.FromDate.ToString("yyyy-MM-dd")">
+                                @ev.EventName
+                            </option>
+                        }
+                    </select>
+                    <span id="eventValidation" class="text-danger" style="display:none;">Select Event Name</span>
+                </div>
+
+                <!-- Event Handler -->
+                <div class="col">
+                    <label class="form-label">Event Handler:</label>
+                    <input type="text" id="EventHandlerName" name="EventHandlerName" class="form-control small-input" readonly />
+                </div>
+
+                <!-- Date -->
+                <div class="col">
+                    <label class="form-label">Created Date:</label>
+                    <input type="date" id="CreatedDate" name="CreatedDate" class="form-control small-input" readonly />
+                </div>
+
+                <!-- Phone Number -->
+                <div class="col">
+                    <label class="form-label">Phone No.:</label>
+                    <input type="text" id="PhoneNumber" name="Contact No." class="form-control small-input" readonly />
+                </div>
+
+                <!-- Savings -->
+                <div class="col">
+                    <label class="form-label">Savings:</label>
+                    <div class="savings-display">₹ @ViewBag.OpeningBalance</div>
+                </div>
+
+                <!-- Allocated Budget -->
+                <div class="col">
+                    <label class="form-label">Allocated Budget: </label>
+                    <div class="input-group" style="width: 263px;">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" id="Allocated" name="AllocatedBudget" class="form-control"
+                               placeholder="0.00" maxlength="10" readonly value="0.00" />
+
+                    </div>
+                    <span id="budgetValidation" class="text-danger" style="display:none;">Enter valid budget</span>
+                </div>
+            </div>
+
+            <!-- 🔽 Collapsible Add Categories -->
+            <div class="mt-4">
+                <button class="btn btn-secondary category" type="button" data-bs-toggle="collapse" data-bs-target="#addCategoryCollapse" aria-expanded="false" aria-controls="addCategoryCollapse">
+                    + Add Categories
+                </button>
+
+                <div class="collapse mt-3" id="addCategoryCollapse">
+                    <div class="row g-2 align-items-center mb-1">
+                        <!-- Category Name -->
+                        <div class="col-md-4">
+                            <label class="form-label">Category Name: <span class="text-danger">*</span></label>
+                            <input type="text" id="txtCategoryName" class="form-control" placeholder="Enter Category Name" maxlength="50" style="width: 220px; height: 45px;" />
+                            <span id="categoryNameValidation" class="text-danger" style="display:none;">Enter category name</span>
+                        </div>
+
+                        <!-- Category Budget -->
+                        <div class="col-md-6" style=" margin-left: 40px;">
+                            <label class="form-label">Category Budget: <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="text" id="txtCategoryBudget" class="form-control" placeholder="0.00" style="max-width:200px!important;" />
+                            </div>
+                            <span id="categoryBudgetValidation" class="text-danger" style="display:none;">Please Enter Amount</span>
+                        </div>
+
+                        <!-- Add Button -->
+                        <div class="col-md-2">
+
+                            <button style="margin-top: -102px; margin-left: 535px;" type="button" id="btnAddCategory" class="btn  btn-primary w-100">Add</button>
+                        </div>
+                    </div>
+
+                    <!-- Category List Table -->
+                    <div class="mt-3" id="categoryTableContainer" style="display:none;">
+                        <table class="table table-bordered table-sm" id="tblCategoryList">
+                            <thead class="table-light bg-light text-dark">
+                                <tr>
+                                    <th style="width: 60px; text-align:center;">Sr. No.</th>
+                                    <th style="width: 220px; text-align: center;">Category Name</th>
+                                    <th style="width: 220px; height:47px; text-align: center;">Allocated Budget</th>
+                                    <th style="width: 40px; text-align:center;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody style=" color: black; "></tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="2" style="text-align: right; color: black; font-weight: bold;">Total</td>
+                                    <td id="totalBudgetCell" style="text-align: center; color: black; font-weight: bold;">₹ 0.00</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons mt-3">
+                <button type="submit" class="btn btn-primary add-budget-btn">
+                    <i class="fas fa-plus-circle"></i> Add Budget
+                </button>
+                <button type="reset" class="btn btn-danger clear-budget-btn">
+                    Clear
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<script>
+    let categories = [];
+
+// Initialize when document is ready
+$(document).ready(function() {
+    initializeModal();
+});
+
+function initializeModal() {
+    // Reset everything when modal is shown
+    $('#createModal').on('shown.bs.modal', function() {
+        resetForm();
+    });
+
+    // Set current date as default
+    
+}
+
+
+
+
+function resetForm() {
+    // Clear category list
+    categories = [];
+    $("#tblCategoryList tbody").empty();
+    $("#categoryTableContainer").hide();
+    $("#Allocated").val("0.00");
+    $("#totalBudgetCell").text("₹ 0.00");
+
+    // Reset form fields
+    $("#budgetForm")[0].reset();
+    $("#txtCategoryName, #txtCategoryBudget, #ddlEventName").removeClass("is-valid is-invalid");
+    $("#categoryNameValidation, #categoryBudgetValidation, #eventValidation").hide();
+
+   
+    // Reattach all event handlers
+    attachEventHandlers();
+}
+
+function attachEventHandlers() {
+    // Category Name Validation
+    $("#txtCategoryName").off("input").on("input", function() {
+        let val = $(this).val().replace(/[^a-zA-Z ]/g, "");
+        if (val.length > 30) {
+            val = val.substring(0, 30);
+        }
+        $(this).val(val);
+    });
+
+    // Category Budget Validation
+    $("#txtCategoryBudget").off("input").on("input", function() {
+        let val = $(this).val().replace(/[^0-9.]/g, "");
+        if (val.includes(".")) {
+            let parts = val.split(".");
+            if (parts[0].length > 10) {
+                parts[0] = parts[0].substring(0, 10);
+            }
+            if (parts[1].length > 2) {
+                parts[1] = parts[1].substring(0, 2);
+            }
+            val = parts[0] + "." + parts[1];
+        } else {
+            if (val.length > 10) {
+                val = val.substring(0, 10);
+            }
+        }
+        $(this).val(val);
+    });
+
+    // Add Category Button
+    $("#btnAddCategory").off("click").on("click", function() {
+        addCategory();
+    });
+
+    // Event Name Change
+    $("#ddlEventName").off("change").on("change", function() {
+        const selectedEvent = $(this).val();
+
+        if (selectedEvent) {
+            $(this).removeClass("is-invalid").addClass("is-valid");
+            $("#eventValidation").hide();
+
+            $.ajax({
+                url: '@Url.Action("GetEventDetails", "AccountManager")',
+                type: 'POST',
+                data: { eventName: selectedEvent },
+                success: function(data) {
+                    $("#EventHandlerName").val(data?.EventHandlerName || '');
+                    $("#CreatedDate").val(data?.CreatedDateString || '');
+                    $("#PhoneNumber").val(data?.PhoneNumber || '');
+                },
+                error: function() {
+                    swal.fire('Error', 'Error fetching event details.', 'error');
+                }
+            });
+        } else {
+            $(this).removeClass("is-valid is-invalid");
+            $("#eventValidation").hide();
+            $("#EventHandlerName, #CreatedDate, #PhoneNumber").val('');
+        }
+    });
+
+    // Form Submission
+    $("#budgetForm").off("submit").on("submit", function(e) {
+        e.preventDefault();
+        submitBudgetForm();
+    });
+
+    // Clear button
+    $(".clear-budget-btn").off("click").on("click", function() {
+        resetForm();
+    });
+}
+
+function addCategory() {
+    let name = $("#txtCategoryName").val().trim();
+    let budget = $("#txtCategoryBudget").val().trim();
+    let isValid = true;
+
+    $("#categoryNameValidation, #categoryBudgetValidation").hide();
+    $("#txtCategoryName, #txtCategoryBudget").removeClass("is-valid is-invalid");
+
+    if (name === "") {
+        $("#categoryNameValidation").text("Enter category name").show();
+        $("#txtCategoryName").addClass("is-invalid");
+        setTimeout(() => {
+            $("#categoryNameValidation").fadeOut();
+            $("#txtCategoryName").removeClass("is-invalid");
+        }, 3000);
+        isValid = false;
+    } else {
+        $("#txtCategoryName").addClass("is-valid");
+    }
+
+    if (budget === "" || isNaN(budget) || parseFloat(budget) <= 0) {
+        $("#categoryBudgetValidation").text("Please Enter Amount").show();
+        $("#txtCategoryBudget").addClass("is-invalid");
+        setTimeout(() => {
+            $("#categoryBudgetValidation").fadeOut();
+            $("#txtCategoryBudget").removeClass("is-invalid");
+        }, 3000);
+        isValid = false;
+    } else {
+        $("#txtCategoryBudget").addClass("is-valid");
+    }
+
+    if (!isValid) return;
+
+    let category = { Name: name, Budget: parseFloat(budget).toFixed(2) };
+    categories.push(category);
+
+    $("#categoryTableContainer").show();
+    let srNo = categories.length;
+
+    $("#tblCategoryList tbody").append(`
+        <tr>
+            <td style="text-align:center;">${srNo}</td>
+            <td style="text-align:center;">${category.Name}</td>
+            <td style="text-align:center;">₹ ${category.Budget}</td>
+            <td style="text-align: center;">
+                <button type="button" class="btn btn-sm btn-danger btnRemoveCat">
+                    <i class="fa fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `);
+
+    updateTotalBudget();
+
+    $("#txtCategoryName").val("");
+    $("#txtCategoryBudget").val("");
+}
+
+function updateTotalBudget() {
+    let total = categories.reduce((sum, c) => sum + parseFloat(c.Budget), 0);
+    $("#Allocated").val(total.toFixed(2));
+    $("#totalBudgetCell").text("₹ " + total.toFixed(2));
+}
+
+// Remove Category with SweetAlert confirmation
+$(document).on("click", ".btnRemoveCat", function() {
+    let row = $(this).closest("tr");
+    let index = row.index();
+    let name = row.find("td:nth-child(2)").text();
+
+    swal({
+        title: "Are you sure?",
+        text: "Do you want to delete category: " + name + "?",
+        icon: "warning",
+        buttons: ["Cancel", "Yes, delete it!"],
+        dangerMode: true,
+    }).then((willDelete) => {
+        if (willDelete) {
+            categories.splice(index, 1);
+            row.remove();
+
+            $("#tblCategoryList tbody tr").each(function(index) {
+                $(this).find("td:first").text(index + 1);
+            });
+
+            if (categories.length === 0) {
+                $("#categoryTableContainer").hide();
+                $("#Allocated").val("0.00");
+                $("#totalBudgetCell").text("₹ 0.00");
+            } else {
+                updateTotalBudget();
+            }
+
+            swal({
+                title: "Deleted!",
+                text: "Category removed successfully.",
+                icon: "success",
+                timer: 3000,
+                buttons: false
+            });
+        }
+    });
+});
+
+function submitBudgetForm() {
+    let isValid = true;
+    const eventName = $("#ddlEventName").val();
+    const allocatedBudget = parseFloat($("#Allocated").val()) || 0;
+
+    $("#eventValidation, #budgetValidation").hide();
+    $("#ddlEventName").removeClass("is-valid is-invalid");
+
+    if (!eventName) {
+        $("#eventValidation").show();
+        $("#ddlEventName").addClass("is-invalid");
+        setTimeout(() => {
+            $("#eventValidation").fadeOut();
+            $("#ddlEventName").removeClass("is-invalid");
+        }, 3000);
+        isValid = false;
+    } else {
+        $("#ddlEventName").addClass("is-valid");
+    }
+
+    if (categories.length === 0) {
+        $("#categoryNameValidation").text("Enter category name").show();
+        $("#categoryBudgetValidation").text("Please Enter Amount").show();
+        $("#txtCategoryName, #txtCategoryBudget").addClass("is-invalid");
+
+        setTimeout(() => {
+            $("#categoryNameValidation, #categoryBudgetValidation").fadeOut();
+            $("#txtCategoryName, #txtCategoryBudget").removeClass("is-invalid");
+        }, 3000);
+
+        $("#addCategoryCollapse").collapse("show");
+        isValid = false;
+    }
+
+    //if (allocatedBudget <= 0) {
+    //    $("#budgetValidation").text("Budget must be greater than 0").show();
+    //    setTimeout(() => {
+    //        $("#budgetValidation").fadeOut();
+    //    }, 3000);
+    //    isValid = false;
+    //}
+
+    if (!isValid) return false;
+
+    const formData = {
+        EventName: eventName,
+        AllocatedBudget: allocatedBudget,
+        CategoryJSON: JSON.stringify(categories)
+    };
+
+    $.ajax({
+        url: '@Url.Action("SubmitBudget", "AccountManager")',
+        type: 'POST',
+        data: formData,
+        success: function(response) {
+            if (response.success) {
+                swal({
+                    title: "Success!",
+                    text: "Budget & categories saved successfully.",
+                    icon: "success",
+                    timer: 3000,
+                    buttons: false
+                });
+                setTimeout(function() {
+                    $('#createModal').modal('hide');
+                    resetForm();
+                    if (typeof reloadPage === 'function') {
+                        reloadPage();
+                    } else {
+                        location.reload();
+                    }
+                }, 3100);
+            } else {
+                swal("Error", response.message, "error");
+                $("#addCategoryCollapse").collapse("show");
+            }
+        },
+        error: function(xhr, status, error) {
+            swal("Oops...", "Error saving budget: " + error, "error");
+            $("#addCategoryCollapse").collapse("show");
+        }
+    });
+}
+
+function closeModal() {
+    $('#createModal').modal('hide');
+    resetForm();
+}
+</script>

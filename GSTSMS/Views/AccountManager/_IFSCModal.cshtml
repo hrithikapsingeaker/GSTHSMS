@@ -1,0 +1,526 @@
+﻿@model GSTSMSLibrary.AccountManager.AccountManager
+
+<div class="modal custom-fade-center" id="ifscModal" tabindex="-1" role="dialog" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content expense-modal-content" style="width: 100vh;">
+            <div class="modal-header expense-modal-header" id="ifscheader">
+                <h5 class="modal-title text-center w-100" style="margin-top: -18px;margin-left:0px">Vendor Payment</h5>
+                <button type="button" class="btn-close-modal" onclick="closeModal()">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+
+            <div class="modal-body expense-modal-body">
+                <div class="container-fluid">
+                    <!-- Hidden Inputs -->
+                    <input type="hidden" id="hdnExpenseCode" value="@Model.ExpenseCode" />
+                    <input type="hidden" id="hdnAmount" value="@Model.Amount" />
+                    <input type="hidden" id="hdnPaidAmount" value="@Model.PaidAmount" />
+
+                    <h6 class="expense-section-heading">Vendor Information</h6>
+                    <hr class="expense-divider" />
+
+                    <div class="row">
+                        <div class="col-md-6 allspacing d-flex">
+                            <label class="expense-label">Business Name</label>
+                            <span class="colon" style="margin-left:5px!important">:</span>
+                            <span class="expense-data" style="margin-left:10px">@Model.BusinessName</span>
+                        </div>
+                        <div class="col-md-6 allspacing d-flex">
+                            <label class="expense-label">Vendor Name</label>
+                            <span class="colon" style="margin-left:45px">:</span>
+                            <span class="expense-data">@Model.VendorName</span>
+                        </div>
+                        <div class="col-md-6 allspacing d-flex">
+                            <label class="expense-label">Vendor Contact</label>
+                            <span class="colon">:</span>
+                            <span class="expense-data no-format">@Model.PhoneNumber</span>
+                        </div>
+                        <div class="col-md-6 allspacing d-flex">
+                            <label class="expense-label">Service Type</label>
+                            <span class="colon" style="margin-left:44px">:</span>
+                            <span class="expense-data">@Model.SubTypeName</span>
+                        </div>
+
+                        <div class="col-md-6 allspacing d-flex align-items-center">
+                            <label class="expense-label" style=" min-width: 120px;">UPI ID</label>
+                            <span class="colon" style="width:16px">:</span>
+                            <span class="expense-data mr-2" id="lblUPIId" style="margin-left:7px">@Model.UPIId</span>
+                            <i class="far fa-copy expense-copy-icon text-primary"
+                               title="Copy UPI ID"
+                               style="cursor: pointer;"
+                               onclick="copyToClipboard('lblUPIId')"></i>
+                            <span id="lblCopied" class="ml-2" style="display:none; font-size: 14px;">Copied</span>
+                        </div>
+
+                        <div class="col-md-6 allspacing d-flex">
+                            <label class="expense-label">IFSC Code</label>
+                            <span class="colon" style="margin-left:43px">:</span>
+                            <span class="expense-data" id="lblIFSC">@Model.IFSCCode</span>
+                        </div>
+                        <div class="col-md-6 allspacing d-flex">
+                            <label class="expense-label">Account No</label>
+                            <span class="colon" style="margin-left:11px">:</span>
+                            @{
+                                string maskedAccountNo = "";
+                                if (!string.IsNullOrWhiteSpace(Model.AccountNo) && Model.AccountNo.Length >= 4)
+                                {
+                                    // बाकीचे सर्व * करा
+                                    string stars = new string('*', Model.AccountNo.Length - 4);
+                                    // शेवटच्या 4 digits घ्या
+                                    string last4 = Model.AccountNo.Substring(Model.AccountNo.Length - 4);
+                                    maskedAccountNo = stars + last4;
+                                }
+                            }
+                            <span class="expense-data" id="lblAccountNo">@maskedAccountNo</span>
+
+                        </div>
+
+                        <div class="col-md-6 allspacing d-flex">
+                            <label class="expense-label">Bank Name</label>
+                            <span class="colon" style="margin-left:42px">:</span>
+                            <span class="expense-data" id="lblBankName">Loading...</span>
+                        </div>
+                        <div class="col-md-6 allspacing d-flex">
+                            <label class="expense-label">Branch Name</label>
+                            <span class="colon" style="margin-left:10px">:</span>
+                            <span class="expense-data" id="lblBranchName">Loading...</span>
+                        </div>
+                        <div class="col-md-6 allspacing d-flex">
+                            <label class="expense-label">Total Amount</label>
+                            <span class="colon" style="margin-left:41px">:</span>
+                            <span class="expense-data">₹@Model.Amount</span>
+                        </div>
+                        <div class="col-md-6 allspacing d-flex">
+                            <label class="expense-label">Paid Amount</label>
+                            <span class="colon" style="margin-left:9px">:</span>
+                            <span class="expense-data">₹@Model.PaidAmount</span>
+                        </div>
+                        <div class="col-md-6 allspacing d-flex">
+                            <label class="expense-label">Remaining Amount</label>
+                            <span class="colon">:</span>
+                            <span class="expense-data" style="color:red">₹@(Model.Amount - Model.PaidAmount)</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group1 mt-3 d-flex align-items-center">
+                        <label for="txtPayAmount" class="expense-label mb-0">Enter Amount<span class="text-danger">*</span></label>
+                        <span class="colon" style="margin-left:-1px">:</span>
+                        <div class="input-group rupee-input-group" style="max-width: 220px;">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text rupee-icon" style="height:36px; display:flex; align-items:center; justify-content:center;">₹</span>
+                            </div>
+                            <input type="text" class="form-control expense-amount-input"
+                                   id="txtPayAmount" inputmode="decimal"
+                                   style="height:36px; line-height:36px; padding:4px 8px; font-size:14px;" />
+                        </div>
+                    </div>
+
+                    <small id="amountError" class="text-danger" style="display: none; margin-left:130px;"></small>
+
+                    <h6 class="expense-section-heading mt-3">Society Bank Details</h6>
+                    <hr class="expense-divider" />
+
+                    <div class="form-group mt-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <label class="expense-label mb-0">Select Bank<span class="text-danger">*</span></label>
+                            <span class="colon">:</span>
+                            <select id="ddlBanks" class="form-control expense-select" style="max-width:300px;">
+                                <option value="">-- Select Bank --</option>
+                            </select>
+                        </div>
+
+                        <div class="row mt-2">
+                            <div class="col-md-6 allspacing d-flex">
+                                <label class="expense-label">Bank Balance</label>
+                                <span class="colon">:</span>
+                                <span class="expense-data" id="lblOpeningBalance">₹0.00</span>
+                            </div>
+                            <div class="col-md-6 allspacing d-flex">
+                                <label class="expense-label">Cash In Hand</label>
+                                <span class="colon">:</span>
+                                <span class="expense-data">₹@Math.Ceiling(Model.CashInHand).ToString("0.00")</span>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="expense-footer-btns mt-3">
+                        <button type="button" class="expense-btn-online" onclick="confirmAndPay()">
+                            <i class="fas fa-wallet me-1"></i>&nbsp; Confirm & Pay
+                        </button>
+                        <button type="button" class="expense-btn-cash" onclick="redirectToCash()">
+                            <i class="fas fa-plus-circle me-1"></i>&nbsp; Pay By Cash
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="cashPaymentModalContainer"></div>
+
+
+<style>
+    .expense-label {
+        min-width: 100px;
+        font-weight: 500;
+    }
+
+    .colon {
+        display: inline-block;
+        width: 30px;
+        text-align: center;
+    }
+    /* Standardized close button for all modals */
+    .btn-close-modal {
+        position: absolute;
+        top: 50%;
+        right: 15px;
+        transform: translateY(-50%);
+        background: none;
+        border: none !important;
+        background-color: orangered;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        padding: 5px 10px;
+        width: 26px;
+        height: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s;
+        z-index: 1000;
+        border-radius: 3px;
+    }
+        /* Remove outline and box-shadow on focus */
+        .btn-close-modal:focus,
+        .btn-close-modal:active {
+            outline: none !important;
+            box-shadow: none !important;
+            border: none !important;
+        }
+
+        /* Remove any potential inherited borders */
+        .btn-close-modal:hover {
+            border: none !important;
+        }
+
+
+    /* Ensure modal headers have relative positioning */
+    .modal-header {
+        position: relative;
+    }
+</style>
+
+<script>
+        function closeModal() {
+            $('#ifscModal').modal('hide');
+        }
+
+        function toTitleCase(str) {
+            return str.toLowerCase().split(" ").map(word =>
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(" ");
+        }
+
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId)?.innerText;
+            const copiedLabel = document.getElementById("lblCopied");
+
+            if (!text) return;
+
+            navigator.clipboard.writeText(text).then(() => {
+                if (copiedLabel) {
+                    copiedLabel.style.display = "inline";
+                    copiedLabel.innerText = "Copied";
+
+
+                    setTimeout(() => {
+                        copiedLabel.style.display = "none";
+                    }, 2000);
+                }
+            });
+        }
+
+
+        function redirectToCash() {
+            const expenseCode = $("#hdnExpenseCode").val();
+            $.ajax({
+                url: '/AccountManager/_PayByCashExpensePS',
+                type: 'GET',
+                data: { expenseCode },
+                success: function (result) {
+                    // Insert cash modal HTML into container
+                    $('#cashPaymentModalContainer').html(result);
+
+                    // Hide IFSC modal temporarily
+                    $('#ifscModal').modal('hide');
+
+                    // Show cash modal with backdrop
+                    $('#cashPaymentModal').modal({
+                        backdrop: 'static',
+                        keyboard: false
+                    }).modal('show');
+
+
+                    // When cash modal is closed, show IFSC modal again
+                    $('#cashPaymentModal').on('hidden.bs.modal', function () {
+                        $('#ifscModal').modal('show');
+                    });
+                },
+                error: function () {
+                    iziToast.error({
+                        title: 'Error',
+                        message: 'Unable to open cash payment modal.',
+                        position: 'topCenter'
+                    });
+                }
+            });
+        }
+
+
+        $(document).ready(function () {
+            // Razorpay IFSC lookup for vendor bank
+            const ifscCode = $("#lblIFSC").text().trim();
+            if (ifscCode.length >= 5) {
+                $.get("https://ifsc.razorpay.com/" + ifscCode)
+                    .done(function (data) {
+                        $("#lblBankName").text(toTitleCase(data.BANK || "N/A"));
+                        $("#lblBranchName").text(toTitleCase(data.BRANCH || "N/A"));
+                    })
+                    .fail(function () {
+                        $("#lblBankName").text("N/A");
+                        $("#lblBranchName").text("N/A");
+                    });
+            }
+
+            // Load Society Bank Dropdown
+            // Load Society Bank Dropdown
+            $.get("/AccountManager/GetBanksByAllCodePS?allCode=SC001", function (banks) {
+                if (!banks || banks.length === 0) return;
+
+                $.each(banks, function (i, bank) {
+                    const accountNo = (bank.AccountNo || "").trim();
+                    const last4 = accountNo.slice(-4) || "XXXX";
+                    const accountType = bank.SubTypeName || "N/A";   // 👈 Account Type
+
+                    $.get("https://ifsc.razorpay.com/" + bank.IFSC)   // 👈 लक्षात घे: property IFSCCode आहे का IFSC
+                        .done(function (data) {
+                            const bankName = toTitleCase(data.BANK || "Unknown Bank");
+                            const branchName = toTitleCase(data.BRANCH || "Unknown Branch");
+
+                            // Account type जोडला
+                            const optionText = `${bankName} (****${last4}) [${accountType}]`;
+
+                            $("#ddlBanks").append(
+                                `<option value="${bank.BankCode}"
+                             data-accountno="${accountNo}"
+                             data-ifsc="${bank.IFSCCode}"
+                             data-accounttype="${accountType}">
+                        ${optionText}
+                     </option>`);
+                        })
+                        .fail(function () {
+                            const fallbackText = `Unknown (${bank.IFSCCode}) (****${last4}) [${accountType}]`;
+                            $("#ddlBanks").append(
+                                `<option value="${bank.BankCode}" data-accountno="${accountNo}">
+                        ${fallbackText}
+                     </option>`);
+                        });
+                });
+            });
+
+
+            // Show bank balance when bank selected
+            $("#ddlBanks").change(function () {
+                const accountNo = $(this).find(":selected").data("accountno");
+                const enteredAmount = parseFloat($("#txtPayAmount").val() || 0);
+                const balanceLabel = $("#lblOpeningBalance");
+
+                if (accountNo) {
+                    $.get("/AccountManager/GetOpeningBalancePS", { accountNo }, function (res) {
+                        const balance = res.success ? parseFloat(res.balance) : 0;
+                        balanceLabel.text("₹" + formatINR(balance.toFixed(2)));
+
+
+                        if (enteredAmount > balance) {
+                            balanceLabel.css("color", "red");
+                            iziToast.warning({
+                                title: 'Insufficient Funds',
+                                message: 'Entered amount exceeds available balance.',
+                                position: 'topCenter'
+                            });
+                        } else {
+                            balanceLabel.css("color", "green");
+                        }
+                    });
+                } else {
+                    balanceLabel.text("₹0.00").css("color", "black");
+                }
+            });
+
+            // Validate and restrict amount input
+            $("#txtPayAmount").on("input", function () {
+                let val = this.value.replace(/[^0-9.]/g, '');
+                if ((val.match(/\./g) || []).length > 1) val = val.slice(0, -1);
+                if (val.startsWith(".")) val = "0" + val;
+
+                const amount = parseFloat(val || 0);
+                const total = parseFloat($("#hdnAmount").val());
+                const paid = parseFloat($("#hdnPaidAmount").val() || 0);
+                const remaining = total - paid;
+
+                const errorBox = $("#amountError");
+
+
+                if (!val || isNaN(amount) || amount <= 0) {
+                    $(this).val("");
+                    $(this).removeClass("is-valid").addClass("is-invalid");
+                    errorBox.text("Please enter a valid amount.").show();
+                    setTimeout(() => {
+                        errorBox.fadeOut();
+                        $(this).removeClass("is-invalid");
+                    }, 3000);
+                } else if (amount > remaining) {
+                    $(this).val("");
+                    $(this).removeClass("is-valid").addClass("is-invalid");
+                    errorBox.text("Amount exceeds remaining balance ₹" + remaining.toFixed(2)).show();
+                    setTimeout(() => {
+                        errorBox.fadeOut();
+                        $(this).removeClass("is-invalid");
+                    }, 3000);
+                } else {
+                    $(this).removeClass("is-invalid").addClass("is-valid");
+                    errorBox.hide();
+                }
+
+
+                $("#ddlBanks").trigger("change");
+            });
+
+
+            $(".expense-data").each(function () {
+
+                // Skip vendor contact / any non-money amounts
+                if ($(this).hasClass("no-format")) return;
+
+                let text = $(this).text().replace(/[₹,\s]/g, "");
+                let num = parseFloat(text);
+
+                if (!isNaN(num)) {
+                    $(this).text("₹" + formatINR(num.toFixed(2)));
+                }
+
+            });
+
+
+        });
+    // Format number into Indian comma format (eg. 3,45,678.90)
+    function formatINR(amount) {
+        if (isNaN(amount)) return amount;
+
+        const parts = amount.toString().split(".");
+        let integer = parts[0];
+        const decimal = parts.length > 1 ? "." + parts[1] : "";
+
+        // First group (last 3 digits)
+        let lastThree = integer.substring(integer.length - 3);
+        let otherNumbers = integer.substring(0, integer.length - 3);
+
+        if (otherNumbers !== "") {
+            lastThree = "," + lastThree;
+        }
+
+        // Add commas every 2 digits
+        const formatted =
+            otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree;
+
+        return formatted + decimal;
+    }
+
+
+        function confirmAndPay() {
+            const expenseCode = $("#hdnExpenseCode").val();
+            const totalAmount = parseFloat($("#hdnAmount").val());
+            const paidAmount = parseFloat($("#hdnPaidAmount").val());
+            const remainingAmount = totalAmount - paidAmount;
+
+            const selectedBankCode = $("#ddlBanks").val();
+            const openingBalance = parseFloat($("#lblOpeningBalance").text().replace(/[₹,]/g, '') || 0);
+            const amountInput = $("#txtPayAmount");
+            const amountVal = amountInput.val().trim();
+            const amountToPay = parseFloat(amountVal);
+            const errorBox = $("#amountError");
+
+            if (!selectedBankCode) {
+                iziToast.warning({ title: 'Bank Required', message: 'Please select a bank.', position: 'topCenter' });
+                return;
+            }
+
+            if (!amountVal || isNaN(amountToPay) || amountToPay <= 0) {
+                amountInput.removeClass("is-valid").addClass("is-invalid");
+                errorBox.text("Please enter a valid amount.").show();
+                setTimeout(() => { errorBox.fadeOut(); amountInput.removeClass("is-invalid"); }, 3000);
+                return;
+            }
+
+            if (amountToPay > remainingAmount) {
+                amountInput.removeClass("is-valid").addClass("is-invalid");
+                errorBox.text("Amount should not exceed ₹" + remainingAmount.toFixed(2)).show();
+                setTimeout(() => {
+                    errorBox.fadeOut();
+                    amountInput.removeClass("is-invalid");
+                }, 3000);
+                return;
+            }
+
+
+            if (openingBalance < amountToPay) {
+                iziToast.warning({ title: 'Insufficient Funds', message: 'Selected bank has insufficient funds.', position: 'topCenter' });
+                return;
+            }
+
+            amountInput.removeClass("is-invalid").addClass("is-valid");
+            errorBox.hide();
+
+            const options = {
+                key: "rzp_test_tnu8pNChRc5VBE",
+                amount: amountToPay * 100,
+                currency: "INR",
+                name: "Green Valley Society",
+                description: "Expense Payment - " + expenseCode,
+                handler: function (response) {
+                    $.post('@Url.Action("SavePaymentPS", "AccountManager")', {
+                        expenseCode,
+                        paymentId: response.razorpay_payment_id,
+                        selectedBankCode,
+                        paymentModeId: 0,
+                        amount: amountToPay
+                    }).done(function (res) {
+                        $('#ifscModal').modal('hide');
+                        if (res.success) {
+                            iziToast.success({ title: 'Success', message: 'Payment successful.', position: 'topCenter' });
+                            setTimeout(() => location.reload(), 2000);
+                        } else {
+                            iziToast.error({ title: 'Failed', message: 'Payment not saved.', position: 'topCenter' });
+                        }
+                    }).fail(function () {
+                        iziToast.error({ title: 'Error', message: 'Server error.', position: 'topCenter' });
+                    });
+                },
+                prefill: {
+                    email: "@Model.Email",
+                    contact: "@Model.PhoneNumber",
+                    name: "@Model.VendorName"
+                },
+                theme: { color: "#3399cc" },
+                method: { upi: true, netbanking: true }
+            };
+
+            new Razorpay(options).open();
+        }
+</script>
+

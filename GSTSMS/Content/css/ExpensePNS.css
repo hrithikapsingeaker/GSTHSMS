@@ -1,0 +1,647 @@
+﻿
+
+/* Table Header Style */
+#expenseTable thead th {
+    background-color: #087070; /* तुम्ही हव्या त्या रंगात बदलू शकता */
+    color: white; /* Text-color-Header */
+    font-size: 14px; /* Font-size -Header */
+    height: 30px; /* Header height */
+    text-align: center; /* All text center */
+    vertical-align: middle;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+/* Table Row Data Style */
+#expenseTable tbody td {
+    color: black; /* Text-color-row */
+    font-size: 13px; /* Font-size-data-td */
+    height: 25px; /* Row height td */
+    text-align: center; /* All text center */
+    vertical-align: middle;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+/* Optional - table borders */
+#expenseTable {
+    border-collapse: collapse;
+}
+
+    #expenseTable th,
+    #expenseTable td {
+        /*        border: 1px solid #ccc;
+*/
+    }
+
+
+
+
+
+
+/*///////////////////////////////////////////////////////////////////////      ExpenseDetails                ///////////////////////////////////////////////////////////////////////////////*/
+
+#expenseDetailsModal .custom-table td {
+    color: #000 !important;
+}
+
+
+.section-heading-all {
+    color: black;
+    font-size: 18px;
+}
+
+strong {
+    color: black;
+}
+
+
+.transparent-btn {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 5px 0px 0px 0px !important;
+    box-shadow: none !important;
+}
+
+    .transparent-btn:hover {
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+
+.dt-buttons.btn-group {
+    gap: 5px;
+}
+
+
+body, .modal-content {
+    font-size: 16px !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.custom-modal-xl {
+    max-width: 750px !important;
+    /*    max-width: 1000px !important;*/
+}
+/* Scroll modal config with fixed header */
+.scroll-modal {
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.custom-modal-header {
+    background-color: #615677;
+    color: white;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+
+
+#transactionTable th, #transactionTable td {
+    vertical-align: middle;
+}
+/* Hide IFSC column visually only */
+.ifsc-hide {
+    display: none;
+}
+
+/* Table header styles */
+#transactionTable thead th {
+    font-size: 14px; /* Header font size */
+    height: 30px; /* Header height */
+    text-align: center; /* Center header text */
+    vertical-align: middle;
+}
+
+/* Table body cell styles */
+#transactionTable tbody td {
+    font-size: 13px; /* Data font size */
+    height: 25px; /* Row height */
+    text-align: center; /* Center data text */
+    vertical-align: middle;
+}
+
+/* Ensure DataTables export buttons also align center in table cells */
+#transactionTable th,
+#transactionTable td {
+    text-align: center;
+}
+
+
+    /* Fixed column widths for transaction table */
+    #transactionTable th:nth-child(1),
+    #transactionTable td:nth-child(1) {
+        width: 20px !important;
+        min-width: 20px !important;
+        max-width: 20px !important;
+    }
+
+    #transactionTable th:nth-child(2),
+    #transactionTable td:nth-child(2) {
+        width: 20px !important;
+        min-width: 20px !important;
+        max-width: 20px !important;
+    }
+
+    #transactionTable th:nth-child(3),
+    #transactionTable td:nth-child(3) {
+        width: 40px !important;
+        min-width: 40px !important;
+        max-width: 40px !important;
+    }
+
+    #transactionTable th:nth-child(4),
+    #transactionTable td:nth-child(4) {
+        width: 50px !important;
+        min-width: 50px !important;
+        max-width: 50px !important;
+    }
+
+    #transactionTable th:nth-child(5),
+    #transactionTable td:nth-child(5) {
+        width: 70px !important;
+        min-width: 70px !important;
+        max-width: 70px !important;
+    }
+
+    #transactionTable th:nth-child(6),
+    #transactionTable td:nth-child(6) {
+        width: 70px !important;
+        min-width: 70px !important;
+        max-width: 70px !important;
+    }
+
+    #transactionTable th:nth-child(7),
+    #transactionTable td:nth-child(7) {
+        width: 70px !important;
+        min-width: 70px !important;
+        max-width: 70px !important;
+    }
+
+    #transactionTable th:nth-child(8),
+    #transactionTable td:nth-child(8) {
+        width: 70px !important;
+        min-width: 70px !important;
+        max-width: 70px !important;
+    }
+
+    #transactionTable th:nth-child(9),
+    #transactionTable td:nth-child(9) {
+        width: 70px !important;
+        min-width: 70px !important;
+        max-width: 70px !important;
+    }
+
+    #transactionTable th:nth-child(10),
+    #transactionTable td:nth-child(10) {
+        width: 70px !important;
+        min-width: 70px !important;
+        max-width: 70px !important;
+    }
+
+
+/* ===== List Table Styling ===== */
+
+/* Header font size & height */
+#transactionTable thead th {
+    font-size: 14px; /* Header font size */
+    height: 30px; /* Header height */
+    text-align: center; /* Center header text */
+    vertical-align: middle;
+}
+
+/* Data cell font size & height */
+#transactionTable tbody td {
+    font-size: 13px; /* Data font size */
+    height: 25px; /* Row height */
+    text-align: center; /* Center data text */
+    vertical-align: middle;
+}
+
+/* Tooltip styling */
+.tooltip {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 13px;
+}
+
+.tooltip-inner {
+    max-width: 300px;
+    padding: 6px 10px;
+    background-color: #615677;
+    color: #fff;
+}
+
+.bs-tooltip-auto[x-placement^=top] .arrow::before,
+.bs-tooltip-top .arrow::before {
+    border-top-color: #615677;
+}
+
+/* Table cell overflow handling with ellipsis */
+#transactionTable td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    cursor: default;
+}
+
+/* Keep table layout fixed */
+#transactionTable {
+    table-layout: fixed;
+    width: 100% !important;
+}
+
+
+
+
+
+
+
+
+/* Remove background color on hover */
+button.buttons-excel:hover,
+button.buttons-pdf:hover,
+button.buttons-csv:hover {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.transparent-btn:hover {
+    background: transparent !important;
+}
+
+
+
+/*///////////////////////////////////////////////////////////////////////      IFSC Mdal                ///////////////////////////////////////////////////////////////////////////////*/
+
+
+
+
+
+
+
+.expense-close-btn {
+    position: absolute;
+    right: 10px;
+    top: 47%;
+    height: 25px;
+    transform: translateY(-50%);
+    border: none;
+    background-color: orangered;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+    width: 25px;
+}
+
+.label-block {
+    min-width: 110px;
+    display: inline-block;
+}
+
+.expense-modal-body {
+    font-size: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.rupee-input-group {
+    max-width: 200px;
+    height: 36px;
+}
+
+    .rupee-input-group .form-control {
+        height: 36px;
+        padding: 4px 8px;
+        font-size: 16px;
+    }
+
+    .rupee-input-group .input-group-text.rupee-icon {
+        font-size: 18px;
+        font-weight: normal;
+        background-color: #f0f0f0;
+        border-right: none;
+        height: 36px;
+        padding: 0 10px;
+    }
+
+.expense-footer-btns {
+    display: flex;
+    border: none;
+    justify-content: center;
+    gap: 20px;
+}
+
+.is-valid {
+    border-color: #28a745 !important;
+    box-shadow: 0 0 4px #28a745;
+}
+
+.is-invalid {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 4px #dc3545;
+}
+
+.expense-modal-header {
+    height: 45px;
+    background-color: #615877;
+    text-align: center;
+    color: white;
+    display: flex;
+    align-items: center;
+}
+
+.expense-modal-content {
+    border-radius: 4px;
+    max-width: 650px;
+    margin: auto;
+}
+
+.expense-modal-body {
+    font-size: 16px;
+}
+
+.expense-section-heading {
+    font-weight: bold;
+    font-size: 18px;
+    color: black;
+}
+
+.expense-divider {
+    margin: 8px 0;
+}
+
+.expense-label {
+    font-size: 16px;
+    font-weight: bold;
+    color: black;
+}
+
+.expense-data {
+    font-size: 16px;
+    font-weight: normal;
+}
+
+.allspacing {
+    padding: 6px;
+}
+
+
+.expense-btn-online {
+    background-color: #007bff;
+    color: white;
+    height: 40px;
+    width: 150px;
+    border-radius: 4px;
+    border: none;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .expense-btn-online:hover {
+        background-color: #0056b3;
+        color: white;
+    }
+
+.expense-btn-cash {
+    background-color: green;
+    color: white;
+    height: 40px;
+    width: 150px;
+    border-radius: 4px;
+    border: none;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .expense-btn-cash:hover {
+        background-color: #00b67a;
+        color: black;
+    }
+
+
+
+.expense-amount-input {
+    max-width: 300px;
+    height: 36px;
+    padding: 4px 8px;
+}
+
+#amountError {
+    margin-left: 120px;
+}
+
+.expense-amount-row {
+    margin-left: -7px;
+    gap: 15px;
+}
+
+
+.expense-select {
+    max-width: 300px;
+    height: 36px;
+    padding: 10px 10px;
+}
+
+.expense-label {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.expense-data {
+    font-size: 16px;
+}
+
+.expense-btn-online:focus,
+.expense-btn-online:active,
+.expense-btn-cash:focus,
+.expense-btn-cash:active {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: transparent !important;
+}
+/* Custom fade + zoom-in from center for modal */
+.custom-fade-center .modal-dialog {
+    transform: scale(0.7);
+    opacity: 0;
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.custom-fade-center.show .modal-dialog {
+    transform: scale(1);
+    opacity: 1;
+}
+
+
+
+/* Backdrop styling for IFSC modal */
+#ifscModal.modal {
+    z-index: 1050;
+}
+
+#ifscModal + .modal-backdrop {
+    z-index: 1040;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Backdrop styling for cash modal */
+#cashPaymentModal.modal {
+    z-index: 1070;
+}
+
+#cashPaymentModal + .modal-backdrop {
+    z-index: 1060;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+
+
+
+
+
+
+
+
+
+/*///////////////////////////////////////////////////////////////////////      Pay By Cash                ///////////////////////////////////////////////////////////////////////////////*/
+
+
+
+.cash-section-heading {
+    color: black;
+}
+
+.cash-divider {
+    margin: 8px 0;
+}
+
+#cashPaymentModal {
+    z-index: 1070 !important;
+}
+
+/* त्याचा backdrop योग्य लेव्हल वर ठेवण्यासाठी */
+/*.modal-backdrop.show {
+        z-index: 1065 !important;
+    }*/
+all {
+    font-size: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    width: 1000px;
+}
+
+.label-block {
+    min-width: 150px;
+    display: inline-block;
+}
+
+
+.custom-modal-dialog {
+    max-width: 675px !important; /* तुमचा fix width */
+    width: 100% !important;
+}
+
+
+.custom-modal-headerexpense {
+    background-color: #615877;
+    color: white;
+    height: 45px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.expense-label {
+    font-weight: bold;
+    font-size: 16px;
+    /*white-space: nowrap;*/
+}
+
+#txtCashAmount {
+    height: 36px;
+    font-size: 15px;
+}
+
+.expense-data {
+    font-size: 15px;
+    /*white-space: nowrap;*/
+}
+
+.form-control {
+    height: 36px;
+    font-size: 15px;
+}
+
+#amountErrorMsg {
+    display: block;
+    font-size: 13px;
+    margin-top: 4px;
+    color: #dc3545;
+}
+
+.btn-success {
+    font-weight: bold;
+    padding: 8px 24px;
+}
+
+.is-valid {
+    border-color: #28a745 !important;
+    box-shadow: 0 0 4px #28a745;
+}
+
+.is-invalid {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 4px #dc3545;
+}
+/* Center modal animation */
+.show-from-center .modal-dialog {
+    transform: scale(0.7);
+    opacity: 0;
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.show-from-center.show .modal-dialog {
+    transform: scale(1);
+    opacity: 1;
+}
+
+/* Add small space between label and value */
+.expense-label + .expense-data {
+    margin-left: 4px;
+}
+/* Responsive Fixes */
+@media (max-width: 700px) {
+    .input-group {
+        width: 100% !important;
+    }
+
+    .expense-label {
+        width: 100%;
+        margin-bottom: 4px;
+    }
+
+    .expense-data {
+        width: 100%;
+    }
+
+    .form-group1 {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+
+    #amountErrorMsg {
+        margin-left: 0 !important;
+    }
+}

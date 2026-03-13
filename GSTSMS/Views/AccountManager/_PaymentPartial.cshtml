@@ -1,0 +1,746 @@
+﻿@model GSTSMSLibrary.AccountManager.AccountManager
+
+<head>
+    <link href="~/Content/css/BudgetPaymentSV.css" rel="stylesheet" />
+</head>
+<style>
+    .info-pair-row {
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 5px; /* Reduced spacing */
+    }
+
+    .info-group {
+        flex: 1 1 50%;
+        display: flex;
+        min-width: 300px;
+        margin-bottom: 6px; /* Reduced spacing */
+        align-items: center; /* Better vertical alignment */
+    }
+
+    .info-label {
+        width: 140px;
+        font-weight: bold;
+        color: #333;
+        flex-shrink: 0;
+        padding-right: 5px;
+    }
+
+    .info-value {
+        flex: 1;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
+        font-weight: normal;
+        word-break: break-word;
+    }
+
+    .colon {
+        color: #333;
+    }
+
+    .document-actions {
+        margin-top: 15px;
+        text-align: center;
+    }
+
+        .document-actions .btn {
+            margin: 0 8px;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 4px;
+        }
+
+    .no-document {
+        color: #999;
+        font-style: italic;
+    }
+
+    .attachment-row {
+        margin-top: 10px; /* Reduced spacing */
+    }
+
+    /* Custom close button styles */
+    .modal-close-btn {
+        border: none;
+        outline: none;
+        box-shadow: none;
+        width: 32px;
+        height: 32px;
+        background-color: #dc3545;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0;
+        border-radius: 4px;
+    }
+
+    .close-icon {
+        font-size: 18px;
+        color: white;
+        line-height: 1;
+        font-weight: bold;
+    }
+
+    .modal-close-btn:hover {
+        background-color: #c82333;
+    }
+
+    @@media (max-width: 992px) {
+        .modal-dialog {
+            max-width: 95%;
+            margin: 10px auto;
+        }
+
+        .info-group {
+            min-width: 100%;
+        }
+
+        .modal-header .modal-title {
+            margin-left: 0 !important;
+        }
+    }
+</style>
+<!-- Remove the bankPaymentPartial wrapper since we're completely replacing the view -->
+<div id="paymentContent">
+    <div class="modal-header d-flex align-items-center justify-content-between">
+        <h6 class="modal-title" style="margin-left: 214px;" id="title">
+            Event Payment
+        </h6>
+        @*<button type="button" class="modal-close-btn" onclick="hidePaymentPartial()" aria-label="Close">
+                <span class="close-icon">×</span>
+            </button>*@
+
+
+        <button type="button" class="modal-close-btn"
+                style="top: 10px; right: 15px;box-shadow: none !important; background-color: #dc3545 !important; color: #fff !important; transform: none !important; transition: none !important;"
+                onclick="hidePaymentPartial()">
+            <i class="fa fa-times"></i>
+        </button>
+
+    </div>
+
+
+    <!-- Modal Body -->
+    <div class="modal-body">
+        <!-- Hidden Inputs -->
+        <input type="hidden" id="eventCode" value="@Model.EventCode" />
+        <!-- Update the hidden input and dropdown data attributes -->
+        <input type="hidden" id="accountNo" value="@Model.AccountNo" />
+
+        <div class="container-fluid">
+            <!-- Event Information -->
+            <div class="section-title mt-4" style="color: black;">Event Information</div>
+            <div class="info-pair-row">
+                <div class="info-group">
+                    <div class="info-label">Event</div>
+                    <div class="info-value"><span class="colon">:  </span> @Model.EventName</div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">Event Handler</div>
+                    <div class="info-value"><span class="colon">:</span> @Model.EventHandlerName</div>
+                </div>
+            </div>
+
+            <div class="info-pair-row">
+                <div class="info-group">
+                    <div class="info-label">Bank Name</div>
+                    <div class="info-value"><span class="colon">:</span> <span id="bankName">–</span></div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">Branch</div>
+                    <div class="info-value"><span class="colon">:</span> <span id="bankBranch">–</span></div>
+                </div>
+            </div>
+
+            <div class="info-pair-row">
+                <div class="info-group">
+                    <div class="info-label">Amount to Pay</div>
+                    <div class="info-value">
+                        <span class="colon">:</span> ₹<span id="amountToPay">@Model.ActualCost</span>
+                    </div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">IFSC Code</div>
+                    <div class="info-value"><span class="colon">:</span> @Model.IFSCCode</div>
+                </div>
+            </div>
+
+            <div class="info-pair-row">
+                <div class="info-group">
+                    <div class="info-label">UPI ID</div>
+                    <div class="info-value">
+                        <span class="colon">:</span>
+                        <span id="lblUPIId">@Model.UPIId</span>
+                        <i class="far fa-copy expense-copy-icon ml-2 text-primary"
+                           title="Copy UPI ID"
+                           style="cursor: pointer;"
+                           onclick="copyToClipboard('lblUPIId')"></i>
+                        <span id="lblCopied" class="ml-2" style="display:none; font-size: 14px;">Copied</span>
+                    </div>
+                </div>
+                <div class="info-group"><!-- spacing --></div>
+            </div>
+
+            <!-- Accountant Bank Info -->
+            <div class="section-title mt-4" style="color: black;">Society Bank Info</div>
+
+            <div class="info-pair-row">
+                <div class="info-group" style="width: 100%;">
+                    <div class="info-label">Select Bank</div>
+                    <div class="info-value">
+                        <span class="colon">:</span>
+                        <select id="ddlBanks" class="form-select mt-1" style="width: auto; display: inline-block;">
+                            <option value="">-- Select Bank --</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-pair-row">
+                <div class="info-group">
+                    <div class="info-label">Bank Balance</div>
+                    <div class="info-value"><span class="colon">:</span> ₹<span id="bankBalance">–</span></div>
+                </div>
+                <div class="info-group"><!-- spacing --></div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div>
+                <button id="confirmPaymentBtn" class="btn-primary" style=" height: 40px; width: 150px; border-radius: 4px; border: none; border: none; outline: none; box-shadow: none; background-color: #007bff;">
+                    <i class="fas fa-wallet me-1"></i>&nbsp; Confirm & Pay
+                </button>
+
+                <button type="button" style="background-color:green; height: 40px; width: 120px; border-radius: 4px; border: none; border: none; border: none; outline: none; box-shadow: none; " onclick="redirectToEventCash()">
+                    <i class="fas fa-plus-circle me-1"></i>&nbsp;  Pay By Cash
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+<div id="cashEventContainer"></div>
+<div id="cashPaymentContainer" style="display:none;"></div>
+
+
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+
+<script>
+    // Existing function
+    function hidePartial() {
+        $('#paymentPartialContainer').html('');
+        $('#paymentPopupOverlay').addClass('d-none');
+    }
+
+    // New wrapper function (so you don’t need to change the button)
+    function hidePaymentPartial() {
+        hidePartial();
+    }
+
+    function copyToClipboard(elementId) {
+        const text = document.getElementById(elementId)?.innerText;
+        const copiedLabel = document.getElementById("lblCopied");
+
+        if (!text) return;
+
+        navigator.clipboard.writeText(text).then(() => {
+            if (copiedLabel) {
+                copiedLabel.style.display = "inline";
+                copiedLabel.innerText = "Copied";
+
+                // Hide after 2 seconds
+                setTimeout(() => {
+                    copiedLabel.style.display = "none";
+                }, 2000);
+            }
+        });
+    }
+
+
+   $(document).ready(function () {
+    // Get the IFSC code from the model
+    const ifsc = '@Model.IFSCCode';
+    const amount = parseFloat('@Model.ActualCost') || 0;
+
+    // Format amount to always show 2 decimal places
+    $("#amountToPay").text(amount.toFixed(2));
+
+    // Fetch and display bank details from IFSC API
+    if (ifsc) {
+        fetchBankDetails(ifsc);
+    }
+
+    // Load bank dropdown
+    loadBankDropdown();
+
+    // Update the change event handler
+    $("#ddlBanks").change(function () {
+        const accountNo = $(this).find(':selected').data('accountno');
+        const amount = parseFloat('@Model.ActualCost') || 0;
+
+
+        // Reset balance to 00.00 when "Select Bank" is chosen
+        if (!accountNo) {
+            $("#bankBalance").text("00.00");
+            $("#bankBalance").css('color', '#333');
+            return;
+        }
+
+        if (accountNo) {
+            $.get("/AccountManager/GetOpeningBalanceSV", { accountNo: accountNo }, function (response) {
+                if (response.success) {
+                    const bankBalance = parseFloat(response.balance) || 0;
+                    // Format balance to always show 2 decimal places
+                    $("#bankBalance").text(bankBalance.toFixed(2));
+                    $("#bankBalance").css('color', bankBalance < amount ? 'red' : '#198754');
+                }
+            });
+        }
+    });
+
+    // Add click event handler to force refresh when dropdown is clicked
+    $("#ddlBanks").click(function() {
+        // Store the current value
+        const currentValue = $(this).val();
+
+        // Force refresh by triggering change event even if same option is selected
+        $(this).data('prevVal', currentValue);
+    });
+
+    // Add event handler for when dropdown opens
+    $("#ddlBanks").on('focus', function() {
+        $(this).data('prevVal', $(this).val());
+    });
+
+    // Add event handler for when dropdown selection changes
+    $("#ddlBanks").on('change', function() {
+        const currentValue = $(this).val();
+        const previousValue = $(this).data('prevVal');
+
+        // Reset balance to 00.00 when "Select Bank" is chosen
+        if (!currentValue) {
+            $("#bankBalance").text("00.00");
+            $("#bankBalance").css('color', '#333');
+            return;
+        }
+
+        // If the same value is selected, manually trigger the change logic
+        if (currentValue === previousValue) {
+            const accountNo = $(this).find(':selected').data('accountno');
+            const actualCost = parseFloat('@Model.ActualCost') || 0;
+
+            if (accountNo) {
+                $.get("/AccountManager/GetOpeningBalanceSV", { accountNo: accountNo }, function (response) {
+                    if (response.success) {
+                        const bankBalance = parseFloat(response.balance) || 0;
+                        // Format balance to always show 2 decimal places
+                        $("#bankBalance").text(bankBalance.toFixed(2));
+                        $("#bankBalance").css('color', bankBalance < amount ? 'red' : '#198754');
+
+                        if (bankBalance < amount) {
+                            iziToast.error({
+                                title: 'Error',
+                                message: 'Insufficient bank balance',
+                                position: 'topCenter'
+                            });
+                        }
+                    }
+                });
+            }
+        }
+
+        // Update the stored previous value
+        $(this).data('prevVal', currentValue);
+    });
+});
+
+
+
+    function fetchBankDetails(ifsc) {
+        $.getJSON(`https://ifsc.razorpay.com/${ifsc}`)
+            .done(data => {
+                $('#bankName').text(data.BANK || 'N/A');
+                $('#bankBranch').text(data.BRANCH || 'N/A');
+            })
+            .catch(err => {
+                console.warn('IFSC fetch failed:', err);
+                $('#bankName').text('Invalid IFSC');
+            });
+    }
+    function loadBankDropdown() {
+        const $dropdown = $('#ddlBanks');
+        $dropdown.empty().append(`<option value="">-- Select Bank --</option>`);
+
+        $.get("/AccountManager/GetBanksByAllCodeSV", { allCode: "SC001" })
+            .done(function (response) {
+                if (response.success) {
+                    let uniqueAccounts = new Set();
+                    let filteredBanks = response.data.filter(bank => {
+                        if (!bank.AccountNo || uniqueAccounts.has(bank.AccountNo)) return false;
+                        uniqueAccounts.add(bank.AccountNo);
+                        return true;
+                    });
+
+                    let fetchPromises = filteredBanks.map(bank => {
+                        return $.getJSON(`https://ifsc.razorpay.com/${bank.IFSCCode}`)
+                            .then(d => {
+                                let bankName = d.BANK || 'Unknown Bank';
+                                let accountType = bank.SubTypeName || 'N/A'; // Added account type
+
+                                // Mask the account number: only show last 4 digits
+                                let accountNo = bank.AccountNo || '';
+                                let maskedAccNo = accountNo.length > 4
+                                    ? '******' + accountNo.slice(-4)
+                                    : '****' + accountNo;
+
+                                return {
+                                    BankCode: bank.BankCode,
+                                    AccountNo: bank.AccountNo,
+                                    AccountType: accountType, // Added account type to return object
+                                    label: `${bankName} - ${maskedAccNo} [${accountType}]`, // Added account type to label
+                                    OpeningBalance: bank.OpeningBalance
+                                };
+                            })
+                            .catch(() => null);
+                    });
+
+                    Promise.all(fetchPromises).then(results => {
+                        results.forEach(bank => {
+                            if (!bank) return;
+                            $dropdown.append(`
+                <option value="${bank.BankCode}"
+                        data-accountno="${bank.AccountNo}"
+                        data-accounttype="${bank.AccountType}"
+                        "${bank.OpeningBalance}">
+                    ${bank.label}
+                </option>
+            `);
+                        });
+                    });
+                }
+            });
+    }
+
+// Handle "Confirm & Pay" button click
+$(document).on("click", "#confirmPaymentBtn", function () {
+    try {
+        const eventCode = '@Model.EventCode';
+        const selectedBankCode = $('#ddlBanks').val();
+        const accountNo = $('#ddlBanks').find(':selected').data('accountno');
+        const bankBalance = parseFloat($("#bankBalance").text()) || 0;
+        const actualCost = parseFloat('@Model.ActualCost') || 0;
+
+        // Convert to paise with 2 decimal places
+        const amountPaise = Math.round(actualCost * 100);
+
+        // Validations
+        if (!selectedBankCode || !accountNo) {
+            iziToast.warning({
+                title: 'Warning',
+                message: 'Please select a bank before proceeding',
+                position: 'topCenter'
+            });
+            return;
+        }
+
+        // Check if balance is insufficient
+        if (bankBalance < actualCost) {
+            iziToast.error({
+                title: 'Error',
+                message: 'Insufficient bank balance',
+                position: 'topCenter'
+            });
+            return;
+        }
+
+        const options = {
+            "key": "rzp_test_tnu8pNChRc5VBE",
+            "amount": amountPaise,
+            "currency": "INR",
+            "name": "Green Valley Society",
+            "description": "Payment for Event: " + eventCode,
+            "handler": function (response) {
+                $.post('/AccountManager/SavePaymentSV', {
+                    eventCode: eventCode,
+                    transactionId_ChequeId: response.razorpay_payment_id,
+                    paymentId: response.razorpay_payment_id,
+                    paymentModeId: 0,
+                    selectedBankCode: selectedBankCode
+                })
+                .done(function(data) {
+                    if (data.success) {
+                        iziToast.success({
+                            title: 'Success',
+                            message: 'Payment successful!',
+                            position: 'topCenter'
+                        });
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Failed to save payment',
+                            position: 'topCenter'
+                        });
+                    }
+                })
+                .fail(function() {
+                    iziToast.error({
+                        title: 'Error',
+                        message: 'Payment processing failed',
+                        position: 'topCenter'
+                    });
+                });
+            },
+            "prefill": {
+                "name": "@Model.EventHandlerName",
+                "email": "",
+                "contact": ""
+            },
+            "theme": {
+                "color": "#0d6efd"
+            }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+
+    } catch (error) {
+        iziToast.error({
+            title: 'Error',
+            message: 'Payment initialization failed',
+            position: 'topCenter'
+        });
+    }
+});
+    // Function to load cash payment
+    // Function to load cash payment
+    function redirectToEventCash() {
+        const eventCode = $("#eventCode").val();
+
+        // hide the payment partial instead of removing it
+        $('#paymentContent').hide();
+
+        $.ajax({
+            url: '/AccountManager/LoadCashEventPartialSV',
+            type: 'GET',
+            data: { eventCode },
+            success: function (result) {
+
+                // Show popup overlay with loaded cash modal
+                $('body').append(`
+                <div id="cashPaymentOverlay" class="popup-overlay">
+                    <div id="EventCashPayment" class="popup-box">${result}</div>
+                </div>
+            `);
+
+                // open the cash modal (static)
+                $('#EventCashPayment .modal').modal({
+                    backdrop: 'static',
+                    keyboard: false
+                }).modal('show');
+
+                // when cash modal is closed, show the main payment partial back
+                $('#EventCashPayment .modal').on('hidden.bs.modal', function () {
+                    $('#paymentContent').show();
+                    $('#cashPaymentOverlay').remove();
+                });
+
+            },
+            error: function () {
+                iziToast.error({
+                    title: 'Error',
+                    message: 'Failed to load cash payment form',
+                    position: 'topCenter'
+                });
+            }
+        });
+    }
+
+
+
+
+
+</script>
+
+<style>
+    /* Modal Container */
+    .modal-content {
+        border-radius: 4px !important;
+        border: none;
+    }
+
+    /* Modal Header */
+    .modal-header {
+        height: 45px !important;
+        background-color: #615677 !important;
+        color: white;
+        padding: 0 1rem;
+        display: flex;
+        align-items: center;
+        border-bottom: none;
+        border-top-left-radius: 4px !important;
+        border-top-right-radius: 4px !important;
+    }
+
+    .modal-title {
+        font-size: 18px !important;
+        font-weight: bold !important;
+        color: white;
+        margin: 0 auto;
+    }
+
+    /* Close Button */
+    .btn-close {
+        color: white !important;
+        opacity: 1;
+        font-size: 1.5rem;
+        padding: 0;
+        margin: 0;
+        line-height: 1;
+    }
+
+    /* Modal Body */
+    .modal-body {
+        font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        padding: 1rem 1.5rem;
+    }
+
+    /* Section Titles */
+    .section-title {
+        font-weight: bold !important;
+        font-size: 16px !important;
+        color: #17a2bb;
+        margin: 0.5rem 0 !important;
+        border-bottom: 1px dotted;
+        padding-bottom: 4px;
+    }
+
+    /* Labels */
+    strong, .form-label.fw-bold {
+        font-size: 16px !important;
+        font-weight: bold !important;
+        color: #333;
+    }
+
+    /* Data Text */
+    .row > div:not(.form-label),
+    #bankName,
+    #bankBranch,
+    #amountToPay,
+    #bankBalance,
+    #lblUPIId {
+        font-size: 16px !important;
+        font-weight: normal !important;
+    }
+
+    /* Buttons Container */
+    .modal-body > .container-fluid > div:last-child {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 20px !important;
+        padding-top: 10px;
+    }
+
+    /* Payment Buttons */
+    #confirmPaymentBtn,
+    button[onclick="redirectToEventCash()"] {
+        height: 40px;
+        min-width: 167px;
+        border-radius: 4px;
+        border: none;
+        font-size: 16px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 15px;
+    }
+
+    #confirmPaymentBtn {
+        background-color: #007bff !important;
+        color: white !important;
+    }
+
+        #confirmPaymentBtn:hover {
+            background-color: #0056b3 !important;
+        }
+
+    button[onclick="redirectToEventCash()"] {
+        background-color: green !important;
+        color: white !important;
+        width: 120px;
+    }
+
+        button[onclick="redirectToEventCash()"]:hover {
+            background-color: #00b67a !important;
+        }
+
+    /* Form Elements */
+    .form-select {
+        border-radius: 4px;
+        border: 1px solid #ced4da;
+        font-size: 16px;
+        padding: 0.375rem 0.75rem;
+    }
+
+    /* Copy Icon */
+    .copy-icon {
+        font-size: 16px !important;
+        margin-left: 5px;
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 576px) {
+        .modal-body .row > div {
+            width: 100% !important;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-body > .container-fluid > div:last-child {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #confirmPaymentBtn,
+        button[onclick="redirectToEventCash()"] {
+            width: 100%;
+            margin: 5px 0 !important;
+        }
+        /* Increase Modal Width */
+        #paymentContent .modal-content {
+            max-width: 800px; /* Adjust this value as needed */
+            margin: 0 auto;
+        }
+        /* Make the modal body fill the width */
+        #paymentContent .modal-body {
+            width: 100%;
+        }
+        /* Adjust container width */
+        #paymentContent .container-fluid {
+            width: 100%;
+            padding-right: 15px;
+            padding-left: 15px;
+            margin-right: auto;
+            margin-left: auto;
+        }
+    }
+
+
+    /* Add to your existing styles */
+    .popup-overlay {
+        z-index: 9999;
+    }
+
+    #cashPaymentOverlay {
+        z-index: 10000; /* Higher than payment overlay */
+    }
+
+    .popup-box {
+        z-index: 10001; /* Higher than cash overlay */
+    }
+</style>

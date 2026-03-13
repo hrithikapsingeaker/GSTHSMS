@@ -1,0 +1,438 @@
+﻿
+Font
+body, table, th, td {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+    /*Header: No wrap + center + better spacing*/
+    table.dataTable thead th {
+        background-color: #615677 !important; /* #1 */
+        color: white !important; /* #3 */
+        font-size: 14px !important; /* #5 */
+        height: 30px !important; /* #7 */
+        text-align: center !important; /* #9 */
+        vertical-align: middle !important;
+        padding: 0 8px !important;
+        white-space: nowrap !important;
+    }
+
+
+
+    table.dataTable tbody td {
+        color: black !important; /* #4 */
+        font-size: 13px !important; /* #6 */
+        text-align: center !important; /* #9 */
+        vertical-align: middle !important;
+        padding: 0 8px !important;
+        height: 25px !important;
+        white-space: nowrap;
+    }
+
+
+
+
+    /* Row styling - requirements #2,4,6,8,9 */
+    table.dataTable tbody tr {
+        height: 25px !important; /* #8 */
+    }
+
+        table.dataTable tbody tr:hover td {
+            background-color: #f9f9f9 !important; /* #2 */
+        }
+
+
+    /*Remove sort arrows*/
+    table.dataTable thead .sorting:after,
+    table.dataTable thead .sorting:before,
+    table.dataTable thead .sorting_asc:after,
+    table.dataTable thead .sorting_asc:before,
+    table.dataTable thead .sorting_desc:after,
+    table.dataTable thead .sorting_desc:before {
+        display: none !important;
+    }
+
+/*Pagination Right*/
+div.dataTables_paginate {
+    text-align: right !important;
+}
+
+/*Showing entries Left*/
+div.dataTables_info {
+    text-align: left !important;
+}
+
+/*Search bar size*/
+div.dataTables_filter input {
+    width: 178.4px !important;
+    height: 31px !important;
+}
+
+
+div.dt-buttons {
+    text-align: left !important;
+}
+
+
+div.dataTables_wrapper {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+}
+
+
+table.dataTable {
+    width: 100% !important;
+    table-layout: fixed !important;
+}
+
+
+div.dataTables_wrapper {
+    overflow-x: hidden !important;
+}
+
+.table-responsive {
+    overflow-x: auto !important; /*पूर्वी hidden होतं, ते आता auto केलं */
+}
+
+table td:last-child {
+    white-space: nowrap;
+    width: 130px;
+}
+/*✅ Checkbox column*/
+table td:first-child,
+table th:first-child {
+    width: 40px;
+    text-align: center;
+}
+
+/*✅ Sr.No column*/
+table td:nth-child(2),
+table th:nth-child(2) {
+    width: 60px;
+    text-align: center;
+}
+
+/*2. Export buttons & search in same line*/
+.custom-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 5px;
+}
+
+
+
+/*✅ Remove top margin/padding above Event List card*/
+body {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+/*.card {
+
+}*/
+/*
+.section,
+.section-body,
+.main-content {
+    padding-top: 0 !important;
+}
+*/
+
+/* 🔽 Event List heading चा वरचा space कमी करण्यासाठी */
+.section,
+.section-body,
+.main-content,
+.section-header {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+/*/* जर heading ला custom class असेल */
+.custom-heading {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+
+.custom-heading {
+    text-align: center;
+    color: #000;
+    font-size: 26px;
+    font-weight: 700;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+}
+
+
+.btnSS pay-btn.disabled-btn {
+    background-color: #cccccc !important; /* Light gray */
+    color: #666666 !important; /* Dim text */
+    border: 1px solid #aaaaaa !important;
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: 0.5 !important; /* Keep full visibility */
+}
+
+
+
+.form-group.mb-3 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.card-body > .form-group.mb-3 {
+    display: flex !important;
+    padding-top: 0 !important;
+}
+
+/* 🔽 Remove background and border from export buttons */
+button.export-buttons.icon-only-btn {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 10px;
+    gap: 10px !important;
+}
+
+    /* 🔽 Optional: Remove hover background */
+    button.export-buttons.icon-only-btn:hover {
+        background-color: transparent !important;
+        box-shadow: none !important;
+    }
+
+
+/* Remove margin below DataTables buttons */
+div.dt-buttons {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Optional: remove space above the table */
+#eventTable_wrapper .row:first-child {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Optional: if table has margin on top */
+#eventTable {
+    margin-top: 0 !important;
+}
+
+
+
+
+.btn-secondary {
+    padding: 2px 10px;
+    font-size: 12px;
+    line-height: 16px;
+    border-radius: 4px;
+    border: none;
+    text-align: center;
+}
+
+/* .btn-secondary:hover {
+                background-color: #218838;
+            }
+    */
+.send-request-btn {
+    padding: 2px 10px;
+    font-size: 10px;
+    line-height: 18px;
+    border-radius: 4px;
+    border: none;
+    text-align: center;
+}
+
+.btn-edit-custom {
+    background-color: #9b59b6;
+    color: white;
+    border: none;
+    width: 25px;
+    height: 23px;
+    font-size: 14px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0; /* Ensures exact sizing */
+}
+
+
+.pay-btn.disabled-btn {
+    background-color: #cccccc !important;
+    color: #666666 !important;
+    border: 1px solid #aaaaaa !important;
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: 0.5 !important;
+    outline: none !important; /* Removes black border */
+    box-shadow: none !important; /* Removes glow or shadow */
+}
+
+
+.pay-btn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+
+.btn-view-custom {
+    background-color: #339af0;
+    color: white;
+    border: none;
+    width: 25px;
+    height: 23px;
+    font-size: 14px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0; /* Ensures exact sizing */
+}
+
+    .btn-view-custom:hover {
+        background-color: lightgray;
+        color: #339af0;
+    }
+
+
+
+
+
+body {
+    overflow: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+    body::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Edge */
+    }
+
+.btnSS pay-btn {
+    border: none;
+}
+
+    .btnSS pay-btn:focus {
+        outline: none !important;
+        box-shadow: none !important;
+        border: green !important;
+    }
+
+/* ✅ Disabled Delete Button Styling */
+.btn-danger:disabled {
+    background-color: #a9a9a9 !important; /* Light gray */
+    border-color: #d6d6d6 !important;
+    color: #fff !important; /* ✅ Keep icon/text white */
+    cursor: not-allowed !important;
+    pointer-events: none !important; /* Prevent hover, click, focus */
+    /* Layout */
+    width: 23px;
+    height: 25px;
+    font-size: 14px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: none !important;
+    box-shadow: none !important;
+}
+
+    /* ✅ Prevent any hover/focus visual */
+    .btn-danger:disabled:hover,
+    .btn-danger:disabled:focus,
+    .btn-danger:disabled:active {
+        background-color: #a9a9a9 !important;
+        border-color: #d6d6d6 !important;
+        color: #fff !important; /* ✅ White icon always visible */
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+
+.pay-btn[style*="pointer-events: none"] {
+    cursor: not-allowed;
+}
+
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.rotate-refresh {
+    animation: rotate 0.6s linear;
+}
+
+/* White Spinning Loader */
+.loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loader {
+    width: 50px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 8px solid;
+    border-color: white transparent; /* White spinner with transparent middle */
+    animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(0.5turn);
+    }
+}
+
+
+/* Add to your existing style section */
+.btn-spin {
+    transition: transform 0.5s ease;
+}
+
+.spin {
+    animation: spin 0.5s linear 1;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.ranges li.active {
+    background-color: #6777ef !important;
+    border: 1px solid #6777ef;
+    color: #fff;
+}
+
+.ranges li:hover {
+    background-color: #6777ef !important; /* Slightly darker blue */
+}

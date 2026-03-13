@@ -1,0 +1,331 @@
+﻿@model GSTSMSLibrary.AccountManager.AccountManager
+
+<head>
+    <link href="~/Content/css/TransactionStatementMS.css" rel="stylesheet" />
+</head>
+<div class="card">
+    <div class="modal-header HeaderAddBankSociety">
+        <h5 class="modal-title">Add Bank Account</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+</div>
+
+
+<div class="card-body">
+    @using (Html.BeginForm("GetAddBankSocietyMS", "AccountManager", FormMethod.Post, new { id = "AddBankFormSimple" }))
+    {
+        @Html.AntiForgeryToken()
+        <div class="row">
+            <!-- Account Type -->
+            <div class="form-group col-md-6">
+                <label class="required-label">Account Type :</label>
+                <div class="input-icon">
+                    @Html.DropDownListFor(m => m.AccountTypeId,
+                        ViewBag.AccountTypeList as List<SelectListItem>,
+                        "-- Select Account Type --",
+                        new { @class = "form-control required-field", id = "AccountTypeId" })
+                    @*<span class="error-icon"><i class="fa fa-exclamation-circle"></i></span>*@
+                    @*<span class="valid-icon"><i class="fa fa-check-circle"></i></span>*@
+                </div>
+                <div class="validation-message" data-valmsg-for="AccountTypeId"></div>
+            </div>
+
+            <!-- IFSC Code -->
+            <div class="form-group col-md-6">
+                <label class="required-label">IFSC Code :</label>
+                <div class="input-icon">
+                    @Html.TextBoxFor(m => m.IFSCCode, new
+                    {
+                        @class = "form-control required-field",
+                        @id = "ifscCode",
+                        placeholder = "Enter IFSC Code",
+                        maxlength = "11"
+                    })
+                    @*<span class="error-icon"><i class="fa fa-exclamation-circle"></i></span>*@
+                    @*<span class="valid-icon"><i class="fa fa-check-circle"></i></span>*@
+                </div>
+                <div class="validation-message" data-valmsg-for="ifscCode"></div>
+            </div>
+
+            <!-- Bank Name -->
+            <div class="form-group col-md-6">
+                <label>Bank Name :</label>
+                @Html.TextBoxFor(m => m.BankName, new
+                {
+                    @class = "form-control",
+                    @id = "bankName",
+                    placeholder = "Auto-filled Bank Name",
+                    @readonly = "readonly"
+                })
+            </div>
+
+            <!-- Account No -->
+            <div class="form-group col-md-6">
+                <label class="required-label">Account No :</label>
+                <div class="input-icon">
+                    @Html.TextBoxFor(m => m.AccountNo, new
+                    {
+                        @class = "form-control required-field",
+                        @id = "accountNo",
+                        placeholder = "Enter Account Number",
+                        maxlength = "18"
+                    })
+                    @*<span class="error-icon"><i class="fa fa-exclamation-circle"></i></span>*@
+                    @*<span class="valid-icon"><i class="fa fa-check-circle"></i></span>*@
+                </div>
+                <div class="validation-message" data-valmsg-for="accountNo"></div>
+            </div>
+
+            <!-- UPI ID -->
+            <div class="form-group col-md-6">
+                <label class="required-label">UPI ID :</label>
+                <div class="input-icon">
+                    @Html.TextBoxFor(m => m.UPIId, new
+                    {
+                        @class = "form-control required-field",
+                        @id = "upiId",
+                        placeholder = "Enter UPI ID",
+                        maxlength = "20"
+                    })
+                    @*<span class="error-icon"><i class="fa fa-exclamation-circle"></i></span>*@
+                    @*<span class="valid-icon"><i class="fa fa-check-circle"></i></span>*@
+                </div>
+                <div class="validation-message" data-valmsg-for="upiId"></div>
+            </div>
+
+            <!-- Opening Balance -->
+            <div class="form-group col-md-6">
+                <label class="required-label">Opening Balance(₹) :</label>
+                <div class="input-icon">
+                    @Html.TextBoxFor(m => m.OpeningBalance, new
+                    {
+                        @class = "form-control required-field",
+                        @id = "openingBalance",
+                        type = "number",
+                        placeholder = "Enter Opening Balance"
+                    })
+                    @*<span class="error-icon"><i class="fa fa-exclamation-circle"></i></span>*@
+                    @*<span class="valid-icon"><i class="fa fa-check-circle"></i></span>*@
+                </div>
+                <div class="validation-message" data-valmsg-for="openingBalance"></div>
+            </div>
+        </div>
+
+        <div class="form-group text-right mt-3 AddButtonSave">
+            <button type="submit" class="btn btn-primary btn-fixed-size">
+                <i class="fas fa-plus-circle mr-1"></i> Add Bank
+            </button>
+            <button type="button" class="btn btn-danger ml-2 btn-fixed-size" id="btnClearForm">
+                Clear
+            </button>
+        </div>
+
+
+
+    }
+</div>
+
+
+<!-- ✅ SweetAlert CDN (fix for missing swal) -->
+
+<script src="~/Content/modules/sweetalert/sweetalert.min.js"></script>
+<script>
+    $(document).ready(function () {
+
+        function validateField($input) {
+            let field = $input.attr('id');
+            let val = $input.val().trim();
+            let $msg = $('[data-valmsg-for="' + field + '"]');
+            let isValid = true;
+            let msgText = "";
+
+            if (field === "accountNo") {
+                let real = $input.data('realValue') || val;
+                if (real.length < 11 || real.length > 18) {
+                    isValid = false;
+                    msgText = "Please enter 11–18 digit account number.";
+                }
+            } else if (field === "upiId") {
+                let regex = /^[\w.\-]{2,}@@[a-zA-Z]{2,}$/;
+                if (!regex.test(val)) {
+                    isValid = false;
+                    msgText = "Please enter a valid UPI ID.";
+                }
+
+
+            } else if (field === "ifscCode") {
+                if (val.length !== 11) {
+                    isValid = false;
+                    msgText = "Please enter 11-character IFSC code.";
+                }
+            } else if (field === "openingBalance") {
+                // ----- CHANGE START HERE -----
+                if (val === "" || isNaN(val)) {
+                    isValid = false;
+                    msgText = "Please enter opening balance.";
+                } else if (parseFloat(val) === 0) {
+                    isValid = false;
+                    msgText = "Opening Balance must be greater than 0."; // 0 sathi message
+                }
+                // Jar value negative asel (0 peksha kami)
+                else if (parseFloat(val) < 0) {
+                    isValid = false;
+                    msgText = "Opening Balance cannot be negative."; // Negative sathi message
+                }
+            } else if (field === "AccountTypeId") {
+                if (val === "" || val === "-- Select Account Type --") {
+                    isValid = false;
+                    msgText = "Please select account type.";
+                }
+            }
+
+            if (isValid) {
+                $input.removeClass('is-invalid').addClass('is-valid');
+                $msg.text("");
+            } else {
+                $input.removeClass('is-valid').addClass('is-invalid');
+                $msg.text(msgText);
+            }
+            // ⏳ Automatically clear validation after 3 seconds
+            setTimeout(function () {
+                if ($input.hasClass('is-invalid')) {
+                    $input.removeClass('is-invalid');
+                    $msg.text('');
+                }
+            }, 3000);
+
+            return isValid;
+        }
+
+        $('.required-field').on('input', function () {
+            validateField($(this));
+        });
+
+        $('#accountNo').on('input', function () {
+            let input = $(this).val().replace(/\D/g, '');
+            if (input.length > 18) input = input.slice(0, 18);
+            $(this).val(input);
+            $(this).data('realValue', input);
+            validateField($(this));
+        });
+
+        $('#accountNo').on('focus', function () {
+            $(this).val($(this).data('realValue') || '');
+        });
+
+        $('#accountNo').on('blur', function () {
+            let real = $(this).data('realValue') || $(this).val();
+            $(this).val(real.replace(/.(?=.{4})/g, '*'));
+        });
+
+        $('#ifscCode').on('input', function () {
+            var input = $(this).val().toUpperCase().trim();
+            $(this).val(input);
+            $(this).data('realValue', input);
+            validateField($(this));
+
+            if (input.length === 11) {
+                $.get('https://ifsc.razorpay.com/' + input)
+                    .done(function (res) {
+                        $('#bankName').val(res.BANK);
+                    }).fail(function () {
+                        $('#bankName').val('');
+                    });
+            } else {
+                $('#bankName').val('');
+            }
+        });
+
+        $('#ifscCode').on('focus', function () {
+            $(this).val($(this).data('realValue') || '');
+        });
+
+        $('#ifscCode').on('blur', function () {
+            let val = $(this).data('realValue') || $(this).val();
+            $(this).val(val.replace(/.(?=.{4})/g, '*'));
+        });
+
+        $('#AddBankFormSimple').on('submit', function (e) {
+            e.preventDefault();
+            var form = $(this);
+            var isValid = true;
+
+            form.find('.required-field').each(function () {
+                if (!validateField($(this))) {
+                    isValid = false;
+                }
+            });
+            // ✅ Extra check for Bank Name
+            var bankName = $('#bankName').val().trim();
+            if (bankName === "") {
+
+                return; // stop submission
+            }
+
+            if (!isValid) return;
+
+           var accountNo = $('#accountNo').data('realValue') || $('#accountNo').val();
+        var upiId = $('#upiId').val().trim();
+
+        // Check AccountNo duplicate
+        $.post('@Url.Action("CheckDuplicateAccount", "AccountManager")', { accountNo: accountNo }, function (isDuplicate) {
+            if (isDuplicate) {
+                iziToast.warning({ title: 'Duplicate!', message: 'Account number already exists!', position: 'topCenter' });
+                return;
+            }
+
+            // Check UPI duplicate
+            $.post('@Url.Action("CheckDuplicateUPI", "AccountManager")', { upiId: upiId }, function (isDuplicateUPI) {
+                if (isDuplicateUPI) {
+                    iziToast.warning({ title: 'Duplicate!', message: 'UPI ID already exists!', position: 'topCenter' });
+                    return;
+                }
+
+                // Backup original masked values
+                let originalAccountNoMasked = $('#accountNo').val();
+                let originalIfscCodeMasked = $('#ifscCode').val();
+
+                // Replace with real values for submission
+                $('#accountNo').val(accountNo);
+                $('#ifscCode').val($('#ifscCode').data('realValue') || '');
+
+                // Submit form
+                $.ajax({
+                    url: form.attr('action'),
+                    method: 'POST',
+                    data: form.serialize(),
+                    success: function (res) {
+                        if (res === "success") {
+                            swal({ title: "Bank Added!", text: "Bank Account Added Successfully!", icon: "success", buttons: false, timer: 2000 })
+                                .then(() => { $('#addBankModal').modal('hide'); location.reload(); });
+                        } else if (res === "duplicate_account") {
+                            iziToast.warning({ title: 'Duplicate!', message: 'Account number already exists!', position: 'topCenter' });
+                        } else if (res === "duplicate_upi") {
+                            iziToast.warning({ title: 'Duplicate!', message: 'UPI ID already exists!', position: 'topCenter' });
+                        } else {
+                            $('#addBankModalBody').html(res);
+                        }
+                    },
+                    error: function () { swal("Oops", "Something went wrong while saving!", "error"); },
+                    complete: function () {
+                        $('#accountNo').val(originalAccountNoMasked);
+                        $('#ifscCode').val(originalIfscCodeMasked);
+                    }
+                });
+
+            });
+        });
+    });
+
+    $('#btnClearForm').click(function () {
+        $('#AddBankFormSimple')[0].reset();
+        $('.form-control').removeClass('is-valid is-invalid');
+        $('.validation-message').text('');
+        $('#bankName').val('');
+        $('#accountNo, #ifscCode').removeData('realValue');
+    });
+
+});
+</script>

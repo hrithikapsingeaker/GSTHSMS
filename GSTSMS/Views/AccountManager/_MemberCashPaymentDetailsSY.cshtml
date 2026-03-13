@@ -1,0 +1,285 @@
+﻿@model List<GSTSMSLibrary.AccountManager.AccountManager>
+
+@if (Model != null && Model.Any())
+{
+    var first = Model.First();
+    decimal total = 0;
+
+
+
+    <style>
+        .col-form-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .text-end {
+            font-weight: 500;
+        }
+
+        .modal-open {
+            overflow: hidden !important;
+            padding-right: 0 !important;
+        }
+
+
+
+        .modal-body {
+            overflow: visible !important;
+            max-height: unset;
+        }
+
+        .close-square-btn {
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            border-radius: 5px !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            line-height: 1;
+            background-color: red;
+            color: white;
+            border: none;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+        .title {
+            font-size: 16px;
+            color: black !important;
+            font-weight: bold;
+            padding-left: 12px;
+            margin-bottom: 15px;
+        }
+
+        .sec-divider {
+            border: none;
+            border-top: 2px dotted black;
+            margin-top: 0px;
+            margin-bottom: 15px;
+        }
+
+        .charge-item {
+            padding: 6px 12px;
+            font-size: 0.95rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* Hidden Charge Section */
+        #chargeSection2 {
+            display: none;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+
+
+        #MemberCashpaymentModal .modal-body {
+            max-height: unset !important;
+        }
+
+        /* Charge details specific scroll area */
+        #chargeSection {
+            display: none;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .modal-open .modal {
+            overflow: hidden !important;
+            padding-right: 0 !important;
+        }
+
+
+        /* ✅ Header fixed (static) */
+        #MemberCashpaymentModal .modal-header,
+        #MemberCashpaymentModal .card-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #615677;
+            color: white;
+        }
+
+        /* ✅ Body scrollable */
+        #MemberCashpaymentModal .modal-body {
+            flex: 1;
+            padding: 0px;
+        }
+
+        #MemberCashpaymentModal .modal-dialog {
+            display: flex;
+            align-items: center; /* vertical center */
+            min-height: calc(100% - 1rem); /* full height minus margin */
+        }
+    </style>
+
+
+    <div class="header-cash" style="max-width: 700px;">
+        <div class="card-header d-flex justify-content-between align-items-center"
+             style="background-color: #615677; color: white; height: 45px!important;">
+            <h4 class="mb-0" style=" margin-left: 125px; font-size:16px!important;">Maintenance Payment</h4>
+            <button type="button" class="btn btn-danger btn-sm close-square-btn" data-bs-dismiss="modal">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+
+        <div class="card-body px-4 " style="padding: 0.25rem;">
+            <!-- Hidden Fields -->
+            <input type="hidden" id="hdnMemberCode" value="@first.MemberCode" />
+            <input type="hidden" id="hdnEntityCode" value="@first.EntityCode" />
+            <input type="hidden" id="hdnMaintainanceTypeId" value="@first.MaintananceTypeId" />
+
+            <div class="title">Member Info</div>
+            <hr class="expense-divider" />
+
+            <div class="row mb-2">
+                <div class="col-md-8">
+                    <span class="col-form-label">Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp; </span>
+                    <span class="text-dark">@first.FullName</span>
+                </div>
+                <div class="col-md-4 text-end">
+                    <span class="col-form-label">Flat No &nbsp;&nbsp;:&nbsp;&nbsp; </span>
+                    <span class="text-dark">@first.FlatCode</span>
+                </div>
+            </div>
+
+            <div class="row mb-2">
+                <div class="col-md-6 d-flex align-items-center">
+                    <span class="field-label" style=" min-width: 155px;">Maintenance Month :&nbsp;</span>
+                    <span class="text-dark fw-bold ms-2" style=" min-width: 155px;">
+                        @(first.ScheduleDate?.ToString("MMMM yyyy") ?? "-")
+                    </span>
+                </div>
+            </div>
+
+
+
+
+            <!-- Charge Details -->
+            <button type="button" class="expandable-section w-100 mb-2 text-primary" onclick="toggleChargeDetails2()">
+                <i class="fas fa-eye"></i> View Charge Details
+            </button>
+            <div id="chargeSection2" style="display:none;">
+                <div class="list-group">
+                    @foreach (var item in Model)
+                    {
+                        total += item.ChargeAmount;
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>@item.MaintenanceName</span>
+                            <span>₹@item.ChargeAmount.ToString("0.00")</span>
+                        </div>
+                    }
+                </div>
+                @*<div class="d-flex justify-content-between border-top pt-2">
+                        <b>Total Amount</b>
+                        <b>₹@total.ToString("0.00")</b>
+                    </div>*@
+            </div>
+            <br />
+            <div class="title">Maintenance Summary</div>
+            <hr class="expense-divider" />
+
+            <div class="row mb-2">
+                <div class="col-md-6">
+                    <span class="col-form-label"> Amount &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: &nbsp;</span>
+                    <span class="fw-bold">₹@first.MaintenanceAmount.ToString("N2")</span>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span class="col-form-label">Penalty Amount &nbsp;&nbsp;: &nbsp;</span>
+                    <span class="text-dark text-danger">₹@first.PenaltyAmount.ToString("N2")</span>
+                </div>
+            </div>
+
+            <div class="row mb-2">
+                <div class="col-md-6 text-end">
+                    <span class="col-form-label">Final Payable &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp; </span>
+                    <span class="fw-bold">₹@first.FinalPayable.ToString("N2")</span>
+                </div>
+                <div class="col-md-6 d-flex justify-content-between">
+                    <span class="col-form-label">Cash In Hand :</span>
+                    <span class="text-dark"> ₹@Math.Ceiling(first.CashInHand).ToString("N2")</span>
+                </div>
+
+            </div>
+
+
+
+
+            @*<div class="maintainance-footer-cash">*@
+            <button type="button" class="maintainance-btn-cash maintainance-footer-cash" onclick="saveCashPayment()">
+                Save Payment
+            </button>
+            @*</div>*@
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-warning text-center">
+        <i class="fas fa-info-circle"></i> No maintenance details found.
+    </div>
+}
+
+<script>
+
+
+    // ✅ Toggle Charge Details
+    function toggleChargeDetails2() {
+        const section = document.getElementById("chargeSection2");
+        const btn = document.querySelector("#btnChargeToggle");
+
+        if (section.style.display === "none" || section.style.display === "") {
+            section.style.display = "block";
+            btn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Charge Details';
+        } else {
+            section.style.display = "none";
+            btn.innerHTML = '<i class="fas fa-eye"></i> View Charge Details';
+        }
+    }
+
+
+    function saveCashPayment() {
+        var memberCode = $("#hdnMemberCode").val();
+        var entityCode = $("#hdnEntityCode").val();
+        var totalAmount = parseFloat($("#hdnTotalAmount").val() || 0);
+        var maintananceTypeId = parseInt($("#hdnMaintainanceTypeId").val() || 0);
+
+        $.ajax({
+            url: "/AccountManager/SaveCashPayment",
+            type: "POST",
+            data: {
+                MemberCode: memberCode,
+                EntityCode: entityCode,
+                Amount: totalAmount,
+                maintananceTypeId: maintananceTypeId  // make sure this matches controller param
+            },
+            success: function (res) {
+                if (res.success) {
+                    swal({
+                        icon: 'success',
+                        title: 'Payment Confirmed',
+                        text: 'Your payment has been recorded successfully!',
+                        timer: 2000,
+                        buttons: false
+                    }).then(() => {
+                        // ✅ Page refresh
+                        location.reload();
+                    });
+                } else {
+                    iziToast.error({
+                        title: 'Error',
+                        message: res.message || 'Something went wrong',
+                        position: 'topCenter'
+                    });
+                }
+            },
+
+        });
+    }
+
+
+
+</script>

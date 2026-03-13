@@ -1,0 +1,140 @@
+﻿@model GSTSMSLibrary.AccountManager.AccountManager
+@using System.IO
+
+<link href="~/Content/css/TransactionStatementMS.css" rel="stylesheet" />
+
+<div class="modal-header modal-header-custom">
+    <h5 class="modal-title">Complaint Details</h5>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<div class="modal-body modal-body-centered">
+
+    <div class="detail-row">
+        <label>Assign By (Secretary)</label>
+        <span class="colon">:</span>
+        <span class="value">@(!string.IsNullOrWhiteSpace(Model.SecretoryName) ? Model.SecretoryName : "N/A")</span>
+    </div>
+
+    <div class="detail-row">
+        <label>Raised By (Member)</label>
+        <span class="colon">:</span>
+        <span class="value">@(!string.IsNullOrWhiteSpace(Model.RaisedBy) ? Model.RaisedBy : "N/A")</span>
+    </div>
+
+    <div class="detail-row">
+        <label>Complaint Type</label>
+        <span class="colon">:</span>
+        <span class="value">@(!string.IsNullOrWhiteSpace(Model.ComplaintType) ? Model.ComplaintType : "N/A")</span>
+    </div>
+
+    <div class="detail-row">
+        <label>Complaint Date & Time</label>
+        <span class="colon">:</span>
+        <span class="value">@((Model.ComplaintDate != null) ? Model.ComplaintDate.ToString("dd-MM-yyyy hh:mm tt") : "N/A")</span>
+    </div>
+    <div class="detail-row">
+        <label>Resolved Date & Time</label>
+        <span class="colon">:</span>
+        <span class="value">
+            @(Model.ResolvedDate != null
+            ? Model.ResolvedDate.Value.ToString("dd-MM-yyyy hh:mm tt")
+            : "Not Resolved Yet")
+        </span>
+    </div>
+    <div class="detail-row">
+        <label>Solve Reason</label>
+        <span class="colon">:</span>
+        <span class="value">
+            @(string.IsNullOrWhiteSpace(Model.Reasonsolvecomplaint) ? "N/A" : Model.Reasonsolvecomplaint)
+        </span>
+
+    </div>
+
+
+    <div class="detail-row">
+        <label>Description</label>
+        <span class="colon">:</span>
+        <span class="value">@(!string.IsNullOrWhiteSpace(Model.Description) ? Html.Raw(Model.Description) : Html.Raw("<span class='text-muted'>N/A</span>"))</span>
+    </div>
+
+    <div class="detail-row">
+        <label>Status</label>
+        <span class="colon">:</span>
+        <span class="value">
+            @if (string.IsNullOrWhiteSpace(Model.Status))
+            {
+                <span class="text-muted">N/A</span>
+            }
+            else if (Model.Status == "Pending")
+            {
+                <span class="status-pending">Pending</span>
+            }
+            else if (Model.Status == "InProgress")
+            {
+                <span class="status-inprogress">In Progress</span>
+            }
+            else if (Model.Status == "Solved")
+            {
+                <span class="status-resolved">Solved</span>
+            }
+            else
+            {
+                <span>@Model.Status</span>
+            }
+        </span>
+    </div>
+
+    <div class="detail-row">
+        <label>Attachments</label>
+        <span class="colon">:</span>
+        <span class="value">
+            @{
+                var docFileName = (Model?.DocumentPath ?? "").Trim();
+                bool fileExists = false;
+                string relativePath = null;
+
+                if (!string.IsNullOrWhiteSpace(docFileName))
+                {
+                    if (!docFileName.StartsWith("~") && docFileName.StartsWith("/"))
+                    {
+                        docFileName = "~" + docFileName;
+                    }
+                    else if (!docFileName.StartsWith("~") && !docFileName.StartsWith("/"))
+                    {
+                        docFileName = "~/" + docFileName.TrimStart('\\', '/');
+                    }
+
+                    try
+                    {
+                        relativePath = Url.Content(docFileName);
+                        var serverPath = Server.MapPath(docFileName);
+                        fileExists = System.IO.File.Exists(serverPath);
+                    }
+                    catch
+                    {
+                        fileExists = false;
+                        relativePath = null;
+                    }
+                }
+
+                if (fileExists && !string.IsNullOrEmpty(relativePath))
+                {
+                    <a href="@relativePath" target="_blank" class="text-primary" rel="noopener">
+                        <i class="fas fa-file-pdf"></i> @Path.GetFileName(docFileName)
+                    </a>
+                }
+                else if (!string.IsNullOrWhiteSpace(Model?.DocumentPath))
+                {
+                    <span class="text-danger">Document not found on server.</span>
+                }
+                else
+                {
+                    <span class="text-danger">No Attachments</span>
+                }
+            }
+        </span>
+    </div>
+</div>

@@ -1,0 +1,2514 @@
+﻿@model GSTSMSLibrary.AccountManager.AccountManager
+@using Newtonsoft.Json
+@{
+    ViewBag.Title = "Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+
+
+<!-- External Libraries -->
+<script src="https://code.highcharts.com/highcharts.js"></script>
+
+<link href="~/Content/css/AuditReport.css" rel="stylesheet" />
+
+<script src="~/Content/modules/sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/modules/datatables/datatables.min.js"></script>
+
+<script src="~/Content/modules/izitoast/js/iziToast.min.js"></script>
+<script src="~/Content/modules/moment.min.js"></script>
+
+<link rel="stylesheet" href="~/Content/modules/bootstrap-daterangepicker/daterangepicker.css" />
+<script src="~/Content/modules/bootstrap-daterangepicker/daterangepicker.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="~/Content/css/Dashboard.css" rel="stylesheet" />
+
+
+
+
+
+<!-- MAIN CONTENT START -->
+<!-- TOP CARDS -->
+<!-- MAIN CONTENT START -->
+<!-- TOP CARDS -->
+<div class="row row-flex text-white mb-4" style="gap: 20px; margin-top: 0 !important; padding-top: 0.5rem !important; ">
+    <div class="loader-overlay" id="listLoader">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Maintenance Due Card -->
+    <div class="col p-3 rounded maintenance-card text-white text-center"
+         style="width: 250px; font-family: 'Segoe UI', Roboto, Arial, sans-serif; cursor: pointer; background: linear-gradient(145deg, #6698C3, #5A8BC1); box-shadow: 8px 8px 18px rgba(0,0,0,0.25), -5px -5px 15px rgba(255,255,255,0.1); transition: all 0.4s ease; "
+         data-url='@Url.Action("MaintenanceDueListYP", "AccountManager")'
+         onmouseover="this.style.transform='translateY(-8px) rotateX(4deg) rotateY(-2deg)'; this.style.boxShadow='12px 12px 25px rgba(0,0,0,0.35), -6px -6px 15px rgba(255,255,255,0.15)';"
+         onmouseout="this.style.transform='translateY(0) rotateX(0) rotateY(0)'; this.style.boxShadow='8px 8px 18px rgba(0,0,0,0.25), -5px -5px 15px rgba(255,255,255,0.1)';">
+        <div style="width: 55px; height: 55px;
+             background: rgba(255,255,255,0.2);
+             border-radius: 50%;
+             display: flex;
+             justify-content: center;
+             align-items: center;
+             margin: 0 auto 12px;
+             box-shadow: inset 2px 2px 6px rgba(0,0,0,0.3),
+                         inset -2px -2px 6px rgba(255,255,255,0.2);">
+            <i class="fas fa-file-invoice fa-lg"></i>
+        </div>
+        <h6 class="mb-2 text-uppercase fw-bold" style="letter-spacing: 1px;">Maintenance Due</h6>
+        <h3 class="mb-0 fw-bold">₹ @((ViewBag.MaintenanceDue ?? 0).ToString("N2"))</h3>
+    </div>
+
+    <!-- Maintenance Due Modal -->
+    <div class="modal fade" id="maintenanceDueModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-light py-2">
+                    <h5 class="modal-title text-center w-100 text-dark">Pending Maintenance List</h5>
+                    <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body p-0">
+                    <div id="maintenanceDueModalBodyy" class="p-3"
+                         style="max-height: 80vh; overflow-y: auto; display: inline-block; width: 100%;">
+                        <!-- Partial View Will Load Here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cash in Hand -->
+    <div class="col p-3 rounded bank-card text-white text-center"
+         style="width: 250px; font-family: 'Segoe UI', Roboto, Arial, sans-serif; cursor: default; background: linear-gradient(145deg, #81c784, #66bb6a); box-shadow: 8px 8px 18px rgba(0,0,0,0.25), -5px -5px 15px rgba(255,255,255,0.1); transition: all 0.4s ease;"
+         onmouseover="this.style.transform='translateY(-8px) rotateX(4deg) rotateY(-2deg)'; this.style.boxShadow='12px 12px 25px rgba(0,0,0,0.35), -6px -6px 15px rgba(255,255,255,0.15)';"
+         onmouseout="this.style.transform='translateY(0) rotateX(0) rotateY(0)'; this.style.boxShadow='8px 8px 18px rgba(0,0,0,0.25), -5px -5px 15px rgba(255,255,255,0.1)';">
+        <div style="width: 55px; height: 55px;
+                background: rgba(255,255,255,0.2);
+                border-radius: 50%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin: 0 auto 12px;
+                box-shadow: inset 2px 2px 6px rgba(0,0,0,0.3),
+                            inset -2px -2px 6px rgba(255,255,255,0.2);">
+            <i class="fas fa-wallet fa-lg"></i>
+        </div>
+        <h6 class="mb-2 text-uppercase fw-bold" style="letter-spacing: 1px;">Cash in Hand</h6>
+        <h3 class="mb-0 fw-bold">₹ @((ViewBag.CashInHand ?? 0).ToString("N2"))</h3>
+    </div>
+
+    <!-- Bank Balance Card -->
+    <div class="col p-3 rounded bank-card text-white text-center"
+         style="width: 250px; font-family: 'Segoe UI', Roboto, Arial, sans-serif; cursor: pointer; background: linear-gradient(145deg, #b39ddb, #9575cd); box-shadow: 8px 8px 18px rgba(0,0,0,0.25), -5px -5px 15px rgba(255,255,255,0.1); transition: all 0.4s ease;"
+         onmouseover="this.style.transform='translateY(-8px) rotateX(4deg) rotateY(-2deg)'; this.style.boxShadow='12px 12px 25px rgba(0,0,0,0.35), -6px -6px 15px rgba(255,255,255,0.15)';"
+         onmouseout="this.style.transform='translateY(0) rotateX(0) rotateY(0)'; this.style.boxShadow='8px 8px 18px rgba(0,0,0,0.25), -5px -5px 15px rgba(255,255,255,0.1)';">
+        <div style="width: 55px; height: 55px;
+                background: rgba(255,255,255,0.2);
+                border-radius: 50%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin: 0 auto 12px;
+                box-shadow: inset 2px 2px 6px rgba(0,0,0,0.3),
+                            inset -2px -2px 6px rgba(255,255,255,0.2);">
+            <i class="fas fa-university fa-lg"></i>
+        </div>
+        <h6 class="mb-2 text-uppercase fw-bold" style="letter-spacing: 1px;">Bank Balance</h6>
+        <h3 class="text-center mb-2 fw-bold">View...</h3>
+        <div class="bank-details w-100">
+            <ul id="bankBalanceList" class="mb-0 text-center"
+                style="list-style: none; padding-left: 0; font-size: 15px; line-height: 1.6; color:white;">
+            </ul>
+        </div>
+    </div>
+
+    <!-- Complaints Card -->
+    <div class="col p-3 rounded bank-card text-white text-center"
+         style="width: 250px; font-family: 'Segoe UI', Roboto, Arial, sans-serif; cursor: pointer; background: linear-gradient(145deg, #A3AB87, #8F9573); box-shadow: 8px 8px 18px rgba(0,0,0,0.25), -5px -5px 15px rgba(255,255,255,0.1); transition: all 0.4s ease;"
+         data-bs-toggle="modal"
+         data-bs-target="#complaintModal"
+         onmouseover="this.style.transform='translateY(-8px) rotateX(4deg) rotateY(-2deg)'; this.style.boxShadow='12px 12px 25px rgba(0,0,0,0.35), -6px -6px 15px rgba(255,255,255,0.15)';"
+         onmouseout="this.style.transform='translateY(0) rotateX(0) rotateY(0)'; this.style.boxShadow='8px 8px 18px rgba(0,0,0,0.25), -5px -5px 15px rgba(255,255,255,0.1)';">
+        <div style="width: 55px; height: 55px;
+                    background: rgba(255,255,255,0.2);
+                    border-radius: 50%;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    margin: 0 auto 12px;
+                    box-shadow: inset 2px 2px 6px rgba(0,0,0,0.3),
+                                inset -2px -2px 6px rgba(255,255,255,0.2);">
+            <i class="fas fa-comments fa-lg"></i>
+        </div>
+        <h6 class="mb-2 text-uppercase fw-bold" style="letter-spacing: 1px;">Complaints</h6>
+        <h3 class="text-center mb-0 fw-bold">@ViewBag.TotalComplaints</h3>
+    </div>
+</div>
+
+<div id="complaints-container">
+    <p>Loading complaints...</p>
+</div>
+
+<!-- EVENT & TRANSACTION ROW -->
+<div class="container">
+    <div class="row gx-4 gy-4">
+        <div class="container-fluid px-0">
+            <div class="row g-0 align-items-stretch">
+                <!-- Event Expenses Card -->
+                <div class="col-lg-6 col-md-6 col-sm-12 d-flex">
+                    <div class="card shadow-sm flex-fill" style="border-radius: 10px; width: 100%; margin:0;">
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="card-title text-center mb-0" style="color:black;">Event Expenses</h6>
+                                <div class="form-group mb-0 d-flex align-items-center">
+                                    <a href="javascript:;" class="btn btn-primary event-daterange-btn icon-left btn-icon">
+                                        <i class="fas fa-calendar"></i> <span>Choose Date</span>
+                                    </a>
+                                    <input type="hidden" id="fromDate1" value="@ViewBag.StartOfMonth" />
+                                    <input type="hidden" id="toDate1" value="@ViewBag.EndOfMonth" />
+                                </div>
+                            </div>
+                            <div id="eventExpensesChart" style="height:400px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Transactions Card -->
+                <div class="col-lg-6 col-md-6 col-sm-12 d-flex">
+                    <div class="card shadow-sm flex-fill" style="border-radius: 10px; width: 100%;">
+                        <div class="card-body d-flex flex-column">
+                            <!-- Header -->
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h6 class="card-title mb-0" style="color:black;"><b>Total Transactions</b></h6>
+                                <br />
+                                <br />
+                                <!-- Date Picker -->
+                                <a href="javascript:;" class="btn btn-primary daterange-btn icon-left btn-icon">
+                                    <i class="fas fa-calendar"></i>
+                                    <span>Select Date</span>
+                                </a>
+                                <br />
+
+                            </div>
+                            <!-- Bank Dropdown -->
+                            <select id="bankSelector"
+                                    class="form-select form-select-sm"
+                                    style="width: 150px; color: black; font-weight: bold;">
+                            </select>
+                            <br />
+                            <!-- Bars -->
+                            <div class="text-center">
+                                <h6><b>Credited</b></h6>
+                                <div class="progress mb-3 credit-bar" style="height:25px;">
+                                    <div id="creditedBar"
+                                         class="progress-bar"
+                                         style="width:0%; background:linear-gradient(90deg,#38ef7d,#11998e)">
+                                        <span id="creditedAmount">₹ 0.00</span>
+                                    </div>
+                                </div>
+
+                                <h6><b>Debited</b></h6>
+                                <div class="progress debit-bar" style="height:25px;">
+                                    <div id="debitedBar"
+                                         class="progress-bar"
+                                         style="width:0%; background:linear-gradient(90deg,#ff6a00,#ee0979)">
+                                        <span id="debitedAmount">₹ 0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" id="fromDate" />
+    <input type="hidden" id="toDate" />
+</div>
+
+
+
+<style>
+    /* .modalevent {
+        max-width: 121% !important;
+    }
+    .modal.show .modal-content {
+        max-width: 121% !important;
+    }*/
+
+
+
+
+
+
+
+
+</style>
+
+
+
+<!-- Event Details Modal -->
+<div class="modal fade" id="eventDetailsModal" tabindex="-1" aria-hidden="true" style="width: 1800px !important;">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content modalevent" style="margin-top: 0px !important; max-width: 1200px!important; margin-left: 122px !important;">
+            <div class="modal-header">
+                <h5 class="modal-title" style="color:black">Event Details</h5>
+                <button type="button" class="btn" onclick="closeModal()"
+                        style="border: none; color: white; background-color: red; outline: none; border-radius: 4px;
+                            box-shadow: none; font-size: 20px; cursor: pointer; width: 28px; height: 28px;
+                            display: flex; align-items: center; justify-content:center;">
+                    ×
+                </button>
+            </div>
+            <div class="modal-body" id="eventDetailsBody">
+                <!-- Event details will load here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+<!-- Transaction List Modal -->
+<div class="modal fade"
+     id="transactionModal"
+     tabindex="-1"
+     aria-hidden="true"
+     data-bs-backdrop="static"
+     data-bs-keyboard="false">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 6px;">
+            <!-- Header -->
+            <div class="modal-header bg-white d-flex justify-content-between align-items-center" style="height: 50px;">
+                <!-- Title centered -->
+                <h5 class="modal-title flex-grow-1 text-center m-0"
+                    id="transactionModalTitle"
+                    style="color: #333; font-size: 18px; font-weight: bold;">
+                </h5>
+                <!-- Custom Close Button -->
+                <button type="button" class="d-flex align-items-center justify-content-center"
+                        data-bs-dismiss="modal" aria-label="Close"
+                        style="margin-left: auto; width: 32px; height: 32px; background-color: #dc3545; color: #fff; font-size: 1.2rem; line-height: 1; padding: 0; border: none; transition: background 0.2s; margin-bottom: 25px;">
+                    &times;
+                </button>
+            </div>
+            <!-- Body -->
+            <div class="modal-body">
+                <!-- Transactions Table -->
+                <div id="transactionTableContainer">
+                    <!-- Partial will load here -->
+                </div>
+                <!-- Pagination -->
+                <div class="d-flex justify-content-end mt-3">
+                    <div id="transactionPaginationControls" class="d-flex flex-wrap gap-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <!-- Worker Payment Card - Left Side -->
+        <div class="col-md-5" style=" padding: 10px;">
+            <div class="card shadow-sm h-100" style="width: 100%;">
+                <div class="card-body" style="height: 497px;">
+                    <h5 class="mb-0" style="color:black"><b>Worker Payment Status</b></h5>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+
+                        <button id="btnViewAllWorkers" class="btn btn-primary btn-sm">View All Data</button>
+                        <div class="worker-month-nav d-flex align-items-center">
+                            <button id="prevWorkerMonth" class="btn btn-sm btn-outline-secondary me-1">←</button>
+                            <span id="workerMonthDisplay" class="mx-2">January</span>
+                            <button id="nextWorkerMonth" class="btn btn-sm btn-outline-secondary me-2">→</button>
+                            <select id="workerMonthSelector" class="form-control form-control-sm"
+                                    style="width: 120px; height: 30px; padding: 2px 8px;">
+                                @for (int i = 1; i <= 12; i++)
+                                {
+                                    <option value="@i">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Chart Container -->
+                    <div style="position: relative; height: 300px; width: 100%;">
+                        <canvas id="workerPaymentChart"></canvas>
+                        <!-- Center Text Div -->
+                        <div id="chartCenterText" style="position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); text-align: center; font-weight: bold; font-size: 16px;">
+                            0 / 0
+                        </div>
+                    </div>
+                    <div class="text-center mt-3" style="color:black">
+                        <span class="dot bg-primary"></span> Completed &nbsp;&nbsp;
+                        <span class="dot bg-light border border-dark"></span> Pending
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            /* =======================
+            ✅ MAINTENANCE MAIN CARD
+            ======================= */
+            .maintenance-card-wrapper {
+                border-radius: 18px;
+                background-color: #ffffff;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+                padding: 14px;
+            }
+
+                /* =======================
+            ✅ FORCE ALL TEXT BOLD & BLACK
+            ======================= */
+                .maintenance-card-wrapper * {
+                    font-weight: 700;
+                    color: #000000;
+                }
+
+            /* ✅ Penalty amount RED ठेवायचा असेल तर */
+            .amount-row.text-danger {
+                color: #dc2626 !important;
+                font-weight: 800;
+            }
+
+            /* =======================
+            ✅ FILTERS — BLACK BORDER
+            ======================= */
+            .maintenance-filter {
+                width: 140px;
+                height: 38px;
+                padding: 6px 10px;
+                font-weight: 700;
+                color: #000000;
+                background-color: #f3f4f6;
+                border: 2px solid #000000;
+                border-radius: 12px;
+            }
+
+                .maintenance-filter:focus {
+                    outline: none;
+                    box-shadow: none;
+                    border-color: #000000;
+                }
+
+            /* =======================
+            ✅ BOTH DONUTS SAME SIZE
+            ======================= */
+            .chart-box {
+                background-color: #f9fafb;
+                border-radius: 16px;
+                padding: 14px;
+                width: 260px;
+                height: 260px;
+                margin: auto;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+            }
+
+                .chart-box canvas {
+                    width: 220px !important;
+                    height: 220px !important;
+                    max-width: 220px !important;
+                    max-height: 220px !important;
+                }
+
+            /* =======================
+            ✅ LEGENDS TEXT BLACK
+            ======================= */
+            .chart-legend,
+            .paid-legend,
+            .pending-legend,
+            .penalty-legend {
+                position: absolute;
+                top: -30px;
+                left: 50%;
+                transform: translateX(-50%);
+                font-size: 12px;
+                font-weight: 700;
+                color: #000000;
+                white-space: nowrap;
+            }
+
+            /* =======================
+            ✅ AMOUNT SECTION
+            ======================= */
+            .amount-section {
+                margin-top: 10px;
+                font-size: 14px;
+                color: #000000;
+            }
+
+            .amount-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 6px 0;
+                border-bottom: 1px dashed #d1d5db;
+                color: #000000;
+            }
+
+                .amount-row:last-child {
+                    border-bottom: none;
+                }
+
+            /* =======================
+            ✅ TITLES & HEADINGS
+            ======================= */
+            .maintenance-title-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding-bottom: 6px;
+            }
+
+            .maintenance-title {
+                font-size: 18px;
+                font-weight: 800;
+                color: #000000;
+            }
+
+            .maintenance-subtitle {
+                font-size: 15px;
+                font-weight: 700;
+                margin-bottom: 6px;
+                text-align: center;
+                color: #000000;
+            }
+
+            /* =======================
+            ✅ RESPONSIVE MOBILE FIX
+            ======================= */
+            @@media (max-width: 768px) {
+
+                .chart-box {
+                    width: 230px;
+                    height: 230px;
+                    background-color: #f9fafb;
+                }
+
+                    .chart-box canvas {
+                        width: 200px !important;
+                        height: 200px !important;
+                    }
+
+                .maintenance-filter {
+                    width: 100%;
+                    background-color: #f3f4f6;
+                    color: #000000;
+                    border: 2px solid #000000;
+                }
+            }
+        </style>
+
+        <!-- ✅ Maintenance Status Section -->
+        <div class="col-md-7">
+            <div class="card maintenance-card-wrapper h-100">
+
+                <!-- ✅ HEADER -->
+                <div class="maintenance-title-row px-2 pt-2">
+                    <div class="maintenance-title">Maintenance Status</div>
+
+                    <div class="d-flex gap-2">
+                        <select id="wingSelect" class="maintenance-filter"></select>
+
+                        <input type="text" id="maintenanceMonthPicker"
+                               class="maintenance-filter"
+                               placeholder="MM/YYYY" readonly />
+                    </div>
+                </div>
+
+                <!-- ✅ DONUT ROW -->
+                <div class="row mt-2">
+
+                    <!-- ✅ Monthly -->
+                    <div class="col-md-6 text-center">
+
+                        <div class="maintenance-subtitle">Monthly Maintenance</div>
+
+                        <div class="chart-box" style="font-weight:bold;color:black;">
+                            <canvas id="monthlyMaintenanceChart"></canvas>
+                        </div>
+
+                        <div class="amount-section">
+                            <div class="amount-row">
+                                <span>Total Amount</span>
+                                <b>₹ <span id="monthlyTotalAmount">--</span></b>
+                            </div>
+
+                            <div class="amount-row">
+                                <span>Pending Amount</span>
+                                <b>₹ <span id="monthlyPendingAmount">--</span></b>
+                            </div>
+
+                            <div class="amount-row text-danger">
+                                <span>Penalty Amount</span>
+                                <b>₹ <span id="monthlyPenaltyAmount">--</span></b>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ✅ Occasional -->
+                    <div class="col-md-6 text-center">
+
+                        <div class="maintenance-subtitle">Occasional Maintenance</div>
+
+                        <div class="chart-box">
+                            <canvas id="occasionalMaintenanceChart"></canvas>
+                        </div>
+
+                        <div class="amount-section">
+                            <div class="amount-row">
+                                <span>Total Amount</span>
+                                <b>₹ <span id="occasionalTotalAmount">--</span></b>
+                            </div>
+
+                            <div class="amount-row">
+                                <span>Pending Amount</span>
+                                <b>₹ <span id="occasionalPendingAmount">--</span></b>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+
+        <style>
+            .modal.show .modal-content {
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                margin-top: 40px;
+            }
+
+            .dot {
+                height: 10px;
+                width: 10px;
+                border-radius: 50%;
+                display: inline-block;
+            }
+
+            .worker-month-nav {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+
+            .worker-month-btn {
+                background: none;
+                border: 1px solid #ccc;
+                border-radius: 3px;
+                padding: 2px 8px;
+                cursor: pointer;
+            }
+
+            /* Ensure both cards have same height */
+            .card {
+                min-height: 497px;
+            }
+        </style>
+
+        <!-- Modals -->
+        <div class="modal fade" id="maintenanceModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+
+                    <div class="modal-header bg-light py-2">
+                        <h5 class="modal-title text-center w-100" id="maintenanceModalTitle" style="color:black"></h5>
+
+                        <!-- ✅ ✅ BOOTSTRAP 4 FIXED CLOSE BUTTON -->
+                        <button type="button"
+                                class="btn btn-danger btn-sm"
+                                data-dismiss="modal"
+                                aria-label="Close">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+
+                    <div class="modal-body p-3">
+                        <!-- ⬇ THIS IS WHERE PARTIAL VIEW LOADS -->
+                        <div id="maintenanceModalContent">
+                            <!-- Loading spinner will show here first -->
+                            <div class="text-center p-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                                <p class="mt-2">Loading members...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+
+        <style>
+            .modal.show .modal-content {
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                margin-top: 40px;
+            }
+
+            .dot {
+                height: 10px;
+                width: 10px;
+                border-radius: 50%;
+                display: inline-block;
+            }
+
+            .worker-month-nav {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+
+            .worker-month-btn {
+                background: none;
+                border: 1px solid #ccc;
+                border-radius: 3px;
+                padding: 2px 8px;
+                cursor: pointer;
+            }
+
+            /* Ensure both cards have same height */
+            .card {
+                min-height: 497px;
+            }
+        </style>
+
+        <!-- Modals -->
+        <!-- Worker Payment Modal -->
+        <div class="modal fade" id="workerPaymentModal" data-bs-backdrop="static" tabindex="-1">
+            <div class="modal-dialog modal-xl modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-light py-2">
+                        <h5 class="modal-title w-100 text-center" style="color:black;">
+                            Worker Payment Details
+                        </h5>
+                        <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body p-3" id="workerPaymentModalBody">
+                        <!-- Partial will load here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- All Workers Modal -->
+        <div class="modal fade" id="modalAllWorkers" data-bs-backdrop="static">
+            <div class="modal-dialog modal-xl modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-light py-2">
+                        <h5 class="modal-title w-100 text-center" style="color:black;">All Worker Payment List</h5>
+                        <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body p-3" id="modalAllWorkersBody"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Maintenance Members Modal - SIMPLE VERSION -->
+        <div class="modal fade" id="maintenanceModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+
+                    <div class="modal-header bg-light py-2">
+                        <h5 class="modal-title text-center w-100" id="maintenanceModalTitle" style="color:black"></h5>
+
+                        <!-- ✅ ✅ BOOTSTRAP 4 FIXED CLOSE BUTTON -->
+                        <button type="button"
+                                class="btn btn-danger btn-sm"
+                                data-dismiss="modal"
+                                aria-label="Close">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+
+                    <div class="modal-body p-3">
+                        <!-- ⬇️ THIS IS WHERE PARTIAL VIEW LOADS -->
+                        <div id="maintenanceModalContent">
+                            <!-- Loading spinner will show here first -->
+                            <div class="text-center p-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                                <p class="mt-2">Loading members...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+    </div>
+
+    <!-- Red List Table -->
+    <div class="table-responsive">
+        <h3 style="color:black; font-size:18px; font-weight:bold; text-align:center; margin-bottom:15px;">
+            Top Members of Red List Name
+        </h3>
+        <table class="table table-bordered table-striped">
+            <thead style="background-color: #615677 !important; height: 30px;">
+                <tr>
+                    <th style="color: white; font-size: 16px; font-weight:bold; text-align: center;">Sr.No</th>
+                    <th style="color: white; font-size: 16px; font-weight: bold; text-align: center;">Full Name</th>
+                    <th style="color: white; font-size: 16px; font-weight: bold; text-align: center;">Flat Code</th>
+                    <th style="color: white; font-size: 16px; font-weight: bold; text-align: center;">Maintenance Amount(₹)</th>
+                    <th style="color: white; font-size: 16px; font-weight: bold; text-align: center;">Months Pending</th>
+                    <th style="color: white; font-size: 16px; font-weight: bold; text-align: center;">Pending Amount(₹)</th>
+                    <th style="color: white; font-size: 16px; font-weight: bold; text-align: center;">Penalty Percent(%)</th>
+                    <th style="color: white; font-size: 16px; font-weight: bold; text-align: center;">Grace Date</th>
+                    <th style="color: white; font-size: 16px; font-weight: bold; text-align: center;">Penalty Amount(₹)</th>
+                    <th style="color: white; font-size: 16px; font-weight: bold; text-align: center;">Final Payable(₹)</th>
+                </tr>
+            </thead>
+            <tbody id="redListBody">
+                <tr style="height: 25px; font-size: 13px; color: black; text-align: center;">
+                    <td colspan="10" style="text-align:center; color:black;">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+
+    <!-- MAIN CONTENT END -->
+
+
+
+
+    <script>
+
+        let monthlyMaintenanceChart;
+        let occasionalMaintenanceChart;
+        let selectedChartMonth = null;
+        let selectedChartYear = null;
+
+        $(document).ready(function () {
+
+            /* ===========================
+               ✅ FLATPICKR MONTH PICKER
+            ============================ */
+            flatpickr("#maintenanceMonthPicker", {
+                plugins: [
+                    new monthSelectPlugin({
+                        shorthand: true,
+                        dateFormat: "m/Y",
+                        altFormat: "F Y"
+                    })
+                ],
+                defaultDate: new Date(),
+
+                onChange: function (selectedDates) {
+                    let selected = selectedDates[0];
+                    selectedChartMonth = selected.getMonth() + 1;
+                    selectedChartYear = selected.getFullYear();
+
+                    loadMaintenanceChartData(selectedChartMonth, selectedChartYear);
+                }
+            });
+
+            /* ===========================
+               ✅ FIRST AUTO LOAD (CURRENT MONTH)
+            ============================ */
+            let now = new Date();
+            selectedChartMonth = now.getMonth() + 1;
+            selectedChartYear = now.getFullYear();
+
+            loadMaintenanceChartData(selectedChartMonth, selectedChartYear);
+
+            /* ===========================
+               ✅ WING DROPDOWN CHANGE
+            ============================ */
+            $("#wingSelect").change(function () {
+                updateChartsFromDropdown();
+            });
+        });
+
+
+        /* ===========================
+               ✅ LOAD CHART DATA (AJAX)
+        ============================ */
+        function loadMaintenanceChartData(month, year) {
+
+            $.ajax({
+                url: '/AccountManager/MaintenanceStatusChart',
+                type: 'GET',
+                data: { month: month, year: year },
+
+                success: function (data) {
+
+                    if (data && data.length > 0) {
+
+                        let wingDropdown = $("#wingSelect");
+                        wingDropdown.empty();
+
+                        $.each(data, function (i, item) {
+                            wingDropdown.append(
+                                $("<option>", { value: item.WingId, text: item.WingName })
+                            );
+                        });
+
+                        let allWings = data.find(x => x.WingId == 4 || x.WingName === 'ALL WINGS');
+
+                        if (allWings) {
+                            $("#wingSelect").val(allWings.WingId);
+                            updateCharts(allWings);
+                        } else {
+                            $("#wingSelect").val(data[0].WingId);
+                            updateCharts(data[0]);
+                        }
+
+                        $("#wingSelect").data("chartData", data);
+                    }
+                }
+            });
+        }
+
+
+        /* ===========================
+               ✅ WING CHANGE HANDLER
+        ============================ */
+        function updateChartsFromDropdown() {
+
+            let selectedWingId = $("#wingSelect").val();
+            let data = $("#wingSelect").data("chartData");
+
+            if (!data) return;
+
+            let selectedData = data.find(x => x.WingId == selectedWingId);
+            updateCharts(selectedData);
+        }
+
+
+        /* ===========================
+               ✅ FINAL CHART DRAW + CLICK EVENTS
+        ============================ */
+        function updateCharts(item) {
+
+            /* =============================
+               ✅ MONTHLY DONUT
+            ============================== */
+
+            $("#monthlyTotalAmount").text(Number(item.TotalMonthlyMaintenanceAmount || 0).toFixed(2));
+            $("#monthlyPendingAmount").text(Number(item.MonthlyPendingAmount || 0).toFixed(2));
+            $("#monthlyPenaltyAmount").text(Number(item.TotalMonthlyPenaltyAmount || 0).toFixed(2));
+
+            if (monthlyMaintenanceChart) monthlyMaintenanceChart.destroy();
+
+            monthlyMaintenanceChart = new Chart(
+                document.getElementById('monthlyMaintenanceChart'),
+                {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Paid Amount', 'Pending Amount', 'Penalty Amount'],
+                        datasets: [{
+                            data: [
+                                Number(item.MonthlyPaidAmount || 0),
+                                Number(item.MonthlyPendingAmount || 0),
+                                Number(item.TotalMonthlyPenaltyAmount || 0)
+                            ],
+                            backgroundColor: ['#03045e', '#0077b6', '#d00000'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: false,
+                        maintainAspectRatio: false,
+                        cutout: '65%',
+                        animation: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: "#000000",
+                                    font: {
+                                        size: 10,
+                                        weight: "bold"
+                                    }
+                                }
+                            }
+                        },
+
+                        onClick: function (evt, elements) {
+                            if (elements.length > 0) {
+                                let index = elements[0].index;
+                                let status = index === 0 ? "paid" : index === 1 ? "pending" : "penalty";
+
+                                let wingId = $("#wingSelect").val();
+
+                                loadMemberList(
+                                    status,
+                                    wingId,
+                                    selectedChartMonth,
+                                    selectedChartYear,
+                                    "monthly"
+                                );
+                            }
+                        }
+                    }
+                }
+            );
+
+
+            /* =============================
+               ✅ OCCASIONAL DONUT
+            ============================== */
+
+            $("#occasionalTotalAmount").text(Number(item.TotalOccasionalMaintenanceAmount || 0).toFixed(2));
+            $("#occasionalPendingAmount").text(Number(item.OccasionalPendingAmount || 0).toFixed(2));
+
+            if (occasionalMaintenanceChart) occasionalMaintenanceChart.destroy();
+
+            let occPaid = Number(item.OccasionalPaidAmount || 0);
+            let occPending = Number(item.OccasionalPendingAmount || 0);
+
+            if (occPaid > 0 || occPending > 0) {
+
+                occasionalMaintenanceChart = new Chart(
+                    document.getElementById('occasionalMaintenanceChart'),
+                    {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Paid Amount', 'Pending Amount'],
+                            datasets: [{
+                                data: [occPaid, occPending],
+                                backgroundColor: ['#03045e', '#0077b6'],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: false,
+                            maintainAspectRatio: false,
+                            cutout: '65%',
+                            animation: false,
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        color: "#000000",
+                                        font: {
+                                            size: 10,
+                                            weight: "bold"
+                                        }
+                                    }
+                                }
+                            },
+
+                            onClick: function (evt, elements) {
+                                if (elements.length > 0) {
+
+                                    let index = elements[0].index;
+                                    let status = index === 0 ? "paid" : "pending";
+
+                                    let wingId = $("#wingSelect").val();
+
+                                    loadMemberList(
+                                        status,
+                                        wingId,
+                                        selectedChartMonth,
+                                        selectedChartYear,
+                                        "occasional"
+                                    );
+                                }
+                            }
+                        }
+                    }
+                );
+            }
+        }
+
+
+        /* ===========================
+               ✅ MODAL OPEN WITH CORRECT MONTH DATE
+        ============================ */
+        function loadMemberList(type, wingId, month, year, maintenanceType) {
+
+            let maintenanceTypeId = maintenanceType === "monthly" ? 59 : 58;
+
+            $("#maintenanceModalTitle").text(
+                maintenanceType.toUpperCase() + " " + type.toUpperCase() + " MEMBERS"
+            );
+
+            // ✅✅✅ FIX 1: STATUS SET PROPERLY
+            var currentStatus = type.toUpperCase();   // PAID / PENDING / PENALTY
+            $('#memberStatus').val(currentStatus);
+
+            var modal = new bootstrap.Modal(document.getElementById("maintenanceModal"));
+            modal.show();
+
+            $("#maintenanceModalContent").html(`
+               <div class="text-center p-4">
+                   <div class="spinner-border text-primary"></div>
+                   <p class="mt-2">Loading...</p>
+               </div>
+           `);
+
+            let selectedMonthIndex = month - 1;
+
+            let isCurrentMonth =
+                selectedMonthIndex === new Date().getMonth() &&
+                year === new Date().getFullYear();
+
+            let fromDate, toDate;
+
+            if (isCurrentMonth) {
+                fromDate = moment().startOf('month').format('YYYY-MM-DD');
+                toDate = moment().format('YYYY-MM-DD');
+            } else {
+                fromDate = moment(new Date(year, selectedMonthIndex, 1)).startOf('month').format('YYYY-MM-DD');
+                toDate = moment(new Date(year, selectedMonthIndex, 1)).endOf('month').format('YYYY-MM-DD');
+            }
+
+            loadMaintenanceMembersData(type, wingId, month, year, maintenanceTypeId, fromDate, toDate);
+
+            // ✅✅✅ FIX 2: CALL AFTER STATUS IS SET
+            setTimeout(function () {
+                togglePaymentModeFilter(type);
+
+            }, 300);
+        }
+
+
+
+        function togglePaymentModeFilter(type) {
+
+            var status = type.toUpperCase();   // ✅ TRUST ONLY CHART CLICK VALUE
+
+            console.log("✅ Payment Filter Status =", status);
+
+            if (status === "PAID") {
+                $('#paymentModeWrapper').show();
+            } else {
+                $('#paymentModeWrapper').hide();
+                $('#paymentModeFilter').val('').trigger('change');
+            }
+        }
+
+
+        /* ===========================
+               ✅ SERVER SIDE LOAD
+        ============================ */
+        function loadMaintenanceMembersData(type, wingId, month, year, maintenanceTypeId, fromDate, toDate) {
+
+            console.log("✅ API HIT →", type, wingId, month, year, maintenanceTypeId, fromDate, toDate);
+
+            $('#maintenanceModalContent').load(
+                '/AccountManager/GetMaintenanceMemberListYP' +
+                '?status=' + type +
+                '&wingId=' + wingId +
+                '&month=' + month +
+                '&year=' + year +
+                '&maintenanceTypeId=' + maintenanceTypeId +
+                '&fromDate=' + fromDate +
+                '&toDate=' + toDate,
+
+                function () {
+
+                    // 🔹 Date Range Button
+                    togglePaymentModeFilter(type);
+
+                    // 🔹 Date Range Picker Init
+                    initModalDateRange(type, wingId, month, year, maintenanceTypeId);
+
+                    // 🔹 Column hide logic
+                    waitForDataTableAndToggleByName(maintenanceTypeId);
+
+                    // 🔹 NOW INIT DATATABLE (MOST IMPORTANT)
+
+                }
+            );
+
+        }
+
+
+        function toggleMaintenanceColumns_ByName(maintenanceTypeId) {
+
+            console.log("✅ toggleMaintenanceColumns_ByName CALLED");
+            console.log("✅ maintenanceTypeId =", maintenanceTypeId);
+
+            if (!$.fn.DataTable.isDataTable('#dueDataTable')) {
+                console.log("❌ DataTable NOT initialized yet.");
+                return;
+            }
+
+            var table = $('#dueDataTable').DataTable();
+
+            var headers = table.columns().header().toArray();
+
+            // ✅ Auto-detect all required columns
+            var dueDateIndex = headers.findIndex(h => h.innerText.trim() === "Maintenance Due Date");
+            var penaltyIndex = headers.findIndex(h => h.innerText.trim() === "Penalty Amount");
+            var pendingIndex = headers.findIndex(h => h.innerText.trim() === "Pending Amount"); // ✅ NEW
+
+            console.log("✅ Auto Found Due Date Index:", dueDateIndex);
+            console.log("✅ Auto Found Penalty Index:", penaltyIndex);
+            console.log("✅ Auto Found Pending Index:", pendingIndex);
+
+            if (maintenanceTypeId == 58) {
+                console.log("🔴 OCCASIONAL → HIDING COLUMNS");
+
+                if (dueDateIndex !== -1) table.column(dueDateIndex).visible(false);
+                if (penaltyIndex !== -1) table.column(penaltyIndex).visible(false);
+                if (pendingIndex !== -1) table.column(pendingIndex).visible(false); // ✅ NEW
+
+            } else {
+                console.log("🟢 MONTHLY → SHOWING COLUMNS");
+
+                if (dueDateIndex !== -1) table.column(dueDateIndex).visible(true);
+                if (penaltyIndex !== -1) table.column(penaltyIndex).visible(true);
+                if (pendingIndex !== -1) table.column(pendingIndex).visible(true); // ✅ NEW
+            }
+
+            console.log("✅ Column toggle by NAME completed.");
+        }
+
+
+
+
+
+        function waitForDataTableAndToggleByName(maintenanceTypeId) {
+
+            var retryCount = 0;
+            var maxRetries = 20;
+
+            var checkInterval = setInterval(function () {
+
+                if ($.fn.DataTable.isDataTable('#dueDataTable')) {
+
+                    console.log("✅ DataTable Initialized — Now toggling columns");
+                    clearInterval(checkInterval);
+
+                    toggleMaintenanceColumns_ByName(maintenanceTypeId);
+                }
+
+                retryCount++;
+
+                if (retryCount >= maxRetries) {
+                    console.log("❌ DataTable still not initialized after waiting.");
+                    clearInterval(checkInterval);
+                }
+
+            }, 300);
+        }
+
+
+
+
+
+        function initModalDateRange(type, wingId, month, year, maintenanceTypeId) {
+
+            if (!$('.daterange-btn').length) {
+                console.log("❌ daterange-btn not found inside partial");
+                return;
+            }
+
+            $('.daterange-btn').daterangepicker({
+                autoUpdateInput: false,
+                opens: 'right',
+                startDate: moment().startOf('month'),
+                endDate: moment(),
+                locale: {
+                    format: 'DD-MM-YYYY',
+                    cancelLabel: 'Clear'
+                }
+            });
+
+            // ✅ APPLY CLICK
+            $('.daterange-btn')
+                .off('apply.daterangepicker')
+                .on('apply.daterangepicker', function (ev, picker) {
+
+                    let fromDate = picker.startDate.format('YYYY-MM-DD');
+                    let toDate = picker.endDate.format('YYYY-MM-DD');
+
+                    // ✅✅✅ VERY IMPORTANT → SET HIDDEN FIELDS INSIDE PARTIAL
+                    $('#fromDate').val(fromDate);
+                    $('#toDate').val(toDate);
+
+                    $(this).find('span').text(
+                        picker.startDate.format('DD-MM-YYYY') +
+                        ' - ' +
+                        picker.endDate.format('DD-MM-YYYY')
+                    );
+
+                    // ✅✅✅ RELOAD PARTIAL WITH NEW DATE RANGE
+                    loadMaintenanceMembersData(
+                        type,
+                        wingId,
+                        month,
+                        year,
+                        maintenanceTypeId,
+                        fromDate,
+                        toDate
+                    );
+                });
+
+            // ✅ CANCEL / CLEAR
+            $('.daterange-btn')
+                .off('cancel.daterangepicker')
+                .on('cancel.daterangepicker', function () {
+
+                    $(this).find('span').text('Choose Date');
+
+                    let fromDate = moment().startOf('month').format('YYYY-MM-DD');
+                    let toDate = moment().format('YYYY-MM-DD');
+
+                    $('#fromDate').val(fromDate);
+                    $('#toDate').val(toDate);
+
+                    loadMaintenanceMembersData(
+                        type,
+                        wingId,
+                        month,
+                        year,
+                        maintenanceTypeId,
+                        fromDate,
+                        toDate
+                    );
+                });
+        }
+
+
+        $(document).on('click', '[data-bs-dismiss="modal"]', function () {
+            $('#maintenanceModal').modal('hide');
+        });
+
+
+
+
+    </script>
+
+
+
+    <script src="~/Scripts/jquery-3.7.0.min.js"></script>
+    <script src="~/Content/modules/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <script src="~/Content/modules/moment.min.js"></script>
+
+    <link rel="stylesheet" href="~/Content/modules/bootstrap-daterangepicker/daterangepicker.css" />
+    <script src="~/Content/modules/bootstrap-daterangepicker/daterangepicker.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+
+
+
+    <script>
+
+
+        // 👉 Pagination logic
+        function setupMaintenancePagination() {
+            const tableBody = document.getElementById("maintenanceTableBody");
+            const pagination = document.getElementById("maintenancePaginationControls");
+            const pageSize = 10;
+            const maxVisiblePages = 5;
+            let currentPage = 1;
+            let rows = Array.from(tableBody.querySelectorAll("tr"));
+
+            function renderTablePage(page) {
+                const start = (page - 1) * pageSize;
+                const end = start + pageSize;
+                rows.forEach((row, i) => {
+                    row.style.display = i >= start && i < end ? "" : "none";
+                });
+            }
+
+            function createButton(label, page, disabled = false, active = false) {
+                const btn = document.createElement("button");
+                btn.innerText = label;
+                btn.className = "btn btn-sm fw-bold";
+                btn.style.minWidth = "32px";
+
+                if (active) {
+                    btn.classList.add("btn-primary", "text-white");
+                } else {
+                    btn.classList.add("btn-outline-primary");
+                }
+
+                if (disabled) {
+                    btn.disabled = true;
+                    btn.classList.add("disabled");
+                } else {
+                    btn.onclick = () => {
+                        currentPage = page;
+                        renderTablePage(currentPage);
+                        renderPaginationControls();
+                    };
+                }
+                return btn;
+            }
+
+            function renderPaginationControls() {
+                pagination.innerHTML = "";
+                const totalPages = Math.ceil(rows.length / pageSize);
+
+                if (totalPages <= 1) return;
+
+                pagination.appendChild(createButton("Previous", currentPage - 1, currentPage === 1));
+
+                let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                let endPage = startPage + maxVisiblePages - 1;
+
+                if (endPage > totalPages) {
+                    endPage = totalPages;
+                    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                    pagination.appendChild(createButton(i, i, false, i === currentPage));
+                }
+
+                pagination.appendChild(createButton("Next", currentPage + 1, currentPage === totalPages));
+            }
+
+            renderTablePage(currentPage);
+            renderPaginationControls();
+        }
+    </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- Single Inline Script Block -->
+
+
+
+
+
+
+
+    <script src="~/Content/modules/moment.min.js"></script>
+    <script src="~/Content/modules/bootstrap-daterangepicker/daterangepicker.js"></script>
+    <link rel="stylesheet" href="~/Content/modules/bootstrap-daterangepicker/daterangepicker.css" />
+
+
+
+
+
+
+
+    <script>
+    // Month names array
+    const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+
+    let currentWorkerMonth = new Date().getMonth() + 1;
+    let workerChart = null;
+
+    // Update month display function
+    function updateWorkerMonthDisplay(month) {
+        document.getElementById('workerMonthDisplay').textContent = monthNames[month - 1];
+        document.getElementById('workerMonthSelector').value = month;
+        fetchWorkerChart(month);
+    }
+
+    // Previous month button
+    document.getElementById('prevWorkerMonth').addEventListener('click', () => {
+        currentWorkerMonth--;
+        if (currentWorkerMonth < 1) currentWorkerMonth = 12;
+        updateWorkerMonthDisplay(currentWorkerMonth);
+    });
+
+    // Next month button
+    document.getElementById('nextWorkerMonth').addEventListener('click', () => {
+        currentWorkerMonth++;
+        if (currentWorkerMonth > 12) currentWorkerMonth = 1;
+        updateWorkerMonthDisplay(currentWorkerMonth);
+    });
+
+    // Month selector change
+    document.getElementById('workerMonthSelector').addEventListener('change', function () {
+        currentWorkerMonth = parseInt(this.value);
+        updateWorkerMonthDisplay(currentWorkerMonth);
+    });
+
+    // View All Workers button
+    $("#btnViewAllWorkers").click(function () {
+        $("#modalAllWorkersBody").html('<div class="text-center p-3">Loading...</div>');
+        var modal = new bootstrap.Modal(document.getElementById("modalAllWorkers"));
+        modal.show();
+
+        var url_AllWorkers = '@Url.Action("WorkerPaymentListPartial_All", "AccountManager")';
+        $("#modalAllWorkersBody").load(url_AllWorkers);
+    });
+
+    // Update center text in chart
+    function updateChartCenterText(completed, pending) {
+        const centerTextElement = document.getElementById('chartCenterText');
+        if (centerTextElement) {
+            centerTextElement.textContent = `${completed} / ${pending}`;
+        }
+    }
+
+    // Fetch and render chart
+    async function fetchWorkerChart(month) {
+        try {
+            console.log("Fetching chart data for month:", month);
+
+            // Fetch data from server
+            const response = await fetch(`/AccountManager/GetWorkerPaymentChart?month=${month}`);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log("Chart data received:", data);
+
+            const completed = data.Completed || 0;
+            const pending = data.Pending || 0;
+
+            // Update center text
+            updateChartCenterText(completed, pending);
+
+            // Prepare chart data
+            const chartData = {
+                labels: ["Completed", "Pending"],
+                datasets: [{
+                    data: [completed, pending],
+                    backgroundColor: ['#5A56E9', '#D3D3F3'],
+                    borderWidth: 0,
+                    cutout: '70%',
+                }]
+            };
+
+            // Chart options
+            const chartOptions = {
+                rotation: -90,
+                circumference: 180,
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.label}: ${context.raw}`;
+                            }
+                        }
+                    }
+                },
+                onClick: function(evt, elements) {
+                    if (elements.length > 0) {
+                        console.log("Chart clicked, opening modal...");
+                        const selectedMonth = document.getElementById("workerMonthSelector").value;
+                        const modalEl = document.getElementById("workerPaymentModal");
+                        const modal = new bootstrap.Modal(modalEl);
+                        modal.show();
+
+                        // Load modal content via AJAX
+                        $("#workerPaymentModalBody").html('<div class="text-center p-3">Loading...</div>');
+                        const partialUrl = '@Url.Action("WorkerPaymentListPartial", "AccountManager")';
+                        $("#workerPaymentModalBody").load(partialUrl + "?month=" + selectedMonth, function(response, status) {
+                            if (status === "error") {
+                                $("#workerPaymentModalBody").html("<div class='alert alert-danger'>Failed to load data.</div>");
+                                return;
+                            }
+                            console.log("Partial view loaded successfully");
+                            if (typeof initWorkerPaymentTable === "function") {
+                                initWorkerPaymentTable();
+                            }
+                        });
+                    }
+                }
+            };
+
+            // Get canvas context
+            const ctx = document.getElementById('workerPaymentChart');
+            if (!ctx) {
+                console.error("Canvas element not found!");
+                return;
+            }
+
+            // Destroy existing chart if exists
+            if (workerChart) {
+                workerChart.destroy();
+            }
+
+            // Create new chart
+            workerChart = new Chart(ctx.getContext('2d'), {
+                type: 'doughnut',
+                data: chartData,
+                options: chartOptions
+            });
+
+            console.log("Chart created successfully");
+
+        } catch (error) {
+            console.error("Error loading chart:", error);
+
+            // Show error in chart area
+            const chartContainer = document.querySelector('#workerPaymentChart').parentElement;
+            if (chartContainer) {
+                chartContainer.innerHTML = `
+                    <div class="alert alert-warning text-center p-3">
+                        <p>Unable to load chart data</p>
+                        <button onclick="fetchWorkerChart(${month})" class="btn btn-sm btn-primary mt-2">Retry</button>
+                    </div>
+                `;
+            }
+
+            // Update center text with zeros
+            updateChartCenterText(0, 0);
+        }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log("DOM loaded, initializing chart...");
+
+        // Set current month in selector
+        document.getElementById('workerMonthSelector').value = currentWorkerMonth;
+        document.getElementById('workerMonthDisplay').textContent = monthNames[currentWorkerMonth - 1];
+
+        // Initial chart load
+        fetchWorkerChart(currentWorkerMonth);
+
+        // Check if Chart.js is loaded
+        if (typeof Chart === 'undefined') {
+            console.error("Chart.js is not loaded!");
+            alert("Please make sure Chart.js library is included in your page.");
+        }
+
+        // Check if Bootstrap is loaded
+        if (typeof bootstrap === 'undefined') {
+            console.error("Bootstrap is not loaded!");
+        }
+    });
+    </script>
+
+
+
+
+
+
+
+
+    <script>
+
+
+    // ================== COMPLAINTS PARTIAL LOAD ==================
+    $(function () {
+        $("#complaints-container").load('@Url.Action("ComplaintsPartial", "AccountManager")');
+    });
+
+    // ================== MAINTENANCE DUE MODAL ==================
+    $(document).ready(function () {
+        $(document).on('click', '.maintenance-card', function () {
+            var url = $(this).data('url');
+            $('#maintenanceDueModalBodyy').html('<p class="text-center">Loading...</p>');
+
+            var modal = new bootstrap.Modal(document.getElementById('maintenanceDueModal'));
+            modal.show();
+
+            $.get(url)
+                .done(function (data) {
+                    $('#maintenanceDueModalBodyy').html(data);
+
+                    if ($.fn.DataTable.isDataTable('#dueDataTable')) {
+                        $('#dueDataTable').DataTable().destroy();
+                    }
+
+
+                })
+                .fail(function () {
+                    $('#maintenanceDueModalBodyy').html('<p class="text-danger">Error loading data.</p>');
+                });
+        });
+    });
+
+
+
+
+
+
+
+
+
+
+    // ================== DASHBOARD TRANSACTION SUMMARY (DATE RANGE + BANK) ==================
+    $(document).ready(function () {
+
+        const dbFormat = "YYYY-MM-DD";     // backend format
+        const uiFormat = "DD MMM YYYY";    // UI display format
+
+        // Default (current month)
+        let start = moment().startOf("month");
+        let end = moment().endOf("month");
+
+        $("#fromDate").val(start.format(dbFormat));
+        $("#toDate").val(end.format(dbFormat));
+
+        $(".daterange-btn span").html(`${start.format(uiFormat)} - ${end.format(uiFormat)}`);
+
+        loadBankList(start.format(dbFormat), end.format(dbFormat));
+
+        // ============================ NEW UPDATED RANGE PICKER ===============================
+        $('.daterange-btn').daterangepicker({
+
+            locale: { format: dbFormat },
+            autoUpdateInput: false,
+            opens: "left",
+            drops: "down",
+            linkedCalendars: false,
+
+            ranges: {
+                "Today": [moment(), moment()],
+                "Last 7 Days": [moment().subtract(6, "days"), moment()],
+                "This Month": [moment().startOf("month"), moment().endOf("month")],
+                "Last Month": [
+                    moment().subtract(1, "month").startOf("month"),
+                    moment().subtract(1, "month").endOf("month")
+                ]
+            }
+
+        }, function (start, end, label) {
+
+            // If user chooses only one date
+            if (label === "Today") end = start;
+
+            $("#fromDate").val(start.format(dbFormat));
+            $("#toDate").val(end.format(dbFormat));
+
+            $(".daterange-btn span").html(
+                `${start.format(uiFormat)} - ${end.format(uiFormat)}`
+            );
+
+            // Load summary
+            loadDashboardSummary(start.format(dbFormat), end.format(dbFormat));
+        });
+    });
+
+
+    function loadBankList(fromDate, toDate) {
+
+        $.ajax({
+            url: "/AccountManager/GetBankCodes",
+            type: "GET",
+            success: function (res) {
+
+                let ddl = $("#bankSelector");
+                ddl.empty();
+
+                $.each(res.data, function (i, bank) {
+                    ddl.append(
+                        `<option value="${bank.BankId}">${bank.BankShortCode}</option>`
+                    );
+                });
+
+                // Auto-select first bank
+                let firstBank = $("#bankSelector option:first").val();
+                $("#bankSelector").val(firstBank);
+
+                // Load graph
+                loadDashboardSummary(fromDate, toDate);
+            }
+        });
+    }
+
+
+    function loadDashboardSummary(fromDate, toDate) {
+
+        let bankId = $("#bankSelector").val();
+        if (!bankId) return;
+
+        $.ajax({
+            url: "/AccountManager/GetBankTransactionSummary",
+            type: "GET",
+            data: { fromDate, toDate, bankId },
+
+            success: function (res) {
+
+                if (res.status === "success") {
+
+                    let d = res.data;
+
+                    $("#creditedAmount").text("₹ " + Number(d.Credited).toLocaleString('en-IN', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }));
+
+                    $("#debitedAmount").text("₹ " + Number(d.Debited).toLocaleString('en-IN', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }));
+
+
+                    let total = d.Credited + d.Debited;
+                    let creditPercent = total === 0 ? 0 : (d.Credited / total) * 100;
+                    let debitPercent = total === 0 ? 0 : (d.Debited / total) * 100;
+
+                    $("#creditedBar").css("width", creditPercent + "%");
+                    $("#debitedBar").css("width", debitPercent + "%");
+                }
+            }
+        });
+    }
+
+
+    $("#bankSelector").on("change", function () {
+        loadDashboardSummary($("#fromDate").val(), $("#toDate").val());
+    });
+
+
+
+
+
+
+
+
+    // ================== TRANSACTION MODAL (CLICK ON BARS) ==================
+    // ================== TRANSACTION MODAL (CLICK ON BARS) ==================
+    $(document).on("click", "#creditedBar, #debitedBar", function () {
+
+        let isCredit = $(this).attr("id") === "creditedBar";
+        let transactionType = isCredit ? 26 : 27;
+        let bankId = $("#bankSelector").val();
+
+        // ⭐ NEW: Selected Bank Text
+        let bankName = $("#bankSelector option:selected").text();
+        let title = isCredit ? "Credit Transactions" : "Debit Transactions";
+        let mode = isCredit ? "credit" : "debit";
+        let fromDate = $("#fromDate").val();
+        let toDate = $("#toDate").val();
+
+
+        let totalAmount = isCredit
+            ? $("#creditedAmount").text()
+            : $("#debitedAmount").text();
+
+        const uiFormat = "DD MMM YYYY";
+
+        let range = $(".daterange-btn span").text().trim();
+        let startDateText = range.includes("-")
+            ? range.split(" - ")[0].trim()
+            : $("#fromDate").val();
+
+        let parsedDate = moment(startDateText, uiFormat);
+        let month = parsedDate.month() + 1;
+
+        // ⭐ NEW: bankName added to URL
+
+        let url = `/AccountManager/TransactionListPartial?transactionType=${transactionType}&month=${month}&bankId=${bankId}&total=${encodeURIComponent(totalAmount)}&bankName=${encodeURIComponent(bankName)}&title=${encodeURIComponent(title)}&mode=${mode}&fromDate=${fromDate}&toDate=${toDate}`;
+
+        $("#transactionModalTitle").text(
+            isCredit ? "Credit Transactions" : "Debit Transactions"
+        );
+
+        let modal = new bootstrap.Modal(document.getElementById("transactionModal"));
+        modal.show();
+
+        $("#transactionTableContainer").load(url);
+    });
+
+
+
+
+
+
+
+
+
+    // ================== WORKER PAYMENT CHART ==================
+    @*const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+
+    let currentWorkerMonth = new Date().getMonth() + 1;
+    let workerChart;
+
+    function updateWorkerMonthDisplay(month) {
+        document.getElementById('workerMonthDisplay').textContent = monthNames[month - 1];
+        document.getElementById('workerMonthSelector').value = month;
+        fetchWorkerChart(month);
+    }
+
+    document.getElementById('prevWorkerMonth').addEventListener('click', () => {
+        currentWorkerMonth--;
+        if (currentWorkerMonth < 1) currentWorkerMonth = 12;
+        updateWorkerMonthDisplay(currentWorkerMonth);
+    });
+
+    document.getElementById('nextWorkerMonth').addEventListener('click', () => {
+        currentWorkerMonth++;
+        if (currentWorkerMonth > 12) currentWorkerMonth = 1;
+        updateWorkerMonthDisplay(currentWorkerMonth);
+    });
+
+    document.getElementById('workerMonthSelector').addEventListener('change', function () {
+        currentWorkerMonth = parseInt(this.value);
+        updateWorkerMonthDisplay(currentWorkerMonth);
+    });
+
+    const centerTextPlugin = {
+        id: 'centerText',
+        afterDraw: function (chart) {
+            const { ctx } = chart;
+            const dataset = chart.data.datasets[0];
+            if (!dataset || dataset.data.length < 2) return;
+
+            const completed = dataset.data[0] ?? 0;
+            const pending = dataset.data[1] ?? 0;
+
+            ctx.save();
+            ctx.font = 'bold 16px Arial';
+            ctx.fillStyle = '#333';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${completed} / ${pending}`,
+                chart.getDatasetMeta(0).data[0].x,
+                chart.getDatasetMeta(0).data[0].y
+            );
+            ctx.restore();
+        }
+    };
+
+    async function fetchWorkerChart(month) {
+        try {
+            const response = await fetch(`/AccountManager/GetWorkerPaymentChart?month=${month}`);
+            const data = await response.json();
+
+            const completed = data.Completed || 0;
+            const pending = data.Pending || 0;
+
+            const chartData = {
+                labels: ["Completed", "Pending"],
+                datasets: [{
+                    data: [completed, pending],
+                    backgroundColor: ['#5A56E9', '#D3D3F3'],
+                    borderWidth: 0,
+                    cutout: '70%',
+                }]
+            };
+
+            const chartOptions = {
+                rotation: -90,
+                circumference: 180,
+                responsive: true,
+                plugins: { legend: { display: false } },
+                onClick: function (evt, elements) {
+                    if (elements.length > 0) {
+                        const selectedMonth = document.getElementById("workerMonthSelector").value;
+                        const modalEl = document.getElementById("workerPaymentModal");
+                        const modal = new bootstrap.Modal(modalEl);
+                        modal.show();
+
+                        $("#workerPaymentModalBody").html('<div class="text-center p-3">Loading...</div>');
+                        const partialUrl = '@Url.Action("WorkerPaymentListPartial", "AccountManager")';
+                        $("#workerPaymentModalBody").load(partialUrl + "?month=" + selectedMonth, function (response, status) {
+                            if (status === "error") {
+                                $("#workerPaymentModalBody").html("<div class='alert alert-danger'>Failed to load data.</div>");
+                                return;
+                            }
+                            if (typeof initWorkerPaymentTable === "function") {
+                                initWorkerPaymentTable();
+                            }
+                        });
+                    }
+                }
+            };
+
+            const ctx = document.getElementById('workerPaymentChart').getContext('2d');
+            if (workerChart) workerChart.destroy();
+
+            workerChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: chartData,
+                options: chartOptions,
+                plugins: [centerTextPlugin]
+            });
+
+        } catch (error) {
+            console.error("Error loading chart:", error);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const currentMonth = new Date().getMonth() + 1;
+        document.getElementById("workerMonthSelector").value = currentMonth;
+        updateWorkerMonthDisplay(currentMonth);
+    });*@
+
+
+
+
+
+    // ================== MAINTENANCE MEMBER LIST + PAGINATION ==================
+    //function loadMemberList(type, wingId, month, maintenanceType) {
+    //    let title = `${maintenanceType.charAt(0).toUpperCase() + maintenanceType.slice(1)} ${type} Members`;
+    //    document.getElementById("maintenanceModalTitle").innerText = title;
+
+    //    let maintenanceTypeId = maintenanceType === "monthly" ? 59 : 58;
+
+    //    fetch(`/AccountManager/GetMaintenanceMemberListYP?status=${type}&wingId=${wingId}&month=${month}&maintenanceTypeId=${maintenanceTypeId}`)
+    //        .then(res => res.text())
+    //        .then(html => {
+    //            document.querySelector("#maintenanceModal .modal-body").innerHTML = html;
+
+    //            $("#maintenanceModal .modal-body").find("script").each(function () {
+    //                $.globalEval(this.text || this.textContent || this.innerHTML || "");
+    //            });
+
+    //            new bootstrap.Modal(document.getElementById("maintenanceModal")).show();
+    //        })
+    //        .catch(err => {
+    //            console.error("Error loading members", err);
+    //            alert("Error fetching members.");
+    //        });
+    //}
+
+    //function setupMaintenancePagination() {
+    //    const tableBody = document.getElementById("maintenanceTableBody");
+    //    const pagination = document.getElementById("maintenancePaginationControls");
+    //    if (!tableBody || !pagination) return;
+
+    //    const pageSize = 10;
+    //    const maxVisiblePages = 5;
+    //    let currentPage = 1;
+    //    let rows = Array.from(tableBody.querySelectorAll("tr"));
+
+    //    function renderTablePage(page) {
+    //        const start = (page - 1) * pageSize;
+    //        const end = start + pageSize;
+    //        rows.forEach((row, i) => {
+    //            row.style.display = i >= start && i < end ? "" : "none";
+    //        });
+    //    }
+
+    //    function createButton(label, page, disabled = false, active = false) {
+    //        const btn = document.createElement("button");
+    //        btn.innerText = label;
+    //        btn.className = "btn btn-sm fw-bold";
+    //        btn.style.minWidth = "32px";
+
+    //        if (active) {
+    //            btn.classList.add("btn-primary", "text-white");
+    //        } else {
+    //            btn.classList.add("btn-outline-primary");
+    //        }
+
+    //        if (disabled) {
+    //            btn.disabled = true;
+    //            btn.classList.add("disabled");
+    //        } else {
+    //            btn.onclick = () => {
+    //                currentPage = page;
+    //                renderTablePage(currentPage);
+    //                renderPaginationControls();
+    //            };
+    //        }
+    //        return btn;
+    //    }
+
+    //    function renderPaginationControls() {
+    //        pagination.innerHTML = "";
+    //        const totalPages = Math.ceil(rows.length / pageSize);
+
+    //        if (totalPages <= 1) return;
+
+    //        pagination.appendChild(createButton("Previous", currentPage - 1, currentPage === 1));
+
+    //        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    //        let endPage = startPage + maxVisiblePages - 1;
+
+    //        if (endPage > totalPages) {
+    //            endPage = totalPages;
+    //            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    //        }
+
+    //        for (let i = startPage; i <= endPage; i++) {
+    //            pagination.appendChild(createButton(i, i, false, i === currentPage));
+    //        }
+
+    //        pagination.appendChild(createButton("Next", currentPage + 1, currentPage === totalPages));
+    //    }
+
+    //    renderTablePage(currentPage);
+    //    renderPaginationControls();
+    //}
+
+
+
+
+
+
+    // ================== MAINTENANCE STATUS (CHARTS) ==================
+    //let monthlyMaintenanceChart;
+    //let occasionalMaintenanceChart;
+
+    //$(document).ready(function () {
+    //    let currentMonth = $("#monthSelect").val();
+    //    loadMaintenanceData(currentMonth);
+
+    //    $("#monthSelect").change(function () {
+    //        let month = $(this).val();
+    //        loadMaintenanceData(month);
+    //    });
+
+    //    $("#wingSelect").change(function () {
+    //        updateChartsFromDropdown();
+    //    });
+    //});
+
+    //function loadMaintenanceData(month) {
+    //    $.ajax({
+    //        url: '/AccountManager/MaintenanceStatusChart',
+    //        type: 'GET',
+    //        data: { month: month },
+    //        success: function (data) {
+    //            if (data && data.length > 0) {
+    //                let wingDropdown = $("#wingSelect");
+    //                wingDropdown.empty();
+
+    //                $.each(data, function (i, item) {
+    //                    wingDropdown.append($("<option>", {
+    //                        value: item.WingId,
+    //                        text: item.WingName
+    //                    }));
+    //                });
+
+    //                let allWings = data.find(x => x.WingId == 4);
+    //                if (allWings) {
+    //                    $("#wingSelect").val(4);
+    //                    updateCharts(allWings);
+    //                } else {
+    //                    $("#wingSelect").val(data[0].WingId);
+    //                    updateCharts(data[0]);
+    //                }
+
+    //                $("#wingSelect").data("chartData", data);
+    //            }
+    //        }
+    //    });
+    //}
+
+    //function updateChartsFromDropdown() {
+    //    let selectedWingId = $("#wingSelect").val();
+    //    let data = $("#wingSelect").data("chartData");
+    //    if (!data) return;
+    //    let selectedData = data.find(x => x.WingId == selectedWingId);
+    //    if (selectedData) updateCharts(selectedData);
+    //}
+
+    //function updateCharts(item) {
+
+
+
+    //    // Monthly
+    //    $("#monthlyTotalAmount").text(item.TotalMonthlyMaintenanceAmount.toFixed(2));
+    //    $("#monthlyPendingAmount").text(item.MonthlyPendingAmount.toFixed(2));
+
+    //    let ctxMonthly = document.getElementById('monthlyMaintenanceChart').getContext('2d');
+    //    if (monthlyMaintenanceChart) {
+    //        monthlyMaintenanceChart.destroy();
+    //    }
+    //    monthlyMaintenanceChart = new Chart(ctxMonthly, {
+    //        type: 'doughnut',
+    //        data: {
+    //            labels: ['Paid Amount', 'Pending Amount'],
+    //            datasets: [{
+    //                data: [item.MonthlyPaidAmount, item.MonthlyPendingAmount],
+    //                backgroundColor: ['#03045e', '#0077b6'],
+    //                hoverBackgroundColor: ['#8ecae6', '#caf0f8'],
+    //                membersCount: {
+    //                    paid: item.TotalMembers - item.MonthlyMembersPending,
+    //                    pending: item.MonthlyMembersPending
+    //                }
+    //            }]
+    //        },
+    //        options: {
+    //            responsive: true,
+    //            plugins: {
+    //                legend: {
+    //                    position: 'bottom',
+    //                    labels: {
+    //                        color: '#000000',
+    //                        font: { size: 14, weight: 'bold' }
+    //                    }
+    //                },
+    //                tooltip: {
+    //                    callbacks: {
+    //                        label: function (context) {
+    //                            let label = context.label || '';
+    //                            let value = context.raw;
+    //                            let membersCount = context.dataset.membersCount;
+    //                            let count = 0;
+    //                            if (context.dataIndex === 0) {
+    //                                count = membersCount.paid;
+    //                            } else if (context.dataIndex === 1) {
+    //                                count = membersCount.pending;
+    //                            }
+    //                            return label + ': ₹' + value.toFixed(2) + ' (' + count + ' members)';
+    //                        }
+    //                    }
+    //                }
+    //            },
+    //            onClick: function (evt) {
+    //                const points = monthlyMaintenanceChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
+    //                if (points.length) {
+    //                    let index = points[0].index;
+    //                    let type = index === 0 ? "Paid" : "Pending";
+    //                    loadMemberList(type, item.WingId, $("#monthSelect").val(), "monthly");
+    //                }
+    //            }
+    //        }
+    //    });
+
+
+
+
+
+
+
+
+    //    // Occasional
+    //    $("#occasionalTotalAmount").text(item.TotalOccasionalMaintenanceAmount.toFixed(2));
+    //    $("#occasionalPendingAmount").text(item.OccasionalPendingAmount.toFixed(2));
+
+    //    let ctxOccasional = document.getElementById('occasionalMaintenanceChart').getContext('2d');
+    //    if (occasionalMaintenanceChart) {
+    //        occasionalMaintenanceChart.destroy();
+    //    }
+
+    //    occasionalMaintenanceChart = new Chart(ctxOccasional, {
+    //        type: 'doughnut',
+    //        data: {
+    //            labels: ['Paid Amount', 'Pending Amount'],
+    //            datasets: [{
+    //                data: [item.OccasionalPaidAmount, item.OccasionalPendingAmount],
+    //                backgroundColor: ['#03045e', '#0077b6'],
+    //                hoverBackgroundColor: ['#8ecae6', '#caf0f8'],
+    //                membersCount: {
+    //                    paid: item.TotalMembers - item.OccasionalMembersPending,
+    //                    pending: item.OccasionalMembersPending
+    //                }
+    //            }]
+    //        },
+    //        options: {
+    //            responsive: true,
+    //            plugins: {
+    //                legend: {
+    //                    position: 'bottom',
+    //                    labels: {
+    //                        color: '#000000',
+    //                        font: { size: 14, weight: 'bold' }
+    //                    }
+    //                },
+    //                tooltip: {
+    //                    callbacks: {
+    //                        label: function (context) {
+    //                            let label = context.label || '';
+    //                            let value = context.raw;
+    //                            let membersCount = context.dataset.membersCount;
+    //                            let count = 0;
+    //                            if (context.dataIndex === 0) {
+    //                                count = membersCount.paid;
+    //                            } else if (context.dataIndex === 1) {
+    //                                count = membersCount.pending;
+    //                            }
+    //                            return label + ': ₹' + value.toFixed(2) + ' (' + count + ' members)';
+    //                        }
+    //                    }
+    //                }
+    //            },
+    //            onClick: function (evt) {
+    //                const points = occasionalMaintenanceChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
+    //                if (points.length) {
+    //                    let index = points[0].index;
+    //                    let type = index === 0 ? "Paid" : "Pending";
+    //                    loadMemberList(type, item.WingId, $("#monthSelect").val(), "occasional");
+    //                }
+    //            }
+    //        }
+    //    });
+    //}
+
+
+
+
+    // ================== EVENT EXPENSES (HIGCHART + DATERANGE) ==================
+    $(document).ready(function () {
+        const format = "YYYY-MM-DD";
+
+        function initializeEventDateRangePicker() {
+            $('.event-daterange-btn').daterangepicker({
+                locale: { format: format },
+                autoUpdateInput: false,
+                opens: "right",
+                drops: "down",
+                linkedCalendars: false,
+                ranges: {
+                    "Today": [moment(), moment()],
+                    "Last 7 Days": [moment().subtract(6, "days"), moment()],
+                    "This Month": [moment().startOf("month"), moment().endOf("month")],
+                    "Last Month": [moment().subtract(1, "month").startOf("month"), moment().subtract(1, "month").endOf("month")]
+                }
+            }, function (start, end) {
+                $('#fromDate1').val(start.format(format));
+                $('#toDate1').val(end.format(format));
+                $('.event-daterange-btn span').html(start.format('DD MMM YYYY') + " - " + end.format('DD MMM YYYY'));
+                loadEventExpensesByDate(start.format(format), end.format(format));
+            });
+
+            $('.event-daterange-btn span').html(
+                moment($('#fromDate1').val()).format('DD MMM YYYY') + ' - ' +
+                moment($('#toDate1').val()).format('DD MMM YYYY')
+            );
+        }
+
+        function openEventModal(eventCode, eventName) {
+            $("#eventDetailsModal .modal-title").text("Event Details - " + eventName);
+            $("#eventDetailsBody").html('<p class="text-center text-muted">Loading...</p>');
+
+            var eventModal = new bootstrap.Modal(document.getElementById('eventDetailsModal'));
+            eventModal.show();
+
+            $.get('@Url.Action("EventDetails", "AccountManager")', { eventCode: eventCode })
+                .done(function (data) {
+                    $("#eventDetailsBody").html(data);
+                })
+                .fail(function () {
+                    $("#eventDetailsBody").html('<p class="text-danger text-center">Failed to load event details.</p>');
+                });
+        }
+
+        function loadEventExpensesByDate(fromDate, toDate) {
+            $.get('@Url.Action("GetEventExpensesByDate", "AccountManager")', { fromDate, toDate })
+                .done(function (data) {
+                    if (!data || data.length === 0) {
+                        $('#eventExpensesChart').html('<p class="text-danger text-center">No data found.</p>');
+                        return;
+                    }
+
+                    Highcharts.chart('eventExpensesChart', {
+                        chart: { type: 'column' },
+                        title: { text: null },
+                        credits: { enabled: false },
+                        tooltip: {
+                            pointFormat: '<b>₹{point.y:.2f}</b>'
+                        },
+                        xAxis: { categories: data.map(x => x.EventName), crosshair: true },
+                        yAxis: { min: 0, title: { text: 'Amount (₹)' } },
+                        plotOptions: {
+                            column: { pointPadding: 0.1, groupPadding: 0.1, pointWidth: 30 },
+                            series: {
+                                cursor: 'pointer',
+                                point: {
+                                    events: {
+                                        click: function () {
+                                            openEventModal(this.options.custom.eventCode, this.options.custom.eventName);
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        series: [
+                            {
+                                name: 'Allocated Budget',
+                                data: data.map(x => ({
+                                    y: x.Allocated,
+                                    custom: { eventCode: x.EventCode, eventName: x.EventName }
+                                }))
+                            },
+                            {
+                                name: 'Actual Cost',
+                                data: data.map(x => ({
+                                    y: x.Actual,
+                                    custom: { eventCode: x.EventCode, eventName: x.EventName }
+                                }))
+                            }
+                        ]
+                    });
+                })
+                .fail(function () {
+                    $('#eventExpensesChart').html('<p class="text-danger text-center">Failed to load chart.</p>');
+                });
+        }
+
+        let start = $('#fromDate1').val();
+        let end = $('#toDate1').val();
+        initializeEventDateRangePicker();
+        loadEventExpensesByDate(start, end);
+    });
+
+
+
+
+
+
+    // ================== GLOBAL PAGE LOADER HIDE ==================
+    $(window).on('load', function () {
+        $('#listLoader').fadeOut(300);
+    });
+
+
+
+
+
+
+    // ================== BANK BALANCE LIST (HOVER CARD) ==================
+    document.addEventListener("DOMContentLoaded", function () {
+        fetch('/AccountManager/GetbankBalanceList')
+            .then(response => response.json())
+            .then(res => {
+                if (res.status === "success") {
+                    const bankList = res.data;
+                    const ul = document.querySelector("#bankBalanceList");
+
+                    ul.innerHTML = "";
+
+                    if (bankList.length > 0) {
+                        bankList.forEach(bank => {
+                            const li = document.createElement("li");
+
+                            li.style.background = "linear-gradient(145deg, #d1c4e9, #b39ddb)";
+                            li.style.color = "black";
+                            li.style.margin = "8px auto";
+                            li.style.padding = "10px 15px";
+                            li.style.borderRadius = "12px";
+                            li.style.width = "90%";
+                            li.style.boxShadow = "6px 6px 12px rgba(0,0,0,0.2), -4px -4px 10px rgba(255,255,255,0.1)";
+                            li.style.display = "flex";
+                            li.style.justifyContent = "space-between";
+                            li.style.alignItems = "center";
+                            li.style.transition = "all 0.3s ease";
+
+                            li.onmouseover = function () {
+                                this.style.transform = "translateY(-4px) scale(1.02)";
+                                this.style.boxShadow = "8px 8px 18px rgba(0,0,0,0.3), -5px -5px 15px rgba(255,255,255,0.15)";
+                            };
+                            li.onmouseout = function () {
+                                this.style.transform = "translateY(0) scale(1)";
+                                this.style.boxShadow = "6px 6px 12px rgba(0,0,0,0.2), -4px -4px 10px rgba(255,255,255,0.1)";
+                            };
+
+                            li.innerHTML = `
+                                <span>
+                                    <i class="fas fa-university"></i> ${bank.BankShortCode}
+                                    <span class="balance d-none"> : ₹${parseFloat(bank.OpeningBalance).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })}
+</span>
+                                </span>
+                                <button class="btn btn-sm toggle-balance"
+                                        style="color: white; background: rgba(255,255,255,0.15); border-radius: 8px; padding: 4px 8px;">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            `;
+
+                            li.querySelector(".toggle-balance").addEventListener("click", function () {
+                                const balanceEl = li.querySelector(".balance");
+                                balanceEl.classList.toggle("d-none");
+
+                                const icon = this.querySelector("i");
+                                if (balanceEl.classList.contains("d-none")) {
+                                    icon.classList.remove("fa-eye-slash");
+                                    icon.classList.add("fa-eye");
+                                } else {
+                                    icon.classList.remove("fa-eye");
+                                    icon.classList.add("fa-eye-slash");
+                                }
+                            });
+
+                            ul.appendChild(li);
+                        });
+                    } else {
+                        ul.innerHTML = `<li class="text-muted">No banks found.</li>`;
+                    }
+                } else {
+                    console.error(res.message);
+                }
+            })
+            .catch(err => {
+                console.error("Fetch error:", err);
+            });
+    });
+
+
+
+
+
+
+    // ================== RED LIST MEMBERS ==================
+    async function loadRedListMembers() {
+        try {
+            const response = await fetch('/AccountManager/GetTop5RedListMembers');
+            const result = await response.json();
+
+            const tbody = document.getElementById('redListBody');
+            tbody.innerHTML = '';
+
+            if (result.status === 'success') {
+                const data = result.data;
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="10">No data available.</td></tr>';
+                } else {
+                    data.forEach((item, index) => {
+                        tbody.innerHTML += `
+                            <tr style="height: 25px; font-size: 13px; color: black; text-align: center;">
+                                <td>${index + 1}</td>
+                                <td style="color:black;">${item.FullName}</td>
+                                <td style="color:black;">${item.FlatCode}</td>
+                                <td style="color:black;">₹${item.MaintenanceAmount}</td>
+                                <td style="color:black;">${item.MonthsPending}</td>
+                                <td style="color:black;">₹${item.PendingAmount}</td>
+                                <td style="color:black;">${item.PenaltyPercent}%</td>
+                                <td style="color:black;">${item.GraceDate ? item.GraceDate.split(' ')[0] : ''}</td>
+                                <td style="color:black;">₹${item.PenaltyAmount}</td>
+                                <td style="color:black;">₹${item.FinalPayable}</td>
+                            </tr>
+                        `;
+                    });
+                }
+            } else {
+                tbody.innerHTML = `<tr><td colspan="10">${result.message}</td></tr>`;
+            }
+        } catch (err) {
+            document.getElementById('redListBody').innerHTML = `<tr><td colspan="10">Error loading data.</td></tr>`;
+        }
+    }
+    document.addEventListener("DOMContentLoaded", loadRedListMembers);
+    </script>
+

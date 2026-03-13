@@ -1,0 +1,695 @@
+﻿@model System.Data.DataTable
+@using System.Data
+
+<link href="~/Content/modules/datatables/datatables.min.css" rel="stylesheet" />
+
+
+<!-- Title -->
+<span style="font-size: 20px; font-weight: 700; color: #333;">
+    @Request["title"]
+</span>
+<br />
+<!-- Bank -->
+<span style="font-size: 15px; font-weight: 500; color: #444;">
+    <strong>Bank :</strong> <span style="color:#0d6efd;"> @Request["bankName"] </span>
+</span>
+<br />
+
+<!-- Total -->
+<span style="font-size: 15px; font-weight: 500; color: #444;">
+    <strong>Total :</strong>    <span style="color:#0d6efd;">@Request["total"] </span>
+</span>
+
+
+
+
+<div class="row mb-3">
+    <div class="col-md-12 text-end">
+        <button id="csvExport" class="btn export-btn me-2">
+            <img src="~/Content/img/icons8-csv-64.png" />
+        </button>
+
+        <button id="excelExport" class="btn export-btn me-2">
+            <img src="~/Content/img/icons8-xls-64.png" />
+        </button>
+
+        <button id="pdfExport" class="btn export-btn me-2">
+            <img src="~/Content/img/icons8-pdf-64.png" />
+        </button>
+
+        <button id="printExport" class="btn export-btn">
+            <img src="~/Content/img/icons8-print-100.png" />
+        </button>
+        <button id="refreshExport" class="btn export-btn ms-2">
+            <img src="~/Content/img/icons8-refresh-50.png" />
+        </button>
+
+    </div>
+
+
+</div>
+
+
+
+
+
+<div class="table-responsive">
+
+
+
+    <table class="table table-bordered align-middle w-100" id="transactionTable">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="selectAll" /></th>
+                <th>Sr.No</th>
+                <th>PaymentBy</th>
+                <th>PaidTo</th>
+                <th>Amount(₹)</th>
+                <th>Purpose</th>
+                <th>Paid Date</th>
+            </tr>
+        </thead>
+
+
+        <tbody>
+            @{
+                int sr = 1;
+                foreach (DataRow row in Model.Rows)
+                {
+                    <tr>
+                        <td><input type="checkbox" class="rowCheck" /></td>
+                        <td>@sr</td>
+                        <td>@row["PaymentBy"]</td>
+                        <td>@row["PaidTo"]</td>
+                        <td>₹@string.Format("{0:N2}", row["Amount"])</td>
+                        <td>@row["PaymentPurpose"]</td>
+                        <td>@Convert.ToDateTime(row["PaidDate"]).ToString("dd-MM-yyyy")</td>
+                    </tr>
+                    sr++;
+                }
+            }
+        </tbody>
+
+    </table>
+</div>
+
+<script>
+    $(document).ready(function () {
+
+
+        let bankName = "@Request["bankName"]";
+let totalAmount = "@Request["total"]";
+let title = "@Request["title"]";
+
+
+let fromDate = "@Request["fromDate"]";
+let toDate = "@Request["toDate"]";
+
+
+
+        function uncheckAll(dt) {
+            dt.rows().every(function () {
+                $(this.node()).find(".rowCheck").prop("checked", false);
+            });
+            $("#selectAll").prop("checked", false);
+        }
+
+
+        function clearSelection(dt) {
+            dt.rows().every(function () {
+                $(this.node()).find(".rowCheck").prop("checked", false);
+            });
+            $("#selectAll").prop("checked", false);
+        }
+
+        var table = $("#transactionTable").DataTable({
+            dom: "Bfrtip",
+            ordering: false,
+            pageLength: 10,
+            buttons: [
+
+                // ---------------------------------------------------
+                //  CSV EXPORT (UPDATED WITH TITLE + BANK + TOTAL + DATE RANGE)
+                // ---------------------------------------------------
+                {
+                    extend: "csvHtml5",
+                    className: "export-csv",
+                    filename: title + " - " + moment().format("DD-MM-YYYY"),
+                    exportOptions: {
+                        columns: [1, 2, 3, 4, 5, 6],
+                        rows: function (idx, data, node) {
+                            return $(node).find(".rowCheck").prop("checked");
+                        }
+                    },
+
+                    customize: function (csv) {
+
+                        let rows = csv.split("\n");
+
+                        // --------------------------
+                        // Fix header: rename first col
+                        // --------------------------
+                        let header = rows[0].split(",");
+                        header[0] = '"Sr.No"';
+                        rows[0] = header.join(",");
+
+                        // --------------------------
+                        // Renumber rows + clean numeric fields
+                        // --------------------------
+                        let sr = 1;
+                        for (let i = 1; i < rows.length; i++) {
+                            if (rows[i].trim() !== "") {
+                                let cols = rows[i].split(",");
+
+                                cols[0] = `"${sr++}"`;
+
+                                for (let j = 0; j < cols.length; j++) {
+                                    cols[j] = cols[j].replace(/[₹,]/g, "").trim();
+                                }
+
+                                rows[i] = cols.join(",");
+                            }
+                        }
+
+                        // --------------------------
+                        // Build Header (Top)
+                        // --------------------------
+                        const headerCols = header.length;
+                        const pad = Array(Math.floor(headerCols / 2)).fill("").join(",");
+
+                        const centeredTitle = pad + `"${title}"`;
+                        const centeredBank = pad + `"Bank: ${bankName}"`;
+                        const centeredTotal = pad + `"Total: ${totalAmount}"`;  // FIXED
+                        const centeredRange = pad + `"Period: ${fromDate} to ${toDate}"`;
+                        const timestamp = pad + `"Generated on: ${moment().format("DD-MM-YYYY hh:mm A")}"`;
+
+                        rows.unshift(timestamp);
+                        rows.unshift(centeredRange);
+                        rows.unshift(centeredTotal);
+                        rows.unshift(centeredBank);
+                        rows.unshift(centeredTitle);
+
+                        // --------------------------
+                        // Footer (Bottom Total)
+                        // --------------------------
+                        const footerTotal = pad + `"TOTAL: ${totalAmount}"`;
+
+                        rows.push("");
+                        rows.push(footerTotal);
+
+                        return rows.join("\n");
+                    },
+
+                    action: function (e, dt, btn, config) {
+
+                        if ($(".rowCheck:checked").length === 0) {
+                            iziToast.warning({
+                                title: "Warning!",
+                                message: "Please select at least one record",
+                                position: "topCenter"
+                            });
+                            return;
+                        }
+
+                        $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, btn, config);
+
+                        setTimeout(() => {
+                            swal({
+                                icon: 'success',
+                                title: 'CSV Exported',
+                                timer: 1500,
+                                buttons: false
+                            });
+                            uncheckAll(dt);
+                        }, 400);
+                    }
+                },
+
+
+
+
+                // ---------------------------------------------------
+                //  EXCEL EXPORT (UPDATED WITH TOP HEADER + BOTTOM TOTAL)
+                // ---------------------------------------------------
+                {
+                    extend: "excelHtml5",
+                    className: "export-excel",
+                    filename: title + " - " + moment().format("DD-MM-YYYY"),
+                    exportOptions: {
+                        columns: [1, 2, 3, 4, 5, 6],
+                        rows: function (idx, data, node) {
+                            return $(node).find(".rowCheck").prop("checked");
+                        }
+                    },
+
+                    customize: function (xlsx) {
+
+                        const sheet = xlsx.xl.worksheets['sheet1.xml'];
+                        const $ = window.jQuery;
+
+                        const sheetData = $('sheetData', sheet);
+                        const rows = sheetData.find('row');
+
+                        // ----------------------------------------
+                        // PUSH ALL EXISTING ROWS DOWN BY 4
+                        // ----------------------------------------
+                        rows.each(function () {
+                            const newRow = parseInt($(this).attr('r')) + 4;
+                            $(this).attr('r', newRow);
+
+                            $(this).find('c').each(function () {
+                                const col = $(this).attr('r').replace(/[0-9]/g, '');
+                                $(this).attr('r', col + newRow);
+                            });
+                        });
+
+                        // ----------------------------------------
+                        // TOP HEADER ROWS
+                        // ----------------------------------------
+                        sheetData.prepend(`
+<row r="1">
+  <c t="inlineStr" r="D1"><is><t>${title}</t></is></c>
+</row>`);
+
+                        sheetData.prepend(`
+<row r="2">
+  <c t="inlineStr" r="D2"><is><t>Bank: ${bankName}</t></is></c>
+</row>`);
+
+//                        sheetData.prepend(`
+//<row r="3">
+//  <c t="inlineStr" r="D3"><is><t>Total: ${totalAmount}</t></is></c>
+//</row>`);
+
+                        sheetData.prepend(`
+<row r="4">
+  <c t="inlineStr" r="D4"><is><t>Period: ${fromDate} to ${toDate}</t></is></c>
+</row>`);
+
+                        // ----------------------------------------
+                        // RENUMBER Sr.No COLUMN
+                        // ----------------------------------------
+                        let sr = 1;
+                        $('row', sheet).each(function () {
+                            let r = parseInt($(this).attr('r'));
+
+                            if (r >= 5) {
+                                const firstCell = $('c[r^="A"]', this);
+                                firstCell.attr('t', 'n');
+
+                                if (firstCell.find('v').length) {
+                                    firstCell.find('v').text(sr++);
+                                } else {
+                                    firstCell.append('<v>' + sr++ + '</v>');
+                                }
+                            }
+                        });
+
+                        // ----------------------------------------
+                        // CLEAN ₹ + commas
+                        // ----------------------------------------
+                        $('c', sheet).each(function () {
+                            let textNode = $(this).find('is t');
+
+                            if (textNode.length) {
+                                let text = textNode.text();
+                                if (/[\d₹,]/.test(text)) {
+                                    textNode.text(text.replace(/[₹,]/g, ''));
+                                }
+                            }
+                        });
+
+                        // ----------------------------------------
+                        // ADD BOTTOM TOTAL ROW (NEW)
+                        // ----------------------------------------
+                        const lastRowNumber = $('row', sheet).last().attr('r');
+                        const footerRow = parseInt(lastRowNumber) + 2;
+
+                        sheetData.append(`
+<row r="${footerRow}">
+  <c t="inlineStr" r="D${footerRow}">
+    <is><t>TOTAL: ${totalAmount}</t></is>
+  </c>
+</row>`);
+
+                    },
+
+                    action: function (e, dt, btn, config) {
+
+                        if ($(".rowCheck:checked").length === 0) {
+                            iziToast.warning({
+                                title: "Warning!",
+                                message: "Please select at least one record",
+                                position: "topCenter"
+                            });
+                            return;
+                        }
+
+                        $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, btn, config);
+
+                        setTimeout(() => {
+                            swal({
+                                icon: 'success',
+                                title: 'Excel Exported',
+                                timer: 1500,
+                                buttons: false
+                            });
+                            uncheckAll(dt);
+                        }, 400);
+                    }
+                },
+
+
+                // ---------------------------------------------------
+                // PDF EXPORT (UPDATED WITH TITLE + BANK + TOTAL + DATE RANGE + BOTTOM TOTAL)
+                // ---------------------------------------------------
+                {
+                    extend: "pdfHtml5",
+                    className: "export-pdf",
+                    filename: title + " - " + moment().format("DD-MM-YYYY"),
+                    orientation: "landscape",
+                    pageSize: "A4",
+                    title: "",
+                    messageTop: "",
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $(node).find(".rowCheck").prop("checked");
+                        },
+                        columns: ':visible:not(:first-child)',
+                        format: {
+                            body: function (data, row, col) {
+                                if (col === 4)
+                                    return data.replace(/[₹,]/g, "");
+                                return data;
+                            }
+                        }
+                    },
+
+                    customize: function (doc) {
+
+                        // --------------------------------------
+                        // HEADER (TITLE + BANK + TOTAL + DATES)
+                        // --------------------------------------
+                        doc.content.unshift({
+                            alignment: 'center',
+                            margin: [0, 0, 0, 15],
+                            text: [
+                                { text: title + "\n", fontSize: 18, bold: true },
+                                { text: "Bank: " + bankName + "\n", fontSize: 12 },
+                             //   { text: "Total: " + totalAmount + "\n", fontSize: 12 },
+                                { text: "Period: " + fromDate + " to " + toDate + "\n\n", fontSize: 12, italics: true }
+                            ]
+                        });
+
+                        // --------------------------------------
+                        // FIND TABLE
+                        // --------------------------------------
+                        let tbl = doc.content.find(x => x.table);
+                        if (tbl) {
+                            const colCount = tbl.table.body[0].length;
+
+                            tbl.table.widths = Array(colCount).fill('*');
+
+                            // --------------------------------------
+                            // RENUMBER Sr.No
+                            // --------------------------------------
+                            let sr = 1;
+                            for (let i = 1; i < tbl.table.body.length; i++) {
+                                tbl.table.body[i][0] = { text: sr++, alignment: 'center' };
+                            }
+
+                            // --------------------------------------
+                            // CENTER ALL CELLS
+                            // --------------------------------------
+                            tbl.table.body.forEach(row => {
+                                row.forEach((cell, idx) => {
+                                    if (typeof cell === "object") {
+                                        cell.alignment = "center";
+                                    } else {
+                                        row[idx] = { text: cell, alignment: "center" };
+                                    }
+                                });
+                            });
+
+                            // --------------------------------------
+                            // TABLE STYLE
+                            // --------------------------------------
+                            tbl.layout = {
+                                hLineWidth: () => 0.5,
+                                vLineWidth: () => 0.5,
+                                hLineColor: () => "#aaa",
+                                vLineColor: () => "#aaa",
+                                paddingLeft: () => 5,
+                                paddingRight: () => 5,
+                                paddingTop: () => 4,
+                                paddingBottom: () => 4
+                            };
+
+                            // HEADER STYLE
+                            tbl.table.body[0].forEach(header => {
+                                header.fillColor = '#615677';
+                                header.color = '#fff';
+                                header.bold = true;
+                                header.fontSize = 10;
+                                header.alignment = 'center';
+                            });
+
+                            // CENTER TABLE BLOCK
+                            doc.content[doc.content.indexOf(tbl)] = {
+                                alignment: 'center',
+                                table: tbl.table,
+                                layout: tbl.layout
+                            };
+                        }
+
+                        // --------------------------------------
+                        // FOOTER TOTAL AT BOTTOM (NEW)
+                        // --------------------------------------
+                        doc.content.push({
+                            margin: [0, 20, 0, 0],
+                            alignment: "center",
+                            text: [
+                                { text: "TOTAL: " + totalAmount, fontSize: 14, bold: true }
+                            ]
+                        });
+
+                        // DEFAULT FONT
+                        doc.defaultStyle.fontSize = 9;
+                        doc.styles.tableHeader.fontSize = 10;
+                    },
+
+                    action: function (e, dt, btn, config) {
+
+                        if ($(".rowCheck:checked").length === 0) {
+                            iziToast.warning({
+                                title: "Warning!",
+                                message: "Please select at least one record",
+                                position: "topCenter"
+                            });
+                            return;
+                        }
+
+                        $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, btn, config);
+
+                        setTimeout(() => {
+                            swal({
+                                icon: "success",
+                                title: "PDF Exported",
+                                timer: 1500,
+                                buttons: false
+                            });
+                            uncheckAll(dt);
+
+                        }, 500);
+                    }
+                },
+
+
+
+
+                // ---------------------------------------------------
+                // PRINT EXPORT (UPDATED WITH TITLE + BANK + TOTAL + DATE RANGE + FOOTER TOTAL)
+                // ---------------------------------------------------
+                {
+                    extend: "print",
+                    className: "export-print",
+                    title: "",
+                    exportOptions: {
+                        columns: [1, 2, 3, 4, 5, 6],
+                        rows: function (idx, data, node) {
+                            return $(node).find(".rowCheck").prop("checked");
+                        }
+                    },
+
+                    customize: function (win) {
+
+                        // REMOVE default DT header
+                        $("h1", win.document.body).remove();
+
+                        // --------------------------------------------
+                        // PRINT HEADER (Title + Bank + Total + Dates)
+                        // --------------------------------------------
+                        let header = `
+        <div style="text-align:center; margin-bottom:20px;">
+            <h2 style="margin:0; font-size:22px;">${title}</h2>
+            <p style="margin:4px 0; font-size:14px;">Bank: <strong>${bankName}</strong></p>
+            <p style="margin:4px 0; font-size:14px;">Period: ${fromDate} to ${toDate}</p>
+            <p style="font-size:12px; margin-top:10px;">Generated on: ${moment().format("DD-MM-YYYY hh:mm A")}</p>
+        </div>
+        `;
+
+                        $(win.document.body).find("table").before(header);
+
+                        // --------------------------------------------
+                        // TABLE STYLE FOR PRINT
+                        // --------------------------------------------
+                        $(win.document.body).find("table")
+                            .css("font-size", "11pt")
+                            .css("border-collapse", "collapse")
+                            .css("width", "100%");
+
+                        // --------------------------------------------
+                        // RENUMBER Sr.No ON PRINT
+                        // --------------------------------------------
+                        let sr = 1;
+                        $(win.document.body).find("table tbody tr").each(function () {
+                            $(this).find("td:first").text(sr++);
+                        });
+
+                        // --------------------------------------------
+                        // CENTER TABLE CONTENT
+                        // --------------------------------------------
+                        $(win.document.body).find("table td, table th")
+                            .css("text-align", "center")
+                            .css("padding", "6px");
+
+                        // --------------------------------------------
+                        // HEADER STYLING
+                        // --------------------------------------------
+                        $(win.document.body).find("table thead th")
+                            .css("background-color", "#615677")
+                            .css("color", "white")
+                            .css("font-weight", "bold")
+                            .css("padding", "8px");
+
+                        // --------------------------------------------
+                        // BOTTOM TOTAL — CENTERED
+                        // --------------------------------------------
+                        let footerTotal = `
+            <div style="text-align:center; margin-top:30px; font-size:18px; font-weight:bold;">
+                TOTAL: ${totalAmount}
+            </div>
+        `;
+
+                        // Append footer under the table
+                        $(win.document.body).append(footerTotal);
+                    },
+
+                    action: function (e, dt, btn, config) {
+
+                        if ($(".rowCheck:checked").length === 0) {
+                            iziToast.warning({
+                                title: "Warning!",
+                                message: "Please select at least one record",
+                                position: "topCenter"
+                            });
+                            return;
+                        }
+
+                        $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, btn, config);
+
+                        setTimeout(() => {
+                            uncheckAll(dt);
+                        }, 400);
+                    }
+                },
+
+
+
+                // ---------------------------------------------------
+                // INTERNAL REFRESH BUTTON
+                // ---------------------------------------------------
+               {
+    text: '<img src="/Content/img/icons8-refresh-50.png" height="26"/>',
+    className: "export-refresh",
+    action: function (e, dt, btn, config) {
+
+        // Apply filters reset
+        dt.search("").columns().search("").draw();
+        uncheckAll(dt);
+
+        // Trigger spin animation on external refresh button
+        let icon = $("#refreshExport img");
+        icon.addClass("spin");
+
+        setTimeout(() => icon.removeClass("spin"), 600);
+    }
+}
+
+            ]
+        });
+
+
+        // External button triggers
+        $("#csvExport").click(() => table.button(".export-csv").trigger());
+        $("#excelExport").click(() => table.button(".export-excel").trigger());
+        $("#pdfExport").click(() => table.button(".export-pdf").trigger());
+        $("#printExport").click(() => table.button(".export-print").trigger());
+
+        $("#refreshExport").click(function () {
+            let icon = $(this).find("img");
+            icon.addClass("spin");
+            table.button(".export-refresh").trigger();
+            setTimeout(() => icon.removeClass("spin"), 600);
+        });
+
+        // Select All
+        $("#selectAll").on("click", function () {
+            const s = this.checked;
+            table.rows().every(function () {
+                $(this.node()).find(".rowCheck").prop("checked", s);
+            });
+        });
+
+    });
+</script>
+
+
+<style>
+    /* hide datatable default export buttons */
+    div.dt-buttons {
+        display: none !important;
+    }
+
+    /* fix modal scroll issue */
+    #transactionModal .modal-dialog {
+        max-width: 95% !important;
+    }
+
+    #transactionTable {
+        width: 100% !important;
+        table-layout: auto !important;
+    }
+
+    .export-btn {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+
+        .export-btn img {
+            height: 32px;
+            margin-bottom: -82px;
+        }
+
+    .spin {
+        animation: spin 0.6s linear;
+    }
+
+    @@keyframes spin {
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+</style>

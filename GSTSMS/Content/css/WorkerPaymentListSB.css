@@ -1,0 +1,1041 @@
+﻿/* Start with zoomed out and transparent */
+/* ------------------------------------------
+           Modal Zoom Animation & Centering (Bootstrap 5)
+        --------------------------------------------- */
+/* Animate zoom-in when modal opens */
+
+.viewBtn {
+    height: 30px;
+    width: 40px;
+}
+
+#selectAll {
+    width: 13px;
+    height: 13px;
+    accent-color: #1E90FF;
+}
+
+input[type=checkbox], input[type=radio] {
+    box-sizing: border-box;
+    padding: 0;
+    height: 13px;
+    width: 13px;
+}
+
+#paybtn {
+    width: 40px;
+    height: 30px;
+    color: white;
+    background-color: #28A745;
+    padding: 0.1px;
+}
+
+#workerTable tbody td {
+    padding: 2px 4px !important; /* Adjust top/bottom and left/right padding */
+    vertical-align: middle !important;
+}
+
+/* Add this to your existing CSS */
+#workerTable thead th {
+    padding: 2px 4px !important; /* Adjust these values as needed */
+    vertical-align: middle;
+}
+
+#workerTable tbody tr {
+    height: 30px;
+}
+
+#workerTable td {
+    vertical-align: middle !important;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    font-size: 0.85rem;
+    height: 25px;
+}
+
+#workerTable tr.py-3 {
+    padding: 0 !important;
+}
+
+#workerTable td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+table td, table th {
+    padding: 0.25rem 0.5rem !important;
+    vertical-align: middle;
+    font-size: 0.85rem;
+}
+
+
+td.text-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+}
+
+
+#workerTable thead {
+    background-color: #615677 !important;
+    color: white !important;
+    height: 30px;
+}
+
+table.dataTable tbody tr.selected {
+    background-color: transparent !important;
+}
+
+    table.dataTable tbody tr.selected td {
+        color: #212529 !important;
+    }
+
+
+        table.dataTable tbody tr.selected td.select-checkbox::before {
+            background-color: transparent !important;
+            color: #007bff !important;
+        }
+
+
+
+#workerTable tbody tr:hover {
+    background-color: #f9f9f9 !important;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#exportButtons {
+    width: 50% !important; /* Reduce width to 50% of parent */
+    max-width: 300px !important; /* Set a fixed maximum width */
+}
+
+div.dt-buttons:empty {
+    display: none !important;
+}
+
+/* Custom styles for better alignment */
+.dataTables_wrapper .dataTables_filter {
+    float: right;
+    text-align: right;
+    margin-bottom: 15px;
+}
+
+.dataTables_wrapper .dt-buttons {
+    float: left;
+    margin-bottom: 15px;
+}
+
+.dataTables_wrapper .dataTables_length {
+    float: left;
+    margin-bottom: 15px;
+}
+
+@media (max-width: 767px) {
+    .dataTables_wrapper .dataTables_filter,
+    .dataTables_wrapper .dt-buttons,
+    .dataTables_wrapper .dataTables_length {
+        float: none;
+        text-align: center;
+    }
+}
+
+.export-buttons {
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+.icon-only-btn {
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+.disabled-filter {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+
+/* Apply font to all elements */
+body, .card, .table, .modal, .btn, .form-control, .daterangepicker, .swal2-container, .iziToast,
+.dataTables_wrapper, .pagination, .badge, .export-buttons, #paymentModal {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+/* Your existing styles... */
+.icon-only-btn {
+    padding: 0.25rem 0.5rem;
+}
+/* Rest of your existing styles... */
+
+/* Worker Payment Table */
+#workerTable td {
+    font-size: 13px; /* Slightly smaller for compact data */
+    height: 25px;
+    color: black !important;
+    vertical-align: middle;
+    text-align: center;
+}
+
+/* Table Headers */
+#workerTable th {
+    font-size: 14px; /* Slightly larger for headers */
+    font-weight: 600; /* Bold headers */
+    height: 30px !important;
+    border: 2px solid lightgray;
+    vertical-align: middle !important;
+    text-align: center;
+}
+
+/* Action Buttons */
+.btn-sm {
+    font-size: 22px; /* Smaller buttons */
+}
+
+
+
+
+.icon-only-btn {
+    padding: 0.25rem 0.5rem;
+}
+
+.export-buttons {
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+
+
+.filter-container {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+
+.badge {
+    font-size: 0.85em;
+    padding: 0.35em 0.65em;
+}
+
+.btn-refresh {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+}
+
+    .btn-refresh:hover {
+        background-color: #e9ecef;
+    }
+
+.no-data-container {
+    display: none;
+    text-align: center;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    margin-top: 20px;
+}
+
+.no-data-message {
+    color: #dc3545;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.disabled-filter {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+
+
+
+
+
+
+
+
+@media (max-width: 768px) {
+    .table-responsive {
+        max-height: none !important;
+        overflow-x: auto !important; /* Allow horizontal scroll on mobile */
+    }
+}
+
+.card-body {
+    padding-bottom: 0 !important; /* Remove bottom padding */
+    padding-top: 0 !important;
+}
+
+.table-responsive {
+    max-height: calc(100vh - 250px) !important; /* Adjust 250px based on your header/footer height */
+    overflow: hidden !important;
+}
+
+.card {
+    margin-bottom: 0 !important; /* Remove margin below card */
+}
+
+.dataTables_wrapper {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+
+
+/* White Spinning Loader */
+.loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loader {
+    width: 50px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 8px solid;
+    border-color: white transparent; /* White spinner with transparent middle */
+    animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(0.5turn);
+    }
+}
+
+
+/* Add to your existing style section */
+.btn-spin {
+    transition: transform 0.5s ease;
+}
+
+.spin {
+    animation: spin 0.5s linear 1;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+
+#selectAll {
+    width: 13px;
+    height: 13px;
+    accent-color: #1E90FF;
+}
+
+input[type=checkbox], input[type=radio] {
+    box-sizing: border-box;
+    padding: 0;
+    height: 13px;
+    width: 13px;
+}
+
+#paybtn {
+    width: 30px;
+    height: 23px;
+    color: white;
+    background-color: #28A745;
+    padding: 0.1px;
+}
+
+#workerTable tbody td {
+    padding: 2px 4px !important; /* Adjust top/bottom and left/right padding */
+    vertical-align: middle !important;
+}
+
+/* Add this to your existing CSS */
+#workerTable thead th {
+    padding: 2px 4px !important; /* Adjust these values as needed */
+    vertical-align: middle;
+}
+
+#workerTable tbody tr {
+    height: 30px;
+}
+
+#workerTable td {
+    vertical-align: middle !important;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    font-size: 0.85rem;
+    height: 25px;
+}
+
+#workerTable tr.py-3 {
+    padding: 0 !important;
+}
+
+#workerTable td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+table td, table th {
+    padding: 0.25rem 0.5rem !important;
+    vertical-align: middle;
+    font-size: 0.85rem;
+}
+
+
+td.text-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+}
+
+
+#workerTable thead {
+    background-color: #615677 !important;
+    color: white !important;
+    height: 30px;
+}
+
+table.dataTable tbody tr.selected {
+    background-color: transparent !important;
+}
+
+    table.dataTable tbody tr.selected td {
+        color: #212529 !important;
+    }
+
+
+        table.dataTable tbody tr.selected td.select-checkbox::before {
+            background-color: transparent !important;
+            color: #007bff !important;
+        }
+
+
+
+#workerTable tbody tr:hover {
+    background-color: #f9f9f9 !important;
+}
+
+
+#exportButtons {
+    width: 50% !important; /* Reduce width to 50% of parent */
+    max-width: 300px !important; /* Set a fixed maximum width */
+}
+
+div.dt-buttons:empty {
+    display: none !important;
+}
+
+/* Custom styles for better alignment */
+.dataTables_wrapper .dataTables_filter {
+    float: right;
+    text-align: right;
+    margin-bottom: 15px;
+}
+
+.dataTables_wrapper .dt-buttons {
+    float: left;
+    margin-bottom: 15px;
+}
+
+.dataTables_wrapper .dataTables_length {
+    float: left;
+    margin-bottom: 15px;
+}
+
+@media (max-width: 767px) {
+    .dataTables_wrapper .dataTables_filter,
+    .dataTables_wrapper .dt-buttons,
+    .dataTables_wrapper .dataTables_length {
+        float: none;
+        text-align: center;
+    }
+}
+
+.export-buttons {
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+.icon-only-btn {
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+.disabled-filter {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+
+/* Apply font to all elements */
+body, .card, .table, .modal, .btn, .form-control, .daterangepicker, .swal2-container, .iziToast,
+.dataTables_wrapper, .pagination, .badge, .export-buttons, #paymentModal {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+/* Your existing styles... */
+.icon-only-btn {
+    padding: 0.25rem 0.5rem;
+}
+/* Rest of your existing styles... */
+
+/* Worker Payment Table */
+#workerTable td {
+    font-size: 13px; /* Slightly smaller for compact data */
+    height: 25px;
+    color: black !important;
+    vertical-align: middle;
+    text-align: center;
+}
+
+/* Table Headers */
+#workerTable th {
+    font-size: 14px; /* Slightly larger for headers */
+    font-weight: 600; /* Bold headers */
+    height: 30px !important;
+    border: 2px solid lightgray;
+    vertical-align: middle !important;
+    text-align: center;
+}
+
+/* Action Buttons */
+.btn-sm {
+    font-size: 22px; /* Smaller buttons */
+}
+
+
+
+
+.icon-only-btn {
+    padding: 0.25rem 0.5rem;
+}
+
+.export-buttons {
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+
+
+.filter-container {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+
+.badge {
+    font-size: 0.85em;
+    padding: 0.35em 0.65em;
+}
+
+.btn-refresh {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+}
+
+    .btn-refresh:hover {
+        background-color: #e9ecef;
+    }
+
+.no-data-container {
+    display: none;
+    text-align: center;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    margin-top: 20px;
+}
+
+.no-data-message {
+    color: #dc3545;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.disabled-filter {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#workerTable tbody tr {
+    height: 30px;
+}
+
+#workerTable td {
+    vertical-align: middle !important;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    font-size: 0.85rem;
+    height: 25px;
+}
+
+#workerTable tr.py-3 {
+    padding: 0 !important;
+}
+
+#workerTable td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+table td, table th {
+    padding: 0.25rem 0.5rem !important;
+    vertical-align: middle;
+    font-size: 0.85rem;
+}
+
+
+td.text-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+}
+
+
+#workerTable thead {
+    background-color: #615677 !important;
+    color: white !important;
+    height: 30px;
+}
+
+table.dataTable tbody tr.selected {
+    background-color: transparent !important;
+}
+
+    table.dataTable tbody tr.selected td {
+        color: #212529 !important;
+    }
+
+
+        table.dataTable tbody tr.selected td.select-checkbox::before {
+            background-color: transparent !important;
+            color: #007bff !important;
+        }
+
+
+
+#workerTable tbody tr:hover {
+    background-color: #f9f9f9 !important;
+}
+
+
+
+
+.dt-buttons .btn {
+    border-radius: 0.1rem !important;
+}
+
+/* Fix hover and active styles for daterangepicker ranges */
+.daterangepicker .ranges li {
+    color: #000 !important; /* Black text */
+    background-color: transparent; /* No background by default */
+}
+
+    .daterangepicker .ranges li:hover {
+        color: #fff !important; /* White text on hover */
+        background-color: #007bff !important; /* Blue background on hover */
+    }
+
+    .daterangepicker .ranges li.active {
+        color: #fff !important; /* White text when active */
+        background-color: #007bff !important; /* Blue background when active */
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+#roleFilter, #paymentStatusFilter {
+    width: 180px;
+    margin-left: 10px;
+    /* @if (!hasData) {
+        <text> opacity: 0.6;
+        pointer-events: none;
+        </text>
+    }*/
+}
+
+
+.btn-info, .btn-info.disabled {
+    box-shadow: 0 2px 6px #82d3f8;
+    background-color: #3abaf4;
+    border-color: #3abaf4;
+    color: #fff;
+    width: 25px;
+    height: 23px;
+}
+
+
+#workerTable tbody tr {
+    height: 30px;
+}
+
+#workerTable td {
+    vertical-align: middle !important;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    font-size: 0.85rem;
+    height: 25px;
+}
+
+#workerTable tr.py-3 {
+    padding: 0 !important;
+}
+
+#workerTable td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+table td, table th {
+    padding: 0.25rem 0.5rem !important;
+    vertical-align: middle;
+    font-size: 0.85rem;
+}
+
+
+td.text-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+}
+
+
+#workerTable thead {
+    background-color: #615677 !important;
+    color: white !important;
+    height: 30px;
+}
+
+table.dataTable tbody tr.selected {
+    background-color: transparent !important;
+}
+
+    table.dataTable tbody tr.selected td {
+        color: #212529 !important;
+    }
+
+
+        table.dataTable tbody tr.selected td.select-checkbox::before {
+            background-color: transparent !important;
+            color: #007bff !important;
+        }
+
+
+
+#workerTable tbody tr:hover {
+    background-color: #f9f9f9 !important;
+}
+
+
+
+
+.dt-buttons .btn {
+    border-radius: 0.1rem !important;
+}
+
+/* Fix hover and active styles for daterangepicker ranges */
+.daterangepicker .ranges li {
+    color: #000 !important; /* Black text */
+    background-color: transparent; /* No background by default */
+}
+
+    .daterangepicker .ranges li:hover {
+        color: #fff !important; /* White text on hover */
+        background-color: #007bff !important; /* Blue background on hover */
+    }
+
+    .daterangepicker .ranges li.active {
+        color: #fff !important; /* White text when active */
+        background-color: #007bff !important; /* Blue background when active */
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.main-content {
+    padding-left: 280px !important;
+    padding-right: 30px !important;
+    padding-top: 0px !important;
+    width: 100% !important;
+    position: relative !important;
+}
+
+
+
+.modal.fade .modal-dialog {
+    transform: scale(0.7);
+    opacity: 0;
+    transition: all 0.4s ease-in-out;
+}
+
+.modal.show .modal-dialog {
+    transform: scale(1);
+    opacity: 1;
+}
+
+/* Center modal vertically */
+.modal-dialog {
+    max-width: 700px;
+    width: 100%;
+}
+
+    .modal-dialog.modal-dialog-centered {
+        display: flex;
+        align-items: center;
+        min-height: 100vh;
+    }
+
+/* Ensure modal content has min height */
+.modal-content {
+    min-height: 200px;
+    overflow-y: auto; /* Enable scrolling */
+    scrollbar-width: none; /* For Firefox */
+    -ms-overflow-style: none; /* For IE and Edge */
+}
+
+/* ------------------------------------------
+           Fix for background shifting, zooming, or scaling
+        --------------------------------------------- */
+
+/* Prevent page shifting and zooming when modal opens */
+body.modal-open {
+    padding-right: 0 !important;
+    overflow: hidden !important;
+    font-size: 100% !important;
+    zoom: 100% !important;
+    -webkit-font-smoothing: auto !important;
+}
+
+    /* Prevent background scale/blur/shift */
+    body.modal-open .sidebar,
+    body.modal-open .main-wrapper,
+    body.modal-open .content-wrapper,
+    body.modal-open #workerTable {
+        transform: none !important;
+        filter: none !important;
+    }
+
+body, html {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+    background-color: #f8f9fa;
+    font-size: 16px !important;
+}
+
+.card {
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    background-color: white;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.page-title-custom {
+    color: #343a40 !important;
+    font-size: 1.5rem !important;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-align: center;
+    width: 100%;
+}
+
+
+/* FORM ELEMENTS */
+.dataTables_filter input {
+    width: 178.4px !important;
+    height: 31px !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 4px !important;
+}
+
+.row-checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: #1E90FF;
+}
+
+#selectAll {
+    width: 13px;
+    height: 13px;
+    accent-color: #1E90FF;
+}
+
+.daterange-btn {
+    border: 1px solid #ced4da;
+}
+
+/* MESSAGES */
+.no-data-row td {
+    padding: 1.25rem !important;
+}
+
+.no-data-msg {
+    padding: 1.25rem;
+    border: 1px solid #dee2e6;
+    background-color: white;
+    border-radius: 5px;
+}
+
+/* PAGINATION */
+/*.dataTables_wrapper .dataTables_paginate .paginate_button {
+    border: 1px solid #dee2e6 !important;
+    background: white !important;
+}
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background: #087070 !important;
+        color: white !important; 
+        border: 1px solid #087070 !important;
+    }*/
+
+/* BUTTONS */
+.payForm .btn {
+    border: 1px solid transparent;
+}
+
+.payment-period-info {
+    background-color: #f8f9fa;
+    border-left: 4px solid #087070;
+    padding: 0.625rem 0.9375rem;
+    margin-bottom: 1.25rem;
+}
+
+/* EXPORT BUTTONS */
+.dt-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.9375rem;
+}
+
+.export-buttons.icon-only-btn {
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+}
+
+    .export-buttons.icon-only-btn:hover {
+        background: none !important;
+        box-shadow: none !important;
+    }
+
+/* ROW HEIGHT */
+.py-3 {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+}

@@ -1,0 +1,1230 @@
+﻿@model IEnumerable<GSTSMSLibrary.AccountManager.AccountManager>
+
+@{
+    ViewBag.Title = "Bank List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="~/Content/css/BankList.css" rel="stylesheet" />
+<link href="~/Content/modules/izitoast/css/iziToast.min.css" rel="stylesheet"   />
+<link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+<link href="~/Content/modules/fontawesome/css/all.min.css" rel="stylesheet" />
+<link href="~/Content/modules/datatables/DataTables-1.10.16/css/dataTables.bootstrap4.css" rel="stylesheet" />
+
+
+<style>
+
+    #bankTable tbody tr.odd {
+        background-color: rgba(0, 0, 0, 0.02) !important;
+    }
+
+    #bankTable tbody tr:nth-of-type(odd) {
+        background-color: rgba(0, 0, 0, 0.02) !important;
+    }
+    /* White Spinning Loader */
+    .loader-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    .loader {
+        width: 50px;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        border: 8px solid;
+        border-color: white transparent; /* White spinner with transparent middle */
+        animation: spin 1s infinite linear;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(0.5turn);
+        }
+    }
+
+
+    /* Add to your existing style section */
+    .btn-spin {
+        transition: transform 0.5s ease;
+    }
+
+    .spin {
+        animation: spin 0.5s linear 1;
+    }
+
+    @@keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+
+
+    #bankTable tbody tr {
+        height: 25px !important;
+        line-height: 25px !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    #bankTable tbody td, #bankTable thead th {
+        padding: 2px 5px !important;
+        height: 25px !important;
+        line-height: 20px !important;
+        vertical-align: middle !important;
+        text-align: center !important;
+    }
+
+    #bankTable thead th {
+        height: 30px !important;
+        padding: 4px 8px !important;
+        line-height: 22px !important;
+        vertical-align: middle !important;
+        text-align: center !important;
+    }
+
+
+
+    @@keyframes rotate {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .rotate-refresh {
+        animation: rotate 0.6s linear;
+    }
+</style>
+
+<div class="card">
+
+    @*Loader overlay*@
+    <div class="loader-overlay" id="listLoader">
+        <div class="loader"></div>
+    </div>
+
+
+
+    <div class="card-header pb-1">
+        <h4 class="custom-heading" style="font-size: 26px;"> Bank List</h4>
+    </div>
+    <div class="container">
+        <div class="AddButtonDIv d-flex justify-content" style="margin-right:50px">
+            <button type="button" class="btn btn-primary custom-add-bank-btn" data-toggle="modal" data-target="#addBankModal" style="margin-left:715px;">
+                <i class=" fas fa-plus-circle mr-1"></i> Add Bank
+            </button>
+        </div>
+
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="bankTable">
+
+                <thead class="text-center" style="height:30px;">
+
+                    <tr class="text-center">
+                        <th><input type="checkbox" id="selectAll" /></th>
+                        <th>Sr No</th>
+                        <th> Account Type</th>
+                        <th>Bank Name</th>
+                        <th>Account No.</th>
+                        <th>Bank Holder Name</th>
+                        <th>Branch</th>
+                        <th>Opening Balance (₹)</th>
+                        <th>Bank Balance (₹)</th>
+                        <th>Added Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        int srNo = 1;
+                        foreach (var item in Model)
+                        {
+                            var rowClass = item.IsActive ? "active-bank" : "inactive-bank";
+
+                            <tr class="@(item.IsActive ? "active-bank" : "bank-inactive") text-center">
+                                <td class="text-center">
+                                    <input type="checkbox" class="row-checkbox" @(item.IsActive ? "" : "disabled") />
+                                </td>
+                                <td>@srNo++</td>
+                                <td title="@item.AccountType">@item.AccountType</td>
+                                <td title="@item.BankName">@item.BankName</td>
+                                <td title="@item.AccountNo">
+                                    @{
+                                        var acc = item.AccountNo;
+                                        string maskedAcc = acc.Length > 4
+                                            ? new string('*', acc.Length - 4) + acc.Substring(acc.Length - 4)
+                                            : acc;
+                                    }
+                                    <span class="masked">@maskedAcc</span>
+                                    <span class="export-label d-none">@item.AccountNo</span>
+                                </td>
+
+                                <td title="@item.BankHolderName">@item.BankHolderName</td>
+                                <td title="@item.Branch">@item.Branch</td>
+                                <td title="₹@item.OpeningBalance">₹@item.OpeningBalance</td>
+                                <td title="₹@item.BankBalance">₹@item.BankBalance</td>
+                                <td title="@item.AddedDate.ToString("dd-MM-yyyy")">@item.AddedDate.ToString("dd-MM-yyyy")</td>
+                                <td class="text-nowrap">
+                                    <div class="d-flex gap-1 justify-content-center">
+                                        <a href="@Url.Action("ViewBankDetails", "AccountManager", new { bankCode = item.BankCode })"
+                                           class="receipt-link @(item.IsActive ? "" : "disabled-link")"
+                                           data-toggle="tooltip" title="Receipt">
+                                            <img src="/Content/img/icons8-receipt-40.png" style="height: 25px;" />
+                                        </a>
+
+                                        <label class="custom-switch mt-2">
+                                            <input type="checkbox"
+                                                   class="custom-switch-input status-toggle"
+                                                   data-id="@item.BankId"
+                                                   @(item.IsActive ? "checked" : "") />
+
+                                            <span class="custom-switch-indicator"></span>
+                                        </label>
+
+                                    </div>
+                                </td>
+
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="9" class="text-center text-danger">No records found.</td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ------------------------------------------------------------------------------------------------------------------🧩 Add Bank Modal ---------------------------------------------------------------->
+<!-- Modal Container -->
+<div class="modal"
+     id="addBankModal"
+     tabindex="-1"
+     role="dialog"
+     aria-labelledby="addBankModalLabel"
+     aria-hidden="true"
+     data-backdrop="static"
+     data-keyboard="false">
+
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content" id="addBankModalContent">
+            <!-- Partial content will load here -->
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade"
+     id="authModal"
+     tabindex="-1"
+     aria-hidden="true"
+     data-bs-backdrop="static"
+     data-bs-keyboard="false">
+
+    <div class="modal-dialog modal-dialog-centered">
+        <!-- ⭐ CENTER FIX -->
+        <div class="modal-content">
+
+            <div class="modal-header" style="background-color:#615677; color:white; position: relative;">
+                <h5 class="modal-title w-100 text-center" style="font-weight:600;">
+                    Secure Access Verification
+                </h5>
+            </div>
+
+            <div class="modal-body">
+                <label>Enter Login Password:</label>
+                <input type="password" id="authPin" class="form-control" placeholder="Enter your login password" />
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" id="authConfirmBtn">Verify</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+
+@section Scripts {
+    @*JS Dependencies*@
+
+
+    <script src="~/Content/modules/datatables/datatables.min.js"></script>
+    <script src="~/Content/modules/sweetalert/sweetalert.min.js"></script>
+    <script src="~/Content/modules/izitoast/js/iziToast.js"></script>
+    <script src="~/Content/modules/izitoast/js/iziToast.min.js"></script>
+    <script src="~/Content/modules/moment.min.js"></script>
+
+
+
+    <!-- Bootstrap JS Required for Tooltip/Modal -->
+
+    <script src="~/Content/modules/popper.js"></script>
+    <script src="~/Content/modules/bootstrap/js/bootstrap.min.js"></script>
+
+
+
+    <script>
+        $(document).on('click', '.receipt-link', function (e) {
+            e.preventDefault();
+            let url = $(this).attr("href");
+            $("#authConfirmBtn").data("redirect", url);
+            $("#authModal").modal("show");
+        });
+
+
+
+
+        $("#authConfirmBtn").off().click(function () {
+
+            let enteredPin = $("#authPin").val().trim();
+
+            if (enteredPin.length === 0) {
+                iziToast.warning({
+                    title: "Warning",
+                    message: "Please enter Password.",
+                    position: "topCenter"
+                });
+                return;
+            }
+
+            $.post("/AccountManager/VerifyPin", { pin: enteredPin }, function (res) {
+
+                if (res.isValid) {
+
+                    let redirectUrl = $("#authConfirmBtn").data("redirect");
+
+                    $("#authModal").modal("hide");
+
+                    $('#listLoader').fadeIn(200);
+
+                    setTimeout(() => {
+                        window.location.href = redirectUrl;
+                    }, 300);
+
+                } else {
+                    iziToast.warning({
+                        title: "Invalid",
+                        message: "Incorrect Password",
+                        position: "topCenter"
+                    });
+                }
+
+            });
+
+        });
+
+
+
+
+
+
+        // Show loader when page is loading
+        $(window).on('load', function () {
+            $('#listLoader').fadeOut(300);
+        });
+
+        // 🔥 FIX: Loader was blocking modal clicks, so hide loader when auth modal opens
+        $('#authModal').on('shown.bs.modal', function () {
+            $('#listLoader').hide();
+        });
+
+
+        // Optional: Also hide loader when table is fully drawn
+        $(document).ready(function () {
+            $('#bankTable').on('draw.dt', function () {
+                $('#listLoader').fadeOut(300);
+            });
+        });
+
+
+
+
+
+
+
+        $(document).ready(function () {
+
+            function getSelectedRows(dt) {
+                var selectedRows = [];
+                var hasInactiveSelected = false;
+
+                dt.rows().every(function (rowIdx, tableLoop, rowLoop) {
+                    var node = this.node();
+                    var isChecked = $(node).find('input.row-checkbox').prop('checked');
+                    var isActive = !$(node).hasClass('inactive-bank');
+
+                    if (isChecked) {
+                        if (!isActive) {
+                            hasInactiveSelected = true;
+                        } else {
+                            selectedRows.push(this.data());
+                        }
+                    }
+                });
+
+                // Return both selected and flag
+                return {
+                    selected: selectedRows,
+                    hasInactiveSelected: hasInactiveSelected
+                };
+            }
+
+            // ✅ Now initialize your DataTable
+            var table = $('#bankTable').DataTable({
+                dom: 'Bfrtip',
+                ordering: false, // ⛔ Sorting completely disabled
+
+
+
+                    language: {
+                        info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                        infoFiltered: "", // This removes the filtered count
+                        infoEmpty: "No entries to show",
+                        emptyTable: "No data available in table"
+                    },
+
+
+
+
+                buttons: [
+
+                    {
+                        extend: 'csvHtml5',
+                        text: '<img src="/Content/img/icons8-csv-64.png" alt="CSV" style="height:32px;" title="Export CSV" />',
+                        className: 'export-buttons icon-only-btn',
+
+                        action: function (e, dt, button, config) {
+                            const result = getSelectedRows(dt);
+                            const selected = result.selected;
+                            const hasInactive = result.hasInactiveSelected;
+
+                            if (selected.length === 0) {
+                                iziToast.warning({
+                                    title: 'Warning',
+                                    message: 'Please select at least one active bank row to export.',
+                                    position: 'topCenter'
+                                });
+                                return;
+                            }
+
+                            if (hasInactive) {
+                                iziToast.warning({
+                                    title: 'Warning',
+                                    message: 'Inactive bank rows cannot be exported. Please deselect them to continue.',
+                                    position: 'topCenter'
+                                });
+                                return;
+                            }
+
+                            // ✅ Trigger CSV export
+                            $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+
+                            // 🎉 Success alert
+                            swal({
+                                icon: 'success',
+                                title: 'CSV Exported',
+                                text: 'Your CSV file has been downloaded successfully!',
+                                timer: 2000,
+                                button: false
+                            });
+
+                            // ✅ Clear selections after export
+                            clearAllSelectionsAfterExport(dt);
+                        },
+
+                        exportOptions: {
+                            rows: function (idx, data, node) {
+                                const isChecked = $(node).find('input.row-checkbox').prop('checked');
+                                const isActive = !$(node).hasClass('inactive-bank');
+                                return isChecked && isActive;
+                            },
+                            columns: ':not(:first-child):not(:last-child)',
+                            format: {
+                                body: function (data, row, column, node) {
+                                    let text = $(node).find('.export-label').text().trim() || $(node).text().trim();
+
+                                    // ✅ Prevent scientific notation for Account No
+                                    if (column === 2) {
+                                        text = `\t${text}`;
+                                    }
+
+                                    // ✅ Preserve ₹ and commas in Opening Balance
+                                    if (column === 5) {
+                                        text = text.replace(/\s/g, ''); // Optional: remove extra spaces
+                                    }
+
+                                    return text; // ❌ No double quotes
+                                }
+                            }
+                        },
+
+                        customize: function (csv) {
+                            const now = new Date();
+                            const day = now.getDate().toString().padStart(2, '0');
+                            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+                            const year = now.getFullYear();
+                            let hours = now.getHours();
+                            const minutes = now.getMinutes().toString().padStart(2, '0');
+                            const ampm = hours >= 12 ? 'PM' : 'AM';
+                            hours = hours % 12 || 12;
+                            hours = hours.toString().padStart(2, '0');
+                            const formattedDate = `${day}-${month}-${year} ${hours}:${minutes}${ampm}`;
+
+                            const bom = '\uFEFF'; // ✅ UTF-8 BOM to fix ₹ symbol
+
+                            // Simulate centering by adding spaces (adjust as needed)
+                            const pad = ' '.repeat(20); // You can tweak this number
+                            const headerTitle = `${pad}GreenValley Society - Bank List`;
+                            const headerDate = `${pad}Generated on: ${formattedDate}`;
+
+                            // Modify the CSV by adding sequential serial numbers
+                            let rows = csv.split('\n').map((row, index) => {
+                                // Skip the first row (header)
+                                if (index === 0) return row;
+
+                                // Add serial number at the beginning of each row
+                                const rowData = row.split(',');
+                                rowData[0] = index; // Serial number starts from 1
+                                return rowData.join(',');
+                            });
+
+                            return bom + `${headerTitle}\n${headerDate}\n\n${rows.join('\n')}`;
+                        }
+                    },
+                    {
+                        extend: 'excelHtml5',
+                        text: '<img src="/Content/img/icons8-xls-64.png" style="height:32px;" title="Export Excel" />',
+                        className: 'export-buttons icon-only-btn',
+                        filename: function () {
+                            const now = new Date();
+                            const yyyy = now.getFullYear();
+                            const mm = String(now.getMonth() + 1).padStart(2, '0');
+                            const dd = String(now.getDate()).padStart(2, '0');
+                            const hh = String(now.getHours()).padStart(2, '0');
+                            const min = String(now.getMinutes()).padStart(2, '0');
+                            const ss = String(now.getSeconds()).padStart(2, '0');
+                            return `BankList_${yyyy}${mm}${dd}_${hh}${min}${ss}`;
+                        },
+                        customize: function (xlsx) {
+                            try {
+                                const sheet = xlsx.xl.worksheets['sheet1.xml'];
+                                const sheetData = $('sheetData', sheet);
+                                const styleSheet = xlsx.xl['styles.xml'];
+
+                                // Format current date/time
+                                const now = new Date();
+                                const hours = now.getHours();
+                                const minutes = now.getMinutes().toString().padStart(2, '0');
+                                const ampm = hours >= 12 ? 'PM' : 'AM';
+                                const formattedHour = (hours % 12 || 12).toString().padStart(2, '0');
+                                const formattedDate = `${now.getDate().toString().padStart(2, '0')}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getFullYear()} ${formattedHour}:${minutes}${ampm}`;
+
+                                // Shift all rows down by 2
+                                $('row', sheet).each(function () {
+                                    const r = parseInt($(this).attr('r'));
+                                    const newR = r + 2;
+                                    $(this).attr('r', newR);
+                                    $(this).find('c').each(function () {
+                                        const cellRef = $(this).attr('r');
+                                        if (cellRef) {
+                                            const col = cellRef.match(/[A-Z]+/)[0];
+                                            const rowNum = parseInt(cellRef.match(/\d+/)[0]);
+                                            $(this).attr('r', col + (rowNum + 2));
+                                        }
+                                    });
+                                });
+
+                                // Force Account No column (column C) to plain text safely
+                                $('row', sheet).each(function () {
+                                    const row = $(this);
+                                    row.find('c').each(function () {
+                                        const cell = $(this);
+                                        const cellRef = cell.attr('r'); // e.g., "C5"
+
+                                        if (cellRef && cellRef.startsWith('C')) {
+                                            const value = cell.find('v').text();
+
+                                            if (value) {
+                                                // Clear old content
+                                                cell.empty();
+
+                                                // Set cell type to inlineStr
+                                                cell.attr('t', 'inlineStr');
+
+                                                // Escape XML special chars
+                                                const safeValue = value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+                                                // Append inlineStr node
+                                                cell.append(`<is><t>${safeValue}</t></is>`);
+                                            }
+                                        }
+                                    });
+                                });
+
+                                // Remove original row 3 (if any)
+                                $('row[r="3"]', sheet).remove();
+
+                                // Add center-aligned style
+                                const cellXfs = $('cellXfs', styleSheet);
+                                const centerStyle = `<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1">
+    <alignment horizontal="center" vertical="center" />
+</xf>`;
+                                cellXfs.append(centerStyle);
+                                const centerStyleId = cellXfs.children().length - 1;
+
+                                // Add custom headers
+                                const header1 = `<row r="1">
+    <c t="inlineStr" r="A1" s="${centerStyleId}">
+        <is><t>GreenValley Society - Bank List</t></is>
+    </c>
+</row>`;
+                                const header2 = `<row r="2">
+    <c t="inlineStr" r="A2" s="${centerStyleId}">
+        <is><t>Generated on: ${formattedDate}</t></is>
+    </c>
+</row>`;
+                                sheetData.prepend(header2);
+                                sheetData.prepend(header1);
+
+                                // Merge header cells
+                                const mergeRef1 = 'A1:H1';
+                                const mergeRef2 = 'A2:H2';
+                                let mergeCells = $('mergeCells', sheet);
+                                if (!mergeCells.length) {
+                                    mergeCells = $('<mergeCells></mergeCells>');
+                                    $(sheet).append(mergeCells);
+                                }
+                                mergeCells.append(`<mergeCell ref="${mergeRef1}"/>`);
+                                mergeCells.append(`<mergeCell ref="${mergeRef2}"/>`);
+                                mergeCells.attr('count', mergeCells.find('mergeCell').length);
+
+                                // Center-align all data rows (from row 3 downwards)
+                                $('row', sheet).each(function () {
+                                    const r = parseInt($(this).attr('r'));
+                                    if (r >= 3) {
+                                        $(this).find('c').attr('s', centerStyleId);
+                                    }
+                                });
+
+                                // Add Sr No in column A starting from row 5 onwards
+                                let srNo = 1;
+                                $('row', sheet).each(function () {
+                                    const row = $(this);
+                                    const rowIndex = parseInt(row.attr('r'));
+
+                                    const cells = row.find('c');
+                                    const isDataRow = rowIndex >= 5 && cells.length > 1;
+
+                                    if (isDataRow) {
+                                        let cellA = cells.filter(function () {
+                                            return $(this).attr('r')?.startsWith('A');
+                                        });
+
+                                        if (!cellA.length) {
+                                            // Create new cell in column A with Sr No
+                                            const newCell = $(`<c r="A${rowIndex}" t="n" s="${centerStyleId}"><v>${srNo}</v></c>`);
+                                            row.prepend(newCell);
+                                        } else {
+                                            cellA.attr('t', 'n');
+                                            cellA.attr('s', centerStyleId);
+                                            const val = cellA.find('v');
+                                            if (val.length) {
+                                                val.text(srNo);
+                                            } else {
+                                                cellA.append(`<v>${srNo}</v>`);
+                                            }
+                                        }
+
+                                        srNo++;
+                                    }
+                                });
+
+                            } catch (err) {
+                                console.error("Excel Customize Error:", err);
+                            }
+                        },
+                        exportOptions: {
+                            rows: function (idx, data, node) {
+                                return $(node).find('input.row-checkbox').prop('checked') &&
+                                    !$(node).hasClass('inactive-bank');
+                            },
+                            columns: ':visible:not(:first-child):not(:last-child)',
+                            format: {
+                                body: function (data, row, column, node) {
+                                    if (column.title === 'Account No') {
+                                        const raw = $(node).text().trim();
+                                        const digitsOnly = raw.replace(/\D/g, '');
+                                        return digitsOnly ? digitsOnly : '';
+                                    }
+                                    return $(node).find('.export-label').length
+                                        ? $(node).find('.export-label').text().trim()
+                                        : $(node).text().trim();
+                                }
+                            }
+                        },
+                        action: function (e, dt, button, config) {
+                            const result = getSelectedRows(dt);
+                            const selected = result.selected;
+                            const hasInactive = result.hasInactiveSelected;
+
+                            if (selected.length === 0) {
+                                iziToast.warning({
+                                    title: 'Warning',
+                                    message: 'Please select at least one active bank row to export.',
+                                    position: 'topCenter'
+                                });
+                                return;
+                            }
+
+                            if (hasInactive) {
+                                iziToast.warning({
+                                    title: 'Warning',
+                                    message: 'Inactive bank rows cannot be exported. Please deselect them to continue.',
+                                    position: 'topCenter'
+                                });
+                                return;
+                            }
+
+                            // Proceed with Excel export
+                            $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+
+                            swal({
+                                icon: 'success',
+                                title: 'Excel Exported',
+                                text: 'Your Excel file has been downloaded successfully!',
+                                timer: 2000,
+                                button: false
+                            });
+
+                            // ✅ Clear selections after export
+                            clearAllSelectionsAfterExport(dt);
+                        }
+                    },
+
+
+                    {
+                        extend: 'pdfHtml5',
+                        text: '<img src="/Content/img/icons8-pdf-64.png" alt="PDF" style="height:32px;" title="Export PDF" />',
+                        className: 'export-buttons icon-only-btn',
+                        orientation: 'landscape',
+                        pageSize: 'A4',
+
+                        action: function (e, dt, button, config) {
+                            var selected = getSelectedRows(dt);
+                            if (selected.length === 0) {
+                                iziToast.warning({
+                                    title: 'Warning',
+                                    message: 'Please select at least one row to export.',
+                                    position: 'topCenter'
+                                });
+                                return;
+                            }
+
+                            $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+
+                            swal({
+                                icon: 'success',
+                                title: 'PDF Exported',
+                                text: 'Your PDF file has been downloaded successfully!',
+                                timer: 2000,
+                                button: false
+                            });
+
+                            // ✅ Clear selections after export
+                            clearAllSelectionsAfterExport(dt);
+                        },
+
+                        exportOptions: {
+                            rows: function (idx, data, node) {
+                                return $(node).find('input.row-checkbox').prop('checked');
+                            },
+                            columns: [1, 2, 3, 4, 5, 6, 7, 8], // Adjust columns to your BankList table (skip Actions)
+                            format: {
+                                body: function (data, row, column, node) {
+                                    return $(node).find(".export-label").text().trim() || $(node).text().trim();
+                                }
+                            }
+                        },
+
+                        customize: function (doc) {
+                            const now = new Date();
+                            const formattedDate = moment(now).format("DD-MM-YYYY hh:mm A");
+
+                            // Remove default title if any
+                            doc.content = doc.content.filter(item => !(typeof item.text === 'string' && item.text.trim() === 'Bank List'));
+
+                            // Add header
+                            doc.content.splice(0, 0,
+                                {
+                                    text: 'GreenValley Society - Bank List',
+                                    fontSize: 18,
+                                    bold: true,
+                                    alignment: 'center',
+                                    margin: [0, 0, 0, 4]
+                                },
+                                {
+                                    text: 'Generated on: ' + formattedDate,
+                                    fontSize: 9,
+                                    alignment: 'center',
+                                    italics: true,
+                                    margin: [0, 0, 0, 10]
+                                }
+                            );
+
+                            // Find table in the PDF
+                            const tableIndex = doc.content.findIndex(content => content.table);
+                            if (tableIndex !== -1) {
+                                let table = doc.content[tableIndex];
+                                let body = table.table.body;
+
+                                // Update Sr.No
+                                for (let i = 1; i < body.length; i++) {
+                                    if (body[i][0]) {
+                                        body[i][0].text = i.toString();
+                                        body[i][0].alignment = 'center';
+                                    }
+                                }
+
+                                // Center align all cells and font size
+                                for (let i = 0; i < body.length; i++) {
+                                    for (let j = 0; j < body[i].length; j++) {
+                                        body[i][j].alignment = 'center';
+                                        body[i][j].fontSize = 9;
+                                    }
+                                }
+
+                                // Set explicit widths
+                                const widths = ['5%', '25%', '15%', '20%', '18%', '18%', '15%', '15%'];
+
+                                // Table layout
+                                const layout = {
+                                    hLineWidth: () => 0.5,
+                                    vLineWidth: () => 0.5,
+                                    hLineColor: () => '#aaa',
+                                    vLineColor: () => '#aaa',
+                                    paddingLeft: () => 4,
+                                    paddingRight: () => 4
+                                };
+
+                                // ✅ Apply your margin adjustment
+                                doc.content[tableIndex] = {
+                                    margin: [100, 0, 200, 0], // left, top, right, bottom
+                                    table: {
+                                        widths: widths,
+                                        body: body
+                                    },
+                                    layout: layout,
+                                    alignment: 'center'
+                                };
+                            }
+
+                            // Table header style
+                            doc.styles.tableHeader = {
+                                bold: true,
+                                fontSize: 11,
+                                color: 'white',
+                                fillColor: '#615677',
+                                alignment: 'center'
+                            };
+                        }
+                    },
+
+                    {
+                        extend: 'print',
+                        title: '',
+                        text: '<img src="/Content/img/icons8-print-100.png" alt="PDF" style="height:32px;" title="Print Bank List" />',
+                        className: 'export-buttons icon-only-btn',
+
+
+                        exportOptions: {
+                            columns: ':not(:first-child):not(:last-child)',
+                            modifier: { search: 'applied', order: 'applied', page: 'all' },
+                            rows: function (idx, data, node) {
+                                const isChecked = $(node).find('input.row-checkbox').prop('checked');
+                                const isActive = !$(node).hasClass('inactive-bank');
+                                return isChecked && isActive;
+                            },
+                            format: {
+                                body: function (data, row, column, node) {
+                                    // Serial number in first column
+                                    if (column === 0) return (row + 1).toString();
+
+                                    // Use same logic as PDF export to show full value
+                                    return $(node).find(".export-label").text().trim() || $(node).text().trim();
+                                }
+                            }
+                        },
+
+                        customize: function (win) {
+                            $(win.document.body).css('font-size', '10pt');
+
+                            // ✅ Custom date format: DD-MM-YYYY hh:mm AM/PM
+                            const now = new Date();
+                            const day = now.getDate().toString().padStart(2, '0');
+                            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+                            const year = now.getFullYear();
+                            const hours = now.getHours() % 12 || 12;
+                            const minutes = now.getMinutes().toString().padStart(2, '0');
+                            const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+                            const dateString = `${day}-${month}-${year}`;
+                            const timeString = `${hours.toString().padStart(2, '0')}:${minutes} ${ampm}`;
+
+                            // ✅ Add custom heading and timestamp
+                            $(win.document.body).prepend(
+                                '<div style="text-align:center; margin-bottom:10px;">' +
+                                '<h6>GREEN VALLEY SOCIETY : Bank List</h6>' +
+                                '<p>Generated on: ' + dateString + ' ' + timeString + '</p>' +
+                                '</div>'
+                            );
+
+                            // ✅ Style the table
+                            $(win.document.body).find('table')
+                                .addClass('compact print-table')
+                                .css({ fontSize: 'inherit', textAlign: 'center', margin: '0 auto', borderCollapse: 'collapse' });
+
+                            $(win.document.body).find('th, td')
+                                .css({ border: '1px solid black', padding: '5px' });
+
+                            // ✅ Remove any duplicate "Bank List" heading from the table (e.g., caption or heading row)
+                            $(win.document.body).find('caption').remove(); // If using <caption>
+                            $(win.document.body).find('tr.print-hide').remove(); // If using extra heading row with class
+
+                            // ✅ Additional print styling
+                            const style = document.createElement('style');
+                            style.type = 'text/css';
+                            style.innerHTML = `
+@@page { margin: 0; }
+@@media print {
+  caption, .print-hide {
+    display: none !important;
+  }
+  html, body {
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 20px !important;
+  }
+  .dt-print-view {
+    overflow: visible !important;
+    position: static !important;
+  }
+      table.print-table thead th {
+            border: 1px solid #000000 !important;  /* ✅ Dark cell borders */
+    color: #000000 !important; /* Black text */
+    background-color: transparent !important; /* No background color */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+    table.print-table tbody td{
+         border: 1px solid #000000 !important;  /* ✅ Dark cell borders */
+    }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+  tr, td, th {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}`;
+                            $(win.document.head).append(style);
+                        },
+
+                        action: function (e, dt, button, config) {
+                            const selectedCount = dt.rows(function (idx, data, node) {
+                                const isChecked = $(node).find('input.row-checkbox').prop('checked');
+                                const isActive = !$(node).hasClass('inactive-bank');
+                                return isChecked && isActive;
+                            }, { search: 'applied', page: 'all' }).count();
+
+                            if (selectedCount === 0) {
+                                iziToast.warning({
+                                    title: 'Warning',
+                                    message: 'Please select at least one active bank row to print.',
+                                    position: 'topCenter'
+                                });
+                                return;
+                            }
+
+                            $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                            // ✅ After print, clear selections
+                            clearAllSelectionsAfterExport(dt);
+                        }
+                    },
+
+                    {
+                        text: '<img src="/Content/img/icons8-refresh-50.png" alt="Refresh" style="height:28px;" title="Refresh Table" />',
+                        className: 'export-buttons icon-only-btn',
+                        action: function (e, dt, node, config) {
+                            // ✅ Add rotation to refresh icon
+                            const refreshIcon = $(node).find('img');
+                            refreshIcon.addClass('rotate-refresh');
+                            setTimeout(() => refreshIcon.removeClass('rotate-refresh'), 600);
+
+                            // ✅ Preserve status toggle states
+                            let toggleStates = {};
+                            $('.status-toggle').each(function () {
+                                let id = $(this).data('id');
+                                toggleStates[id] = $(this).prop('checked');
+                            });
+
+                            // ✅ Clear search
+                            dt.search('').columns().search('');
+
+                            // ✅ Reset date filter
+                            enableDateFilter = false;
+                            $('#fromDate1').val('');
+                            $('#toDate1').val('');
+                            $('.daterange-btn').find('span').html('Choose Date');
+
+                            // ✅ Clear selectAll checkbox
+                            $('#selectAll').prop('checked', false);
+
+                            // ✅ Clear all row-checkbox on current page
+                            dt.rows().every(function () {
+                                $(this.node()).find('.row-checkbox').prop('checked', false);
+                            });
+
+                            // ✅ Restore toggle switches
+                            $('.status-toggle').each(function () {
+                                let id = $(this).data('id');
+                                if (toggleStates.hasOwnProperty(id)) {
+                                    $(this).prop('checked', toggleStates[id]);
+                                }
+                            });
+
+                            // ✅ Redraw table
+                            dt.draw(false); // Stay on current page
+
+                            // ❌ Removed toast message
+                        }
+
+
+
+
+                    },
+
+                ],
+
+
+
+
+                pageLength: 10,
+                drawCallback: function () {
+                    var api = this.api();
+                    var pageInfo = api.page.info();
+
+                    api.rows({ page: 'current' }).every(function (rowIdx, tableLoop, rowLoop) {
+                        // Calculate serial number based on page number and row index
+                        var srNo = pageInfo.start + rowLoop + 1;
+                        $(this.node()).find('td:eq(1)').html(srNo);
+                    });
+                }
+            });
+
+
+            // Move search bar to custom wrapper (right side)
+            $('#bankTable_filter').appendTo('#customSearchWrapper');
+
+            // Move export buttons to exportButtons wrapper (left side)
+            table.buttons().container().appendTo('#exportButtons');
+
+            // ✅ Select All - Only active (not disabled) checkboxes
+            $('#selectAll').on('change', function () {
+                var checked = this.checked;
+                $('.row-checkbox:not(:disabled)').prop('checked', checked);
+            });
+
+            // ✅ Single checkbox toggle - skip disabled rows in total
+            $('#bankTable').on('change', '.row-checkbox', function () {
+                var total = $('.row-checkbox:not(:disabled)').length;
+                var checked = $('.row-checkbox:checked:not(:disabled)').length;
+                $('#selectAll').prop('checked', total === checked);
+            });
+
+            // Tooltip
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+
+
+        function clearAllSelectionsAfterExport(dt) {
+            // ✅ 1. Clear all row checkboxes (on current page)
+            dt.rows().every(function () {
+                $(this.node()).find('.row-checkbox').prop('checked', false);
+            });
+
+            // ✅ 2. Uncheck "Select All"
+            $('#selectAll').prop('checked', false);
+        }
+        $(function () {
+            $('.status-toggle').change(function () {
+                var checkbox = $(this);
+                var row = checkbox.closest('tr');
+                var id = checkbox.data('id');
+                var isActive = checkbox.prop('checked');
+
+                $.ajax({
+                    url: '/AccountManager/ToggleBankStatus',
+                    type: 'POST',
+                    data: { bankId: id, isActive: isActive },
+                    success: function (response) {
+                        if (response.success) {
+                            swal({
+                                icon: "success",
+                                title: isActive ? 'Activated!' : 'Deactivated!',
+                                text: isActive ? 'Bank marked as Active.' : 'Bank marked as Inactive.',
+                                timer: 2000,
+                                buttons: false
+
+                            });
+
+
+                            if (isActive) {
+                                row.removeClass('bank-inactive').addClass('active-bank');
+
+                                const wasPreviouslyChecked = row.find('input.row-checkbox').data('wasChecked');
+
+                                row.find('input.row-checkbox')
+                                    .prop('disabled', false);
+
+                                if (wasPreviouslyChecked) {
+                                    setTimeout(() => {
+                                        row.find('input.row-checkbox')
+                                            .prop('checked', true)
+                                            .trigger('change'); // ✅ So DataTables detects change
+                                    }, 10);
+                                }
+
+                                row.find('.receipt-link').removeClass('disabled-link');
+                            } else {
+                                const isCheckedNow = row.find('input.row-checkbox').prop('checked');
+
+                                row.find('input.row-checkbox')
+                                    .data('wasChecked', isCheckedNow) // 🧠 Remember
+                                    .prop('disabled', true)
+                                    .prop('checked', false); // ❌ Uncheck
+
+                                row.removeClass('active-bank').addClass('bank-inactive');
+                                row.find('.receipt-link').addClass('disabled-link');
+                            }
+
+
+                        } else {
+                            swal({
+                                toast: true,
+                                icon: 'error',
+                                title: 'Something went wrong while updating status',
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 2500,
+                                timerProgressBar: true
+                            });
+
+                        }
+                    },
+                    error: function () {
+                        swal({
+                            icon: 'error',
+                            title: 'Server Error',
+                            text: 'Failed to connect to server.',
+                            position: 'top' // or 'center'
+                        });
+
+                    }
+                });
+            });
+        });
+
+
+
+     /************************************************* add bank partial code****************************************************************************/
+
+           $('#addBankModal').on('shown.bs.modal', function () {
+            $.get('@Url.Action("GetAddBankSocietyMS", "AccountManager")', function (html) {
+                $('#addBankModalContent').html(html);
+            });
+        });
+
+
+
+
+
+
+    </script>
+
+
+    @*/************************************************************************mukesh CSS Style**********************************************************************************/*@
+    <style>
+
+        .AddBankCSS {
+            border: none;
+            border-radius: 5Px;
+            background-color: #ef6351;
+            margin: 1px 0px 0px;
+            padding: 6px 18px;
+            color: white;
+        }
+
+        .AddButtonDIv {
+            width: 78%;
+            padding: 0px;
+            margin-left: 277px !important;
+            margin-right: -344px !important;
+        }
+
+        #addBankModalContent {
+            border-radius: 4px !important;
+            overflow: hidden; /* ensures corners are clipped if needed */
+        }
+
+        .custom-add-bank-btn {
+            width: 150px;
+            height: 40px;
+            font-size: 14px; /* Optional: Adjust text size */
+            padding: 6px 12px; /* Optional: Adjust inner spacing */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loader-overlay {
+            z-index: 500; /* keep below modal */
+        }
+    </style>
+
+
+
+}

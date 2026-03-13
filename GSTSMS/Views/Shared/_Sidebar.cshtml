@@ -1,0 +1,191 @@
+﻿@{
+    var role = Session["RoleName"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["Action"].ToString();
+    var currentController = ViewContext.RouteData.Values["Controller"].ToString();
+
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title</title>
+
+
+
+
+    <link href="~/Content/css/sidebarcss.css" rel="stylesheet" />
+
+
+    <style>
+        .main-navbar {
+            z-index: 1000 !important;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no" name="viewport">
+    <title>@ViewBag.Title - Housing Society Management System</title>
+
+
+
+    <link rel="stylesheet" href="~/Content/modules/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="~/Content/modules/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="~/Content/modules/jqvmap/dist/jqvmap.min.css">
+    <link rel="stylesheet" href="~/Content/modules/summernote/summernote-bs4.css">
+    <link rel="stylesheet" href="~/Content/modules/owlcarousel2/dist/assets/owl.carousel.min.css">
+    <link rel="stylesheet" href="~/Content/modules/owlcarousel2/dist/assets/owl.theme.default.min.css">
+    <link rel="stylesheet" href="~/Content/css/style.css">
+    <link rel="stylesheet" href="~/Content/css/components.css">
+
+
+</head>
+<body>
+
+    <div class="sidebar-scroll-container">
+        <aside id="sidebar-wrapper">
+            @if (role == "Accountant")
+            {
+                <ul class="sidebar-menu">
+                    <li class="dropdown @(currentAction == "Dashboard" ? "active" : "")">
+                        <a href="@Url.Action("Dashboard","AccountManager")" class="nav-link">
+                            <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
+                        </a>
+                    </li>
+
+                    @* Bank here  *@
+
+
+                    <li class="dropdown @(currentAction == "BankDetailsListSS" || currentAction == "CashTansactionListDD" ? "active" : "")">
+                        <a class="nav-link dropdown-toggle submenu" href="#accountantSubmenu1" role="button" aria-expanded="false" aria-controls="accountantSubmenu1">
+                            <i class="fas fa-university"></i><span>Society Account Details</span>
+                        </a>
+                        <ul id="accountantSubmenu1" class="dropdown-menu collapse @(currentAction == "BankDetailsListSS" || currentAction == "CashTansactionListDD" ? "show" : "")">
+                            <li>
+                                <a class="nav-link @(currentAction == "BankDetailsListSS" ? "active-submenu" : "")" href="@Url.Action("BankDetailsListSS","AccountManager")">
+                                    <i class="fas fa-university"></i> Bank
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav-link @(currentAction == "CashTansactionListDD" ? "active-submenu" : "")" href="@Url.Action("CashTansactionListDD", "AccountManager")">
+                                    <i class="fas fa-money-bill-wave"></i> Cash
+                                </a>
+                            </li>
+                        </ul>
+
+                    </li>
+
+
+                    @* Worker daata here  *@
+
+
+
+
+                    <li class="dropdown @(currentAction == "FetchingWorkersData" ? "active" : "")">
+                        <a href="@Url.Action("FetchingWorkersData", "AccountManager")" class="nav-link">
+                            <i class="fas fa-rupee-sign"></i><span>Worker Payment Management</span>
+                        </a>
+                    </li>
+
+
+                    @* Maintanance daata here  *@
+
+                    <li class="dropdown @(currentAction == "MaintenanceManagementSY" ? "active" : "")">
+                        <a href="@Url.Action("MaintenanceManagementSY", "AccountManager")" class="nav-link">
+                            <i class="fas fa-wrench"></i><span>Maintenance Management</span>
+                        </a>
+                    </li>
+
+
+                    @* Worker daata here  *@
+
+
+
+                    <li class="dropdown @(currentAction == "ExpenseList" ? "active" : "")">
+                        <a href="@Url.Action("ExpenseList", "AccountManager")" class="nav-link">
+                            <i class="fas fa-wallet"></i><span>Expense</span>
+                        </a>
+                    </li>
+
+                    <li class="dropdown @(currentAction == "EventList" ? "active" : "")">
+                        <a href="@Url.Action("EventList","AccountManager")" class="nav-link">
+                            <i class="fas fa-calendar-check"></i><span>Event Management</span>
+                        </a>
+                    </li>
+
+
+                    <li class="dropdown @(currentAction == "SendEMailVSM" || currentAction == "ComplaintList" || currentAction == "NoticeList" ? "active" : "")">
+                        <a class="nav-link dropdown-toggle submenu" href="#accountantSubmenu2" role="button" aria-expanded="false" aria-controls="accountantSubmenu2">
+                            <i class="fas fa-users"></i><span>Community</span>
+                        </a>
+                        <ul id="accountantSubmenu2" class="dropdown-menu collapse @(currentAction == "SendEMailVSM" || currentAction == "ComplaintList" || currentAction == "NoticeList" ? "show" : "")">
+                            <li>
+                                <a class="nav-link @(currentAction == "SendEMailVSM" ? "active-submenu" : "")" href="@Url.Action("SendEMailVSM", "AccountManager")">
+                                    <i class="fas fa-envelope"></i> Email
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav-link @(currentAction == "ComplaintList" ? "active-submenu" : "")" href="@Url.Action("ComplaintList", "AccountManager")">
+                                    <i class="fas fa-comment-dots"></i> Complaints
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav-link @(currentAction == "NoticeList" ? "active-submenu" : "")" href="@Url.Action("NoticeList", "AccountManager")">
+                                    <i class="fas fa-bullhorn"></i> Notice
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="dropdown @(currentAction == "AuditReport" ? "active" : "")">
+                        <a href="@Url.Action("AuditReport","AccountManager")" class="nav-link">
+                            <i class="fas fa-chart-line"></i><span>Reports</span>
+                        </a>
+                    </li>
+
+
+
+
+                </ul>
+            }
+        </aside>
+    </div>
+
+    <script src="~/Scripts/jquery-3.7.0.min.js"></script>
+
+
+
+    <script src="~/Scripts/bootstrap.bundle.min.js"></script>
+
+
+    <script>
+        $(document).ready(function () {
+            $('.sidebar-menu .dropdown-toggle').on('click', function (e) {
+                e.preventDefault();
+
+                var $toggle = $(this);
+                var $dropdown = $toggle.closest('.dropdown');
+                var $submenu = $($toggle.attr('href'));
+                var isOpen = $submenu.hasClass('show');
+
+
+                $('.sidebar-menu .dropdown-menu').removeClass('show');
+                $('.sidebar-menu .dropdown').removeClass('active');
+                $('.sidebar-menu .dropdown-toggle').attr('aria-expanded', 'false');
+
+                if (!isOpen) {
+                    $dropdown.addClass('active');
+                    $submenu.addClass('show');
+                    $toggle.attr('aria-expanded', 'true');
+                }
+            });
+
+
+            $('.sidebar-menu .dropdown-menu .nav-link').on('click', function () {
+                $('.sidebar-menu .dropdown-menu .nav-link').removeClass('active-submenu');
+                $(this).addClass('active-submenu');
+            });
+        });
+
+    </script>
+
+</body>
+</html>

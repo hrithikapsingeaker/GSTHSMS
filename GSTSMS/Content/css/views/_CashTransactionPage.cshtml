@@ -1,0 +1,468 @@
+﻿@model GSTSMSLibrary.AccountManager.AccountManager
+@using System.Globalization
+
+<!--
+    Summary:
+    This is the partial view used inside the Cash Transaction Modal.
+    It contains:
+    - A dynamic form for credit/debit transactions
+    - Logic to show/hide fields based on Transaction Type and Payment Mode
+    - Dropdowns for member, maintenance, type, receiver
+    - File upload validationSaveCashTransaction
+    - Client-side validation using jQuery
+    - AJAX form submission with post-save PDF (receipt/salary slip) generation
+-->
+
+
+<div class="modal-bodySM" style="padding-top:20px; padding-bottom:20px; padding-left:30px;">
+
+    @using (Html.BeginForm("SaveCashTransactionSM", "AccountManager", FormMethod.Post, new { enctype = "multipart/form-data", id = "cashTransactionForm" }))
+    {
+        @Html.AntiForgeryToken()
+
+
+
+
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        <!-- Transaction Type -->
+
+        <div class="form-group row ">
+            <label class="col-sm-4 col-form-label" style=" font-size: 16px; font-weight: bold;">Cash In Hand :</label>
+            <div class="col-sm-8 px-0 d-flex justify-content-start">
+                <strong style="color: #28a745 ; font-size: 16px; ">
+                    ₹@string.Format("{0:N2}", ViewBag.NetCashBalance)
+                </strong>
+            </div>
+        </div>
+
+
+        <div class="form-group row">
+            <label for="TransactionIdDropdown" class="col-sm-4 col-form-label" style=" font-size: 16px; font-weight: bold;">
+                Transaction Type :<span class="required-star">*</span>
+            </label>
+
+            <div class="col-sm-8 px-0 d-flex justify-content-start custom-dropdown-wrapper">
+                @Html.DropDownListFor(m => m.TransactionId,
+                                                                           ViewBag.TransactionList as IEnumerable<SelectListItem> ?? new List<SelectListItem>(),
+                                                                           "-- Select Transaction Type --",
+                                                                           new { @class = "form-control custom-dropdown", id = "TransactionIdDropdown", style = " font-size: 16px; max-width: 470px; " })
+            </div>
+        </div>
+
+
+        <!-- Payment Mode -->
+
+
+
+        <div class="form-group row radio-group mb-3">
+            <!-- Added mb-3 for spacing -->
+            <label for="PaymentModeCash" class="col-sm-4 col-form-label" style=" font-size: 16px; font-weight: bold;">
+                Payment Mode :<span class="required-star">*</span>
+            </label>
+
+            <div class="col-sm-8 px-0">
+                <div class="d-flex justify-content-start pt-2">
+                    <label class="me-3" style="padding-right:20px;">
+                        @Html.RadioButtonFor(m => m.PaymentMode, "32", new { id = "PaymentModeCash" }) Cash
+                    </label>
+                    <label>
+                        @Html.RadioButtonFor(m => m.PaymentMode, "34", new { id = "PaymentModeCheque" }) Cheque
+                    </label>
+                </div>
+
+                <div id="PaymentModeValidationContainer"></div>
+            </div>
+
+
+        </div>
+
+
+        @Html.HiddenFor(m => m.ExpenseCode)
+        @Html.HiddenFor(m => m.EventCode)
+
+        <!-- Credit Transaction Section (Maintenance & Member Binding) -->
+        <div id="CreditSection" style="display: none;">
+            <!-- Month -->
+
+            @{
+                var currentMonth = DateTime.Now.Month;
+                var lastThreeMonths = Enumerable.Range(currentMonth - 2, 3)
+                                                .Where(m => m >= 1 && m <= 12)
+                                                .Select(m => new SelectListItem
+                                                {
+                                                    Value = m.ToString(),
+                                                    Text = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)
+                                                });
+            }
+
+            <div class="form-group row">
+                <label for="month" class="col-sm-4 col-form-label" style=" font-size: 16px; font-weight: bold;">
+                    Month :<span class="required-star">*</span>
+                </label>
+                <div class="col-sm-8 px-0 d-flex justify-content-start custom-dropdown-wrapper">
+                    @Html.DropDownListFor(m => m.Month,
+                                                                                         lastThreeMonths,
+                                                                                         "-- Select Month --",
+                                                                                         new { @class = "form-control custom-dropdown", id = "month", style = " font-size: 16px; " })
+                </div>
+            </div>
+
+            <!-- Year -->
+            <input type="hidden" id="year" name="Year" value="@DateTime.Now.Year" />
+
+
+
+
+
+            <!-- Maintenance Dropdown -->
+
+            <div class="form-group row">
+                <label for="MaintenanceDropdown" class="col-sm-4 col-form-label" style=" font-size: 16px; font-weight: bold;">
+                    Maintenance :<span class="required-star">*</span>
+                </label>
+
+                <div class="col-sm-8 px-0 d-flex justify-content-start custom-dropdown-wrapper">
+                    @Html.DropDownListFor(m => m.MaintenanceCode,
+                                                                                    ViewBag.MaintenanceList as IEnumerable<SelectListItem> ?? new List<SelectListItem>(),
+                                                                                    "-- Select Maintenance --",
+                                                                                    new { @class = "form-control custom-dropdown", id = "MaintenanceDropdown", style = " font-size: 16px; " })
+                </div>
+            </div>
+
+
+            <!-- Member Dropdown -->
+            <div class="form-group row">
+                <label for="MemberDropdown" class="col-sm-4 col-form-label" style=" font-size: 16px; font-weight: bold;">
+                    Member Name :<span class="required-star">*</span>
+                </label>
+
+                <div class="col-sm-8 px-0 d-flex justify-content-start custom-dropdown-wrapper">
+                    @Html.DropDownListFor(m => m.MemberCode,
+                                                                               ViewBag.ReceiverList as IEnumerable<SelectListItem> ?? new List<SelectListItem>(),
+                                                                               "-- Select Member --",
+                                                                               new { @class = "form-control custom-dropdown", id = "MemberDropdown", style = " font-size: 16px; " })
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Cheque Details (Visible only for Cheque Mode) -->
+
+        <div class="form-group row cheque-fields" id="BankDropdownDiv" style="display:none;">
+            <label class="col-sm-4 col-form-label" style="font-size: 16px; font-weight: bold;">
+                Bank Name :<span class="required-star">*</span>
+            </label>
+            <div class="col-sm-8 px-0 d-flex justify-content-start">
+                @Html.DropDownListFor(
+       m => m.BankCode,
+       ViewBag.BankList as SelectList,
+       "-- Select Bank --",
+       new { @class = "form-control select2", id = "BankNameDD", style = "font-size: 16px;" }
+   )
+                @Html.HiddenFor(m => m.BankName)
+
+            </div>
+        </div>
+
+        <div class="form-group row cheque-fields" style="display: none;">
+            <label class="col-sm-4 col-form-label" style=" font-size: 16px; font-weight: bold;">Cheque No :<span class="required-star">*</span></label>
+            <div class="col-sm-8 px-0 d-flex justify-content-start">
+                @Html.TextBoxFor(m => m.ChecqueNo, new { @class = "form-control", maxlength = 20, style = " font-size: 16px; " })
+            </div>
+        </div>
+
+
+        <!-- Type Dropdown (Visible for Debit) -->
+        <div class="form-group row" id="TypeDropdownDiv" style="display: none;">
+            <label class="col-sm-4 col-form-label" style=" font-size: 16px; font-weight: bold;">Receiver Type :<span class="required-star">*</span></label>
+            <div class="col-sm-8 px-0 d-flex justify-content-start">
+
+                @Html.DropDownListFor(m => m.Type,
+                                                  new List<SelectListItem>
+                                                  {
+                 new SelectListItem { Text = "-- Select Type --", Value = "" },
+                 new SelectListItem { Text = "Worker", Value = "Worker" },
+                 new SelectListItem { Text = "Vendor", Value = "Vendor" },
+                 new SelectListItem { Text = "EventHandler", Value = "EventHandler" }
+                          },
+                                                  new { @class = "form-control custom-dropdown", id = "TransactionTypeDropdown", style = " font-size: 16px; " })
+
+            </div>
+        </div>
+
+        <!-- Receiver Name -->
+        <div class="form-group row" id="ReceiverDropdownDiv" style="display: none;">
+            <label class="col-sm-4 col-form-label" style=" font-size: 16px; font-weight: bold;">Receiver Name :<span class="required-star">*</span></label>
+            <div class="col-sm-8 px-0 d-flex justify-content-start">
+
+                @Html.DropDownListFor(m => m.ReceiverCode,
+                                                  ViewBag.ReceiverList as IEnumerable<SelectListItem> ?? new List<SelectListItem>(),
+                                                  "-- Select Receiver --",
+                                                  new { @class = "form-control custom-dropdown", id = "ReceiverCode", style = " font-size: 16px; " })
+
+            </div>
+        </div>
+
+        <!-- Amount -->
+
+        <div class="form-group row">
+            <label class="col-sm-4 col-form-label" style=" font-size: 16px; font-weight: bold;">
+                Amount :<span class="required-star">*</span>
+            </label>
+            <div class="col-sm-8 px-0 d-flex justify-content-start">
+                @Html.TextBoxFor(m => m.Amount, new
+           {
+               @class = "form-control input-with-rupee",
+               @id = "Amount",
+               @readonly = "readonly",
+               @placeholder = "0.00",
+               style = " font-size: 16px; "
+           })
+            </div>
+        </div>
+
+        <!-- Payment Purpose -->
+        <div id="PaymentPurposeDiv">
+            <div class="form-group row">
+                <label for="PaymentPurpose" class="col-sm-4 col-form-label" style=" font-size: 16px; font-weight: bold;">
+                    Payment Purpose :<span class="required-star">*</span>
+                </label>
+                <div class="col-sm-8 px-0 d-flex justify-content-start">
+                    @Html.EditorFor(m => m.PaymentPurpose, new { htmlAttributes = new { @class = "form-control", style = " font-size: 16px; ", @readonly = "readonly", } })
+                </div>
+            </div>
+        </div>
+
+
+        @*<div class="form-group row file-upload-group">
+                @Html.Label("AttachmentInput", "Attach Files (optional):", new { @class = "col-sm-4 col-form-label", style = "font-size: 16px; font-weight: bold;" })
+                <div class="col-sm-8 px-0 d-flex justify-content-start">
+                    <div class="custom-file">
+                        <input type="file" id="AttachmentInput" style="width: 370px; height: 40px; border: 1px solid black; font-size: 16px; " class="custom-file-input" multiple />
+                        <label class="custom-file-label" for="AttachmentInput">Choose files</label>
+                    </div>
+                    <div id="filePreviewList" class="mt-2"></div>
+                </div>
+            </div>*@
+
+        <div class="form-group row file-upload-group">
+            @Html.Label("AttachmentInput", "Attach Files (optional):",
+                new { @class = "col-sm-4 col-form-label", style = "font-size: 16px; font-weight: bold;" })
+
+            <div class="col-sm-8 px-0">
+                <div class="custom-file">
+                    <input type="file" id="AttachmentInput"
+                           style="width: 370px; height: 40px; border: 1px solid black; font-size: 16px;"
+                           class="custom-file-input" multiple />
+                    <label class="custom-file-label" for="AttachmentInput">Choose files</label>
+                </div>
+
+                <!-- ✅ textbox खाली preview -->
+                <div id="filePreviewList" class="mt-2"></div>
+            </div>
+        </div>
+
+
+
+
+        <div class="modal-footerSM d-flex justify-content-center">
+            <button type="submit" class="btn btn-success" form="cashTransactionForm">Save</button>
+            <button type="button" class="btn btn-danger" id="closeModalBtn">Clear</button>
+        </div>
+
+    }
+
+</div>
+
+@section Scripts {
+  
+   
+
+    <script>
+    $(document).ready(function () {
+        let selectedFiles = [];
+        let receiverList = [];
+
+        function toggleFields() {
+            const transactionVal = $('#TransactionIdDropdown').val();
+            const paymentMode = $('input[name="PaymentMode"]:checked').val();
+            const receiverType = $('#TransactionTypeDropdown').val();
+
+            $('.cheque-fields').hide();
+            $('#TypeDropdownDiv, #ReceiverDropdownDiv, #CreditSection').hide();
+
+            if (transactionVal === "26") {
+                $('#CreditSection').show();
+                if (paymentMode === "34") $('.cheque-fields').show();
+            } else if (transactionVal === "27") {
+                $('#TypeDropdownDiv').show();
+                if (paymentMode === "34") $('.cheque-fields').show();
+                if (receiverType) $('#ReceiverDropdownDiv').show();
+            }
+        }
+
+        function loadReceiversByType(type) {
+            $.ajax({
+                url: '@Url.Action("GetReceiversByType", "AccountManager")',
+                type: 'GET',
+                data: { type: type },
+                success: function (data) {
+                    receiverList = data || [];
+                    const $dropdown = $('#ReceiverCode');
+                    $dropdown.empty().append($('<option>', { value: '', text: '-- Select Receiver --' }));
+
+                    $.each(receiverList, function (i, item) {
+                        $dropdown.append($('<option>', {
+                            value: item.Value,
+                            text: item.Text,
+                            'data-amount': item.Amount || 0,
+                            'data-entity': item.EntityCode || ''
+                        }));
+                    });
+
+                    $('#ReceiverDropdownDiv').show();
+                }
+            });
+        }
+
+        $('#TransactionTypeDropdown').change(function () {
+            const selectedType = $(this).val();
+            if (selectedType) loadReceiversByType(selectedType);
+            toggleFields();
+        });
+
+        $(document).on('change', '#TransactionIdDropdown, input[name="PaymentMode"], #TransactionTypeDropdown', toggleFields);
+
+        $('#month, #year').change(function () {
+            const month = $('#month').val();
+            const year = $('#year').val();
+            if (month && year) {
+                $.get('@Url.Action("GetMaintenanceListByMonthYear", "AccountManager")', { month, year }, function (data) {
+                    const $dropdown = $('#MaintenanceDropdown');
+                    $dropdown.empty().append($('<option>', { value: '', text: '-- Select Maintenance --' }));
+                    $.each(data, function (i, item) {
+                        $dropdown.append($('<option>', { value: item.Value, text: item.Text }));
+                    });
+                });
+            }
+        });
+
+        $('#MaintenanceDropdown').change(function () {
+            const code = $(this).val();
+            if (!code) return;
+            $.get('/AccountManager/GetMembersByMaintenance', { maintenanceCode: code }, function (data) {
+                const $receiver = $('#MemberDropdown');
+                $receiver.empty().append($('<option>', { value: '', text: '-- Select Member --' }));
+                $.each(data.members, function (i, item) {
+                    $receiver.append($('<option>', { value: item.Value, text: item.Text }));
+                });
+                $('#Amount').val(data.totalAmount.toFixed(2));
+            });
+        });
+
+
+
+      $('#closeModalBtn').click(function () {
+    const $form = $('#cashTransactionForm');
+    if ($form.length) {
+        $form[0].reset();
+        $form.find('select').each(function () {
+            $(this).val($(this).find('option:first').val());
+        });
+    }
+
+    // Clear file input and selected file array
+    selectedFiles = [];
+    $('#AttachmentInput').val('');
+    renderFileList();
+
+    // Hide sections
+    $('#CreditSection, #TypeDropdownDiv, #ReceiverDropdownDiv, .cheque-fields').hide();
+
+    // Remove validation errors
+    $('.text-danger').remove();
+    $('.is-invalid').removeClass('is-invalid');
+
+    // Clear any filename display (if used)
+    $('#selectedFileName').hide();
+});
+
+
+        toggleFields();
+    });
+    </script>
+
+
+    <script>
+        let selectedFiles = [];
+
+        function renderFileList() {
+            const preview = $('#filePreviewList');
+            preview.empty();
+            selectedFiles.forEach((file, index) => {
+                const li = $('<li>').addClass('list-group-item d-flex justify-content-between align-items-center');
+                li.text(file.name);
+                const removeBtn = $('<button>').addClass('btn btn-sm btn-danger ml-2')
+                    .html('<i class="bi bi-x-circle-fill"></i>')
+                    .on('click', function () {
+                        selectedFiles.splice(index, 1);
+                        renderFileList();
+                    });
+                li.append(removeBtn);
+                preview.append(li);
+            });
+        }
+
+        $('#AttachmentInput').on('change', function (e) {
+            const files = e.target.files;
+
+            for (let i = 0; i < files.length; i++) {
+                let file = files[i];
+
+                if (!selectedFiles.find(f => f.name === file.name && f.size === file.size)) {
+                    if (file.size <= 5 * 1024 * 1024) {
+                        selectedFiles.push(file);
+                    } else {
+                        Swal.fire("Max file size is 5MB.");
+                    }
+                }
+            }
+
+            renderFileList();
+            $(this).val(''); 
+        });
+
+        $('#closeModalBtn').click(function () {
+            const $form = $('#cashTransactionForm');
+            if ($form.length) {
+                $form[0].reset(); 
+                $form.find('select').each(function () {
+                    $(this).val($(this).find('option:first').val()); 
+                });
+            }
+
+
+            selectedFiles = [];
+            $('#AttachmentInput').val('');
+            renderFileList();
+
+            // Hide sections
+            $('#CreditSection, #TypeDropdownDiv, #ReceiverDropdownDiv, .cheque-fields').hide();
+
+            // Remove validation errors
+            $('.text-danger').remove();
+            $('.is-invalid').removeClass('is-invalid');
+
+            // Clear any filename display (if used)
+            $('#selectedFileName').hide();
+        });
+
+        $('#closeModalBtn').on('click', function () {
+            selectedFiles = [];
+            renderFileList();
+            $('#cashTransactionForm')[0].reset();
+        });
+    </script>
+
+}

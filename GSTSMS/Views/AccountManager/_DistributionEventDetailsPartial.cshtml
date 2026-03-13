@@ -1,0 +1,1110 @@
+﻿@model List<GSTSMSLibrary.AccountManager.AccountManager>
+@{
+    Layout = null;
+    bool showDatePicker = ViewBag.ShowDatePicker ?? true;
+}
+
+<div class="modal-body p-2">
+    @if (Model != null && Model.Count > 0)
+    {
+        if (showDatePicker)
+        {
+            <div class="seldate">
+                <a href="javascript:;" class="btn btn-primary daterange-btn icon-left btn-icon">
+                    <i class="fas fa-calendar"></i> <span>Choose Date</span>
+                </a>
+                <input type="hidden" id="fromDate" />
+                <input type="hidden" id="toDate" />
+            </div>
+        }
+
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered table-hover table-striped dataTableExport mb-0" id="distributionEventTable" style="width:100%; table-layout: fixed;">
+                <thead class="text-center">
+                    <tr>
+                        <th style="width: 30px; text-align: center; vertical-align: middle; padding: 0;">
+                            <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
+                                <input type="checkbox" id="select-distribution-all" class="form-check-input m-0" style="position: static; transform: none;" />
+                            </div>
+                        </th>
+                        <th style="width: 40px;">Sr.no</th>
+                        <th style="width: 150px;">Event Name</th>
+                        <th style="width: 150px;">Date</th>
+                        <th style="width: 150px;">Distribution Category</th>
+                        <th style="width: 130px;">Allocated Budget(₹) </th>
+                        <th style="width: 130px;">Actual Cost(₹) </th>
+                        <th style="width: 130px;">Difference(₹) </th>
+                        <th style="width: 100px;">Document</th>
+                    </tr>
+                </thead>
+                <tbody class="small">
+                    @{
+                        var groupedEvents = Model.OrderBy(x => x.EventName).ThenBy(x => x.FromDate)
+                                               .GroupBy(x => new { x.EventName, x.FromDate });
+
+                        foreach (var eventGroup in groupedEvents)
+                        {
+                            bool isFirstRow = true;
+
+                            foreach (var item in eventGroup)
+                            {
+                                var diff = item.AllocatedBudget - item.ActualCost;
+                                var diffClass = diff >= 0 ? "text-success" : "text-danger";
+
+                                <tr class="text-center"
+                                    data-row-id="@($"{item.EventName}_{item.FromDate.Ticks}_{item.DistributionCategory}".Replace(" ", "_"))"
+                                    data-event-name="@item.EventName"
+                                    data-event-date="@item.FromDate.ToString("yyyy-MM-dd")">
+                                    <td style="padding: 0; position: relative;">
+                                        <input type="checkbox" class="form-check-input row-checkbox m-0" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);" />
+                                    </td>
+                                    <td></td> <!-- EMPTY TD FOR SERIAL NUMBER -->
+                                    <td>
+                                        @if (isFirstRow)
+                                        {
+                                            @item.EventName
+                                        }
+                                    </td>
+                                    <td data-full-date="@item.FromDate.ToString("yyyy-MM-dd")">
+                                        @if (isFirstRow)
+                                        {
+                                            @item.FromDate.ToString("dd-MM-yyyy")
+                                        }
+                                    </td>
+                                    <td>@item.DistributionCategory</td>
+                                    <td>₹@item.AllocatedBudget</td>
+                                    <td>₹@item.ActualCost</td>
+                                    <td class="text-center font-weight-bold @diffClass">₹@diff</td>
+                                    @*<td>
+                                            @if (!string.IsNullOrEmpty(item.Document))
+                                            {
+                                                <a href="@item.Document" target="_blank" class="btn btn-sm btn-info">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span>No Document</span>
+                                            }
+                                        </td>*@
+
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.Document))
+                                    {
+                                        <a href="@Url.Content(item.Document)" target="_blank" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span>No Document</span>
+                                    }
+                                </td>
+
+
+                                </tr>
+
+                                isFirstRow = false;
+                            }
+                        }
+                    }
+                </tbody>
+                <tfoot class="text-center font-weight-bold">
+                    <tr>
+                        <td colspan="5" class="text-right">Total</td>
+                        <td id="totalAllocated">₹0</td>
+                        <td id="totalActual">₹0</td>
+                        <td id="totalDifference">₹0</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">No distribution event data found.</div>
+    }
+</div>
+
+<!-- ✅ STYLES -->
+<style>
+    @@keyframes rotate {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .rotate-refresh {
+        animation: rotate 0.8s linear infinite;
+    }
+
+    .seldate {
+        padding-bottom: 10px;
+    }
+
+    .modal-xl {
+        max-width: 90% !important;
+    }
+
+    .modal-content {
+        background-color: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    .modal-body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        max-height: 80vh;
+        padding: 0.75rem;
+        background-color: white;
+        border-radius: 0rem;
+    }
+
+    div.dataTables_wrapper {
+        background-color: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    table td, table th {
+        padding: 0.4rem 0.6rem !important;
+        font-size: 0.85rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: middle;
+    }
+
+    /* Custom Date Range Picker Styles */
+    .daterangepicker {
+        display: flex;
+        flex-direction: row;
+        padding: 10px;
+        width: auto !important;
+    }
+
+        .daterangepicker .ranges {
+            width: 180px;
+            margin-right: 10px;
+        }
+
+        .daterangepicker .calendar {
+            display: flex;
+            flex-direction: row;
+        }
+
+        .daterangepicker .drp-calendar {
+            padding: 10px;
+        }
+
+            .daterangepicker .drp-calendar.left {
+                margin-right: 10px;
+            }
+
+        .daterangepicker .drp-buttons {
+            clear: none;
+            text-align: right;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .daterangepicker.show-ranges .drp-calendar.left {
+            border-left: 1px solid #ddd;
+        }
+
+    .daterangepicker {
+        display: none;
+    }
+
+    button.export-buttons.icon-only-btn {
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 5px;
+    }
+
+        /* 🔽 Optional: Remove hover background */
+        button.export-buttons.icon-only-btn:hover {
+            background-color: transparent !important;
+            box-shadow: none !important;
+        }
+
+
+
+    .modal-body {
+        overflow: visible !important; /* Remove vertical scrollbar */
+        max-height: none !important; /* Remove height restriction */
+        padding: 0.75rem;
+    }
+
+    div.dataTables_wrapper {
+        overflow: visible !important; /* Remove inner DataTable scrollbar */
+    }
+
+    table.dataTable {
+        width: 100% !important; /* Fit table to container */
+        table-layout: auto; /* Let cells expand naturally */
+    }
+
+    table td, table th {
+        white-space: normal !important; /* Allow text to wrap instead of creating horizontal scroll */
+    }
+
+        .view-docs {
+        background-color: #339af0;
+        border-color: lightgray !important;
+        color: white;
+    }
+
+
+        .view-docs:hover {
+            background-color: lightgray;
+            border-color: none;
+            color: #339af0;
+        }
+
+    .view-docs {
+        background-color: #339af0;
+        border: none !important;
+        color: white;
+        /*        padding: 5px 7px;
+*/ border-radius: 5px;
+        cursor: pointer;
+    }
+
+        .view-docs:hover {
+            background-color: lightgray;
+            color: #339af0;
+        }
+
+        /* Fix for black border on click */
+        .view-docs:focus,
+        .view-docs:active {
+            outline: none !important;
+            box-shadow: none !important;
+            border: none !important;
+        }
+
+</style>
+
+<!-- ✅ DATATABLES CSS -->
+@*<link href="~/Content/modules/datatables/RowGroup-1.1.4/css/rowGroup.bootstrap4.min.css" rel="stylesheet" />
+    <script src="~/Content/modules/datatables/RowGroup-1.1.4/js/dataTables.rowGroup.min.js"></script>*@
+
+<link href="~/Content/css/AuditReport.css" rel="stylesheet" />
+<link href="~/Content/modules/datatables/datatables.min.css" rel="stylesheet" />
+<link href="~/Content/modules/datatables/DataTables-1.10.16/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
+<link href="~/Content/modules/datatables/Buttons-1.5.1/css/buttons.bootstrap4.min.css" rel="stylesheet" />
+<link href="~/Content/modules/datatables/Select-1.2.6/css/select.bootstrap4.min.css" rel="stylesheet" />
+<link href="~/Content/modules/izitoast/css/iziToast.css" rel="stylesheet" />
+<link href="~/Content/modules/izitoast/css/iziToast.min.css" rel="stylesheet" />
+
+<!-- ✅ DATATABLES JS -->
+<script src="~/Content/modules/datatables/datatables.min.js"></script>
+<script src="~/Content/modules/datatables/Buttons-1.5.1/js/dataTables.buttons.min.js"></script>
+<script src="~/Content/modules/datatables/Buttons-1.5.1/js/buttons.bootstrap4.min.js"></script>
+<script src="~/Content/modules/datatables/JSZip-2.5.0/jszip.min.js"></script>
+<script src="~/Content/modules/datatables/pdfmake-0.1.36/pdfmake.min.js"></script>
+<script src="~/Content/modules/datatables/pdfmake-0.1.36/vfs_fonts.js"></script>
+<script src="~/Content/modules/datatables/Buttons-1.5.1/js/buttons.html5.min.js"></script>
+<script src="~/Content/modules/datatables/Select-1.2.6/js/dataTables.select.min.js"></script>
+<script src="~/Content/modules/izitoast/js/iziToast.js"></script>
+<script src="~/Content/modules/izitoast/js/iziToast.min.js"></script>
+<script src="~/Content/modules/sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/modules/moment.min.js"></script>
+<script src="~/Content/modules/bootstrap-daterangepicker/daterangepicker.js"></script>
+<link href="~/Content/modules/bootstrap-daterangepicker/daterangepicker.css" rel="stylesheet" />
+
+<script>
+    $(document).ready(function () {
+        // Initialize Date Range Picker
+        $('.daterange-btn').daterangepicker({
+            opens: 'right',
+            showDropdowns: false,
+            autoUpdateInput: false,
+            linkedCalendars: false,
+            showCustomRangeLabel: true,
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            },
+            locale: {
+                format: 'DD-MM-YYYY',
+                cancelLabel: 'Clear',
+                applyLabel: 'Apply',
+                customRangeLabel: 'Custom Range',
+                daysOfWeek: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+                monthNames: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                firstDay: 1
+            }
+        });
+        // Show the datepicker when the button is clicked
+        $('.daterange-btn').on('click', function () {
+            $(this).data('daterangepicker').show();
+        });
+        // Handle date picker apply event
+        $('.daterange-btn').on('apply.daterangepicker', function (ev, picker) {
+            $(this).html('<i class="fas fa-calendar"></i> ' +
+                picker.startDate.format('DD-MM-YYYY') + ' - ' +
+                picker.endDate.format('DD-MM-YYYY'));
+            $('#fromDate').val(picker.startDate.format('YYYY-MM-DD'));
+            $('#toDate').val(picker.endDate.format('YYYY-MM-DD'));
+            table.draw();
+            calculateTotals();
+        });
+
+        // Handle date picker cancel event
+        $('.daterange-btn').on('cancel.daterangepicker', function (ev, picker) {
+            $(this).html('<i class="fas fa-calendar"></i> <span>Choose Date</span>');
+            $('#fromDate').val('');
+            $('#toDate').val('');
+            table.draw();
+            calculateTotals();
+        });
+
+        // Add custom date filtering function
+        $.fn.dataTable.ext.search.push(
+            function (settings, data, dataIndex) {
+                var fromDate = $('#fromDate').val();
+                var toDate = $('#toDate').val();
+
+                // If no date filter is set, show all rows
+                if (!fromDate && !toDate) {
+                    return true;
+                }
+
+                // Get the row and the full date from data attribute
+                var row = table.row(dataIndex).node();
+                var fullDateStr = $(row).find('td:eq(3)').attr('data-full-date'); // Changed from eq(4) to eq(3)
+
+                if (!fullDateStr) return false;
+
+                // Parse dates in a consistent format (YYYY-MM-DD)
+                var rowDate = moment(fullDateStr, 'YYYY-MM-DD');
+                var fromDateObj = fromDate ? moment(fromDate, 'YYYY-MM-DD') : null;
+                var toDateObj = toDate ? moment(toDate, 'YYYY-MM-DD') : null;
+
+                // Check if row date is within the selected range
+                if (fromDateObj && rowDate.isBefore(fromDateObj, 'day')) {
+                    return false;
+                }
+                if (toDateObj && rowDate.isAfter(toDateObj, 'day')) {
+                    return false;
+                }
+
+                return true;
+            }
+        );
+
+        // Function to calculate totals based on filtered data
+        function calculateTotals() {
+            var totalAllocated = 0;
+            var totalActual = 0;
+
+            table.rows({ search: 'applied' }).every(function () {
+                var $row = $(this.node());
+                var allocated = parseFloat($row.find('td:eq(5)').text().replace(/[^\d.-]/g, '')) || 0;
+                var actual = parseFloat($row.find('td:eq(6)').text().replace(/[^\d.-]/g, '')) || 0;
+
+                totalAllocated += allocated;
+                totalActual += actual;
+            });
+
+            var totalDiff = totalAllocated - totalActual;
+
+            $('#totalAllocated').text('₹' + totalAllocated.toLocaleString(undefined, { minimumFractionDigits: 2 }));
+            $('#totalActual').text('₹' + totalActual.toLocaleString(undefined, { minimumFractionDigits: 2 }));
+            $('#totalDifference')
+                .text('₹' + totalDiff.toLocaleString(undefined, { minimumFractionDigits: 2 }))
+                .removeClass('text-success text-danger')
+                .addClass(totalDiff >= 0 ? 'text-success' : 'text-danger');
+        }
+
+        var table = $('#distributionEventTable').DataTable({
+            dom: "<'row'<'col-md-6'B><'col-md-6'f>>" +
+                "<'row'<'col-12'tr>>" +
+                "<'row'<'col-md-5'i><'col-md-7'p>>",
+            scrollX: false,
+            responsive: false,
+            paging: true,
+            ordering: false,
+            rowGroup: {
+                dataSrc: [2, 3], // Group by Event Name (col index 2) + Date (col index 3)
+                startRender: function (rows, group, level) {
+                    if (level === 0) {
+                        return $('<tr/>')
+                            .append('<td colspan="9" class="font-weight-bold bg-light text-center">' +
+                                'Event: ' + group + '</td>');
+                    }
+                    return $('<tr/>')
+                        .append('<td colspan="9" class="text-center text-muted">' +
+                            'Date: ' + group + '</td>');
+                }
+            },
+
+            language: {
+                info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                infoEmpty: "Showing 0 to 0 of 0 entries",
+                infoFiltered: "" // This removes the filtered count text
+            },
+            buttons: [
+                {
+                    extend: 'csvHtml5',
+                    text: '<img src="/Content/img/icons8-csv-64.png" alt="CSV" style="height:32px;" title="Export CSV" />',
+                    className: 'export-buttons icon-only-btn',
+                    filename: 'Green Valley Society Distribution Event Report ' + moment().format("DD-MM-YYYY"),
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            if ($('#select-distribution-all').is(':checked')) {
+                                return true;
+                            }
+                            return $(node).find('.row-checkbox').is(':checked');
+                        },
+                        columns: [1, 2, 3, 4, 5, 6, 7],
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 4) {
+                                    const fullDate = $(node).data('full-date') || data;
+                                    return moment(fullDate).format('DD-MM-YYYY');
+                                }
+                                if (column === 5 || column === 6 || column === 7) {
+                                    return data.toString().replace('₹', '').replace(/,/g, '');
+                                }
+                                return data;
+                            }
+                        }
+                    },
+                    customize: function (csv) {
+                        const headerTitle = 'Green Valley Society - Distribution Event Report';
+                        const downloadedOn = 'Generated on: ' + moment().format('DD-MM-YYYY hh:mm A');
+
+                        const csvRows = csv.split('\n');
+                        const headers = [
+                            '"Sr No"',
+                            '"Event Name"',
+                            '"Distribution Category"',
+                            '"Date"',
+                            '"Allocated Budget"',
+                            '"Actual Cost"',
+                            '"Difference"'
+                        ];
+                        csvRows[0] = headers.join(',');
+
+                        for (let i = 1; i < csvRows.length; i++) {
+                            if (csvRows[i].trim() !== '') {
+                                const rowCols = csvRows[i].split(',');
+                                rowCols[0] = i.toString();
+                                for (let j = 5; j <= 7; j++) {
+                                    if (rowCols[j]) {
+                                        const num = parseFloat(rowCols[j].replace(/[^\d.-]/g, ''));
+                                        if (!isNaN(num)) rowCols[j] = num.toFixed(2);
+                                    }
+                                }
+                                csvRows[i] = rowCols.join(',');
+                            }
+                        }
+
+                        csvRows.unshift(',,,,,,,' + downloadedOn);
+                        csvRows.unshift(',,,,,,,' + headerTitle);
+                        return csvRows.join('\n');
+                    },
+                    action: function (e, dt, button, config) {
+                        const hasSelection = $('#select-distribution-all').is(':checked') ||
+                            dt.rows().nodes().to$().find('.row-checkbox:checked').length > 0;
+
+                        if (!hasSelection) {
+                            iziToast.warning({
+                                title: 'Warning',
+                                message: 'Please select at least one row to export CSV.',
+                                position: 'topCenter'
+                            });
+                            return;
+                        }
+
+                        $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+
+                        // ✅ Unselect checkboxes after export
+                        $('#select-distribution-all').prop('checked', false);
+                        dt.rows().nodes().to$().find('.row-checkbox').prop('checked', false).closest('tr').removeClass('selected');
+
+                        swal({
+                            icon: 'success',
+                            title: 'CSV Exported',
+                            text: 'Your CSV file has been downloaded successfully!',
+                            timer: 2000,
+                            buttons: false
+                        });
+                    }
+                },
+                {
+                    extend: 'excelHtml5',
+                    text: '<img src="/Content/img/icons8-xls-64.png" style="height:32px;" title="Export Excel" />',
+                    className: 'export-buttons icon-only-btn',
+                    title: null,
+                    filename: 'Green Valley Society Distribution Event Report ' + moment().format("DD-MM-YYYY"),
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            if ($('#select-distribution-all').is(':checked')) {
+                                return true;
+                            }
+                            return $(node).find('.row-checkbox').is(':checked');
+                        },
+                        columns: [1, 2, 3, 4, 5, 6, 7]
+                    },
+                    customize: function (xlsx) {
+                        const sheet = xlsx.xl.worksheets['sheet1.xml'];
+                        const styles = xlsx.xl['styles.xml'];
+                        const $ = window.jQuery;
+
+                        const title = 'Green Valley Society Distribution Event Report';
+                        const timestamp = 'Generated on: ' + moment().format('DD-MM-YYYY hh:mm A');
+
+                        const sheetData = $('sheetData', sheet);
+                        const rows = sheetData.find('row');
+
+                        rows.each(function () {
+                            const r = parseInt($(this).attr('r')) + 2;
+                            $(this).attr('r', r);
+                            $(this).find('c').each(function () {
+                                const cellRef = $(this).attr('r');
+                                const col = cellRef.replace(/[0-9]/g, '');
+                                $(this).attr('r', col + r);
+                            });
+                        });
+
+                        const titleRow = `
+<row r="1">
+    <c t="inlineStr" r="E1" s="2"><is><t>${title}</t></is></c>
+</row>`;
+                        const dateRow = `
+<row r="2">
+    <c t="inlineStr" r="E2" s="2"><is><t>${timestamp}</t></is></c>
+</row>`;
+
+                        sheetData.prepend(dateRow);
+                        sheetData.prepend(titleRow);
+
+                        const cellXfs = $('cellXfs', styles);
+                        const centerStyleIndex = cellXfs.children().length;
+                        cellXfs.append(`
+<xf xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>`);
+
+                        $('sheetData row c', sheet).attr('s', centerStyleIndex);
+
+                        let srNo = 1;
+                        $('row', sheet).each(function () {
+                            const rowIndex = parseInt($(this).attr('r'));
+                            if (rowIndex >= 4) {
+                                const firstCell = $('c[r^="A"]', this);
+                                if (firstCell.length) {
+                                    firstCell.attr('t', 'n');
+                                    firstCell.find('v').text(srNo++);
+                                }
+                            }
+                        });
+                    },
+                    action: function (e, dt, button, config) {
+                        const selected = dt.rows().nodes().to$().find('.row-checkbox:checked');
+                        if (selected.length === 0) {
+                            iziToast.warning({
+                                title: 'Warning',
+                                message: 'Please select at least one row to export Excel.',
+                                position: 'topCenter'
+                            });
+                            return;
+                        }
+
+                        const dataRows = dt.rows({ search: 'applied' }).nodes().to$().filter(function () {
+                            return $(this).find('.row-checkbox').length > 0;
+                        });
+
+                        if (dataRows.length === 0) {
+                            iziToast.warning({
+                                title: 'Warning',
+                                message: 'Please select at least one row to export Excel.',
+                                position: 'topCenter'
+                            });
+                            return;
+                        }
+
+                        $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+
+                        // ✅ Unselect checkboxes after export
+                        $('#select-distribution-all').prop('checked', false);
+                        dt.rows().nodes().to$().find('.row-checkbox').prop('checked', false).closest('tr').removeClass('selected');
+
+                        swal({
+                            icon: 'success',
+                            title: 'Excel Exported',
+                            text: 'Your Excel file has been downloaded successfully!',
+                            timer: 2000,
+                            buttons: false
+                        });
+                    }
+                },
+                {
+                    extend: 'pdfHtml5',
+                    text: '<img src="/Content/img/icons8-pdf-64.png" alt="PDF" style="height:32px;" title="Export PDF" />',
+                    className: 'export-buttons icon-only-btn',
+                    orientation: 'landscape',
+                    filename: 'Green Valley Society Distribution Event Report ' + moment().format("DD-MM-YYYY"),
+                    pageSize: 'A4',
+                    title: '',
+                    messageTop: '',
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $('input.row-checkbox', node).is(':checked');
+                        },
+                        columns: [1, 2, 3, 4, 5, 6, 7],
+                        format: {
+                            body: function (data, row, col, node) {
+                                if (col === 0) return (row + 1).toString();
+                                let text = $(node).attr('data-export') || $(node).text().trim();
+                                if (col >= 5 && col <= 7) {
+                                    text = text.replace(/[₹,]/g, '').trim();
+                                    if (!isNaN(text)) text = '₹' + parseFloat(text).toLocaleString('en-IN');
+                                }
+                                return text;
+                            }
+                        }
+                    },
+                    customize: function (doc) {
+                        const now = moment().format("DD-MM-YYYY hh:mm A");
+                        doc.content.unshift({
+                            alignment: 'center',
+                            margin: [0, 0, 0, 12],
+                            text: [
+                                { text: 'Green Valley Society - Distribution Event Report\n', fontSize: 18, bold: true },
+                                { text: 'Generated on: ' + now + '\n\n', fontSize: 12, italics: true }
+                            ]
+                        });
+
+                        const tableContent = doc.content.find(obj => obj.table);
+                        if (tableContent) {
+                            const colCount = tableContent.table.body[0].length;
+                            tableContent.table.widths = Array(colCount).fill('*');
+                            tableContent.table.body.forEach(row => {
+                                row.forEach((cell, i) => {
+                                    if (typeof cell === 'object') {
+                                        cell.alignment = 'center';
+                                    } else {
+                                        row[i] = { text: cell, alignment: 'center' };
+                                    }
+                                });
+                            });
+                            tableContent.layout = {
+                                hLineWidth: () => 0.5,
+                                vLineWidth: () => 0.5,
+                                hLineColor: () => '#aaa',
+                                vLineColor: () => '#aaa',
+                                paddingLeft: () => 4,
+                                paddingRight: () => 4,
+                                paddingTop: () => 2,
+                                paddingBottom: () => 2
+                            };
+                            const wrapper = { alignment: 'center', table: tableContent.table, layout: tableContent.layout };
+                            const index = doc.content.indexOf(tableContent);
+                            if (index !== -1) doc.content[index] = wrapper;
+                        }
+
+                        doc.defaultStyle.fontSize = 10;
+                        doc.styles.tableHeader.fontSize = 11;
+                        doc.styles.tableHeader.bold = true;
+                        doc.styles.tableHeader.alignment = 'center';
+                        doc.styles.tableHeader.fillColor = '#615677';
+                        doc.styles.tableHeader.color = '#ffffff';
+                    },
+                    action: function (e, dt, button, config) {
+                        const selected = dt.rows().nodes().to$().find('.row-checkbox:checked');
+                        if (selected.length === 0) {
+                            iziToast.warning({ title: 'Warning', message: 'Please select at least one row to export PDF.', position: 'topCenter' });
+                            return;
+                        }
+
+                        const dataRows = dt.rows({ search: 'applied' }).nodes().to$().filter(function () {
+                            return $(this).find('.row-checkbox').length > 0;
+                        });
+
+                        if (dataRows.length === 0) {
+                            iziToast.warning({ title: 'Warning', message: 'Please select at least one row to export PDF.', position: 'topCenter' });
+                            return;
+                        }
+
+                        $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+
+                        // ✅ Unselect checkboxes after export
+                        $('#select-distribution-all').prop('checked', false);
+                        dt.rows().nodes().to$().find('.row-checkbox').prop('checked', false).closest('tr').removeClass('selected');
+
+                        swal({
+                            icon: 'success',
+                            title: 'PDF Exported',
+                            text: 'Your PDF file has been downloaded successfully!',
+                            timer: 2000,
+                            buttons: false
+                        });
+                    }
+                },
+                {
+                    extend: 'print',
+                    text: '<img src="/Content/img/icons8-print-100.png" alt="Print" style="height:32px;" title="Print" />',
+                    className: 'export-buttons icon-only-btn', titleAttr: 'Print',
+                    title: '',
+                    exportOptions: {
+                        columns: [1, 2, 3, 4, 5, 6, 7],
+                        modifier: { search: 'applied', order: 'applied', page: 'all' },
+                        rows: function (idx, data, node) {
+                            if ($('#select-distribution-all').is(':checked')) return true;
+                            return $(node).find('.row-checkbox').is(':checked');
+                        },
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 0) return (row + 1).toString();
+                                return data;
+                            }
+                        }
+                    },
+                    customize: function (win) {
+                        const now = new Date();
+                        const formattedDateTime = now.toLocaleString('en-IN', {
+                            day: '2-digit', month: '2-digit', year: 'numeric',
+                            hour: '2-digit', minute: '2-digit', hour12: true
+                        });
+
+                        $(win.document.body)
+                            .css('font-size', '10pt')
+                            .prepend('<div style="text-align:center; margin:0 0 10px 0;">' +
+                                '<h2>GREEN VALLEY SOCIETY : Event Distribution List</h2>' +
+                                '<p>Generated on: ' + formattedDateTime + '</p>' +
+                                '</div>');
+
+                        $(win.document.body).find('table')
+                            .addClass('compact')
+                            .css({ fontSize: 'inherit', textAlign: 'center', margin: '0 auto', borderCollapse: 'collapse' });
+
+                        $(win.document.body).find('th, td').css({ border: '1px solid black', padding: '5px' });
+                        $(win.document.body).find('th').css('text-align', 'center');
+
+                        const style = document.createElement('style');
+                        style.type = 'text/css';
+                        style.innerHTML = `
+            @@page { margin: 0; }
+            @@media print {
+                html, body { height: auto !important; min-height: 0 !important; margin: 0 !important; padding: 20px !important; }
+                .dt-print-view { overflow: visible !important; position: static !important; }
+                table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+                thead { display: table-header-group; }
+                tfoot { display: table-footer-group; }
+                tr, td, th { break-inside: avoid; page-break-inside: avoid; }
+                table.dataTable.print-table th:nth-child(7),
+                table.dataTable.print-table td:nth-child(7) {
+                    width: 120px !important;
+                    max-width: 120px !important;
+                    white-space: nowrap;
+                }
+            }`;
+                        $(win.document.head).append(style);
+                        $(win.document.body).find('table').addClass('print-table');
+                    },
+                    action: function (e, dt, button, config) {
+                        if ($('#select-distribution-all').is(':checked')) {
+                            $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                        } else {
+                            var selectedRows = dt.rows().nodes().to$().filter(function () {
+                                return $(this).find('.row-checkbox').is(':checked');
+                            });
+                            if (selectedRows.length === 0) {
+                                iziToast.warning({
+                                    title: 'No Rows Selected',
+                                    message: 'Please select at least one row to print.',
+                                    position: 'topCenter'
+                                });
+                                return;
+                            }
+                            $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                        }
+
+                        // ✅ Unselect checkboxes after print
+                        $('#select-distribution-all').prop('checked', false);
+                        dt.rows().nodes().to$().find('.row-checkbox').prop('checked', false).closest('tr').removeClass('selected');
+                    }
+                },
+                {
+                    text: '<img id="refreshIconDistribution" src="/Content/img/icons8-refresh-50.png" alt="Refresh" style="height:28px;" title="Refresh Table" />',
+                    className: 'export-buttons icon-only-btn',
+                    action: function (e, dt, node, config) {
+                        $('#refreshIconDistribution').addClass('rotate-refresh');
+                        setTimeout(function () {
+                            dt.search('').columns().search('');
+                            $('.daterange-btn').data('daterangepicker').setStartDate(moment());
+                            $('.daterange-btn').data('daterangepicker').setEndDate(moment());
+                            $('.daterange-btn').html('<i class="fas fa-calendar"></i> <span>Choose Date</span>');
+                            $('#fromDate').val('');
+                            $('#toDate').val('');
+
+                            $('#select-distribution-all').prop('checked', false);
+                            allSelectedRowIds = [];
+
+                            dt.rows().nodes().to$().each(function () {
+                                $(this).find('.row-checkbox').prop('checked', false);
+                                $(this).removeClass('selected');
+                            });
+
+                            dt.draw();
+                            calculateTotals();
+                            $('#refreshIconDistribution').removeClass('rotate-refresh');
+                        }, 500);
+                    }
+                }
+            ],
+
+            columnDefs: [
+                {
+                    orderable: false,
+                    targets: 0,
+                    className: 'dt-body-center'
+                },
+                {
+                    targets: 1, // Serial number column
+                    render: function (data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
+                }
+            ],
+            order: [[1, 'asc']], // Add this line
+            createdRow: function (row, data, dataIndex) {
+                $('td:eq(1)', row).html(dataIndex + 1);
+            },
+            pageLength: 10,
+            responsive: false,
+            scrollX: false,
+            drawCallback: function (settings) {
+                var api = this.api();
+                var visibleRows = api.rows({ page: 'current', search: 'applied' }).nodes().to$();
+
+                // ✅ INCOME-EXPENSE LOGIC: Proper serial numbering
+                api.column(1, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1;
+                });
+
+                // Update checkboxes based on selection state
+                visibleRows.each(function () {
+                    var $row = $(this);
+                    var isSelected = $row.hasClass('selected');
+                    $row.find('.row-checkbox').prop('checked', isSelected);
+                });
+
+                var checkboxes = visibleRows.find('.row-checkbox');
+                var checkedCheckboxes = checkboxes.filter(':checked');
+
+                // ✅ FIX: Handle case when no rows are visible after search
+                if (visibleRows.length === 0) {
+                    $('#select-distribution-all').prop('checked', false);
+                } else {
+                    var allChecked = checkboxes.length === checkedCheckboxes.length;
+                    $('#select-distribution-all').prop('checked', allChecked);
+                }
+
+                // Calculate totals for current page
+                var pageAllocated = 0;
+                var pageActual = 0;
+                api.rows({ page: 'current' }).nodes().each(function (row, index) {
+                    var allocated = parseFloat($(row).find('td:eq(5)').text().replace(/[^\d.-]/g, '')) || 0;
+                    var actual = parseFloat($(row).find('td:eq(6)').text().replace(/[^\d.-]/g, '')) || 0;
+                    pageAllocated += allocated;
+                    pageActual += actual;
+                });
+
+                var pageDiff = pageAllocated - pageActual;
+
+                // Update footer with page totals
+                $('#totalAllocated').text('₹' + pageAllocated.toLocaleString(undefined, { minimumFractionDigits: 2 }));
+                $('#totalActual').text('₹' + pageActual.toLocaleString(undefined, { minimumFractionDigits: 2 }));
+                $('#totalDifference')
+                    .text('₹' + pageDiff.toLocaleString(undefined, { minimumFractionDigits: 2 }))
+                    .removeClass('text-success text-danger')
+                    .addClass(pageDiff >= 0 ? 'text-success' : 'text-danger');
+            }
+        });
+
+        // -------------------------------
+        // SELECTION: stable cross-page selection
+        // -------------------------------
+        var allSelectedRowIds = []; // will hold string ids (data-row-id)
+
+        // helper: get row-id from a node (accepts DOM node or jQuery)
+        function getRowIdFromNode(nodeOrJq) {
+            var $n = nodeOrJq instanceof jQuery ? nodeOrJq : $(nodeOrJq);
+            // 1) explicit data attribute
+            var id = $n.data('row-id') || $n.attr('data-row-id') || $n.attr('id');
+            if (id) return id.toString();
+
+            // 2) fallback: build composite id from visible cells (EventName|Date|Category)
+            var evt = $n.find('td:eq(2)').text().trim();
+            var dt = $n.find('td:eq(3)').data('full-date') || $n.find('td:eq(3)').text().trim();
+            var cat = $n.find('td:eq(4)').text().trim();
+            return (evt + '|' + dt + '|' + cat).replace(/\s+/g, '_');
+        }
+
+        function isRowSelectedById(id) {
+            return allSelectedRowIds.indexOf(id) !== -1;
+        }
+        function updateSelectAllCheckbox() {
+            var visibleRows = table.rows({ page: 'current', search: 'applied' }).nodes().to$();
+            var checkboxes = visibleRows.find('.row-checkbox');
+
+            if (checkboxes.length === 0) {
+                $('#select-distribution-all').prop('checked', false);
+                return;
+            }
+
+            var total = checkboxes.length;
+            var checked = checkboxes.filter(':checked').length;
+
+            if (checked === total) {
+                // all visible rows are checked
+                $('#select-distribution-all').prop('checked', true);
+            } else {
+                // none or some checked → keep unchecked
+                $('#select-distribution-all').prop('checked', false);
+            }
+        }
+
+
+
+        // Select All (applies to all filtered rows across pages)
+        $('#select-distribution-all').off('click').on('click', function () {
+            var isChecked = this.checked;
+
+            if (isChecked) {
+                // add all filtered rows
+                table.rows({ search: 'applied' }).nodes().each(function (node) {
+                    var id = getRowIdFromNode(node);
+                    if (!isRowSelectedById(id)) allSelectedRowIds.push(id);
+                    $(node).addClass('selected');
+                    $(node).find('.row-checkbox').prop('checked', true);
+                });
+            } else {
+                // clear selection entirely (for current table/session)
+                allSelectedRowIds = [];
+                table.rows().nodes().each(function (node) {
+                    $(node).removeClass('selected');
+                    $(node).find('.row-checkbox').prop('checked', false);
+                });
+            }
+
+            updateSelectAllCheckbox();
+        });
+
+        // Individual checkbox toggle (row + group)
+        // Individual checkbox toggle (row + group) — REPLACEMENT
+        $('#distributionEventTable tbody').off('change', '.row-checkbox').on('change', '.row-checkbox', function () {
+            var $checkbox = $(this);
+            var $row = $checkbox.closest('tr');
+            var checked = $checkbox.prop('checked');
+            var rowId = getRowIdFromNode($row);
+
+            // Is this the "event header" row? (visible Event Name in column 2)
+            var eventNameVisible = $.trim($row.find('td:eq(2)').text());
+            var eventDateVisible = $row.find('td:eq(3)').data('full-date');
+
+            if (eventNameVisible !== '') {
+                // Parent/header row toggled — select/deselect all rows with same event + date
+                var eventName = eventNameVisible;
+                var eventDate = eventDateVisible;
+
+                $('#distributionEventTable tbody tr').each(function () {
+                    var $tr = $(this);
+
+                    // child rows may not show event name text, so prefer data attribute if present
+                    var trEvent = ($tr.data('event-name') || $.trim($tr.find('td:eq(2)').text()) || eventName).toString();
+                    var trDate = $tr.find('td:eq(3)').data('full-date');
+
+                    if (trEvent === eventName && trDate === eventDate) {
+                        var childId = getRowIdFromNode($tr);
+
+                        // Update checkbox UI directly (no .trigger to avoid recursion)
+                        $tr.find('.row-checkbox').prop('checked', checked);
+
+                        if (checked) {
+                            if (!isRowSelectedById(childId)) allSelectedRowIds.push(childId);
+                            $tr.addClass('selected');
+                        } else {
+                            var idx = allSelectedRowIds.indexOf(childId);
+                            if (idx !== -1) allSelectedRowIds.splice(idx, 1);
+                            $tr.removeClass('selected');
+                        }
+                    }
+                });
+
+                // Update the page-level select-all checkbox state
+                updateSelectAllCheckbox();
+                return;
+            }
+
+            // Normal (child) row toggled
+            if (checked) {
+                if (!isRowSelectedById(rowId)) allSelectedRowIds.push(rowId);
+                $row.addClass('selected');
+            } else {
+                var idx = allSelectedRowIds.indexOf(rowId);
+                if (idx !== -1) allSelectedRowIds.splice(idx, 1);
+                $row.removeClass('selected');
+            }
+
+            // If a child changed, update its parent header checkbox (if exists) to checked only if ALL children are checked
+            // Find the parent header row: first row on the page that has a visible EventName and same date
+            var childDate = $row.find('td:eq(3)').data('full-date');
+            var parentHeader = $('#distributionEventTable tbody tr').filter(function () {
+                return $.trim($(this).find('td:eq(2)').text()) !== '' &&
+                    $(this).find('td:eq(3)').data('full-date') === childDate;
+            }).first();
+
+            if (parentHeader.length) {
+                var pEventName = $.trim(parentHeader.find('td:eq(2)').text());
+                var pEventDate = parentHeader.find('td:eq(3)').data('full-date');
+
+                var groupRows = $('#distributionEventTable tbody tr').filter(function () {
+                    var trEvent = ($.trim($(this).find('td:eq(2)').text()) || pEventName).toString();
+                    var trDate = $(this).find('td:eq(3)').data('full-date');
+                    return trEvent === pEventName && trDate === pEventDate;
+                });
+
+                var totalGroupCheckboxes = groupRows.find('.row-checkbox').length;
+                var checkedGroupCheckboxes = groupRows.find('.row-checkbox:checked').length;
+                var parentChecked = totalGroupCheckboxes > 0 && checkedGroupCheckboxes === totalGroupCheckboxes;
+
+                parentHeader.find('.row-checkbox').prop('checked', parentChecked);
+
+                // update parent selection array/class
+                var parentId = getRowIdFromNode(parentHeader);
+                if (parentChecked) {
+                    if (!isRowSelectedById(parentId)) allSelectedRowIds.push(parentId);
+                    parentHeader.addClass('selected');
+                } else {
+                    var pi = allSelectedRowIds.indexOf(parentId);
+                    if (pi !== -1) allSelectedRowIds.splice(pi, 1);
+                    parentHeader.removeClass('selected');
+                }
+            }
+
+            updateSelectAllCheckbox();
+        });
+
+
+        // Initial totals calculation
+        calculateTotals();
+    });</script>

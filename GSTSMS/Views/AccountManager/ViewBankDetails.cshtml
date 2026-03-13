@@ -1,0 +1,837 @@
+﻿@model GSTSMSLibrary.AccountManager.AccountManager
+
+@{
+    ViewBag.Title = "Bank Transaction Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <!-- 📊 DataTables Styles -->
+    <link href="~/Content/modules/datatables/datatables.min.css" rel="stylesheet" />
+    <link href="~/Content/modules/datatables/DataTables-1.10.16/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
+
+
+    <!-- 📅 Date Range Picker -->
+    <link rel="stylesheet" href="~/Content/modules/bootstrap-daterangepicker/daterangepicker.css" />
+
+    <!-- 🔔 iziToast Notification Styles (keep only minified version) -->
+    <link href="~/Content/modules/izitoast/css/iziToast.min.css" rel="stylesheet" />
+
+    <link href="~/Content/css/TransactionStatementMS.css" rel="stylesheet" />
+
+
+}
+<div class="loader-overlay" id="listLoader">
+    <div class="loader"></div>
+</div>
+<div class="section" style="margin-top: -128px;">
+
+    <div class="card card-info">
+        <div class="card-header headertransaction d-flex justify-content-between align-items-center">
+            <!-- Left: Back Icon -->
+            <a id="backBtn"
+               href="@Url.Action("BankDetailsListSS", "AccountManager")"
+               class="btn btn-outline-dark btn-sm"
+               data-toggle="tooltip"
+               title="Back to Bank List">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+
+
+            <!-- Center: Title -->
+            <h4 class="mb-0 text-center flex-grow-1">Bank Details & Transaction Statement</h4>
+
+            <!-- Right: Empty div for spacing -->
+            <div style="width:40px;"></div>
+        </div>
+
+
+        <div class="card-body">
+            <div class="row  BankSummeryHeaderdetails">
+                <div class="col-md-6 info-row">
+                    <span class="info-label">Bank Name</span>
+                    <span class="colon">:</span>
+                    <span class="info-value">@Model.BankName</span>
+                </div>
+                <div class="col-md-6 info-row">
+                    <span class="info-label">Account No</span>
+                    <span class="colon">:</span>
+                    <span class="info-value">@Model.AccountNo</span>
+                </div>
+                <div class="col-md-6 info-row">
+                    <span class="info-label">Bank Holder Name</span>
+                    <span class="colon">:</span>
+                    <span class="info-value">@Model.BankHolderName</span>
+                </div>
+                <div class="col-md-6 info-row">
+                    <span class="info-label">IFSC Code</span>
+                    <span class="colon">:</span>
+                    <span class="info-value">@Model.IFSCCode</span>
+                </div>
+                <div class="col-md-6 info-row">
+                    <span class="info-label">Branch</span>
+                    <span class="colon">:</span>
+                    <span class="info-value">@Model.Branch</span>
+                </div>
+                <div class="col-md-6 info-row">
+                    <span class="info-label">Opening Balance</span>
+                    <span class="colon">:</span>
+                    <span class="info-value">₹@(Model.OpeningBalance.ToString("N2") ?? "0.00")</span>
+                </div>
+                <div class="col-md-6 info-row" style="margin-right:auto">
+                    <span class="info-label">Bank Balance</span>
+                    <span class="colon">:</span>
+                    <span class="info-value">₹@Model.BankBalance </span>
+                </div>
+            </div>
+
+
+
+            <!-- Filters -->
+            <div class="row mb-3 align-items-end">
+
+                <div class="col-md-3 datetime">
+                    <a href="javascript:;" class="btn btn-primary daterange-btn icon-left btn-icon">
+                        <i class="fas fa-calendar"></i> <span>Select Date</span>
+                    </a>
+                    <input type="hidden" id="fromDate1" />
+                    <input type="hidden" id="toDate1" />
+                </div>
+                <div class="col-md-6 d-flex justify-content-end align-items-center ml-auto">
+                    <label for="txnTypeFilter" class="mr-2 mb-0 font-weight-bold text-dark" style="font-size:14px;">Status:</label>
+                    <select id="txnTypeFilter" class="form-control form-control-sm w-auto mr-3 ">
+                        <option value="" disabled selected>-- select status --</option>
+                        <option value="">All</option>
+                        <option value="Credit">Credit</option>
+                        <option value="Debit">Debit</option>
+                    </select>
+
+                    <label for="amountRangeFilter" class="mr-2 mb-0 font-weight-bold text-dark" style="font-size:14px;">Amount:</label>
+                    <select id="amountRangeFilter" class="form-control form-control-sm w-auto ">
+                        <option value="" disabled selected>-- select amount --</option>
+                        <option value="">All Amounts</option>
+                        <option value="1">Below ₹1000</option>
+                        <option value="2">₹1000 – ₹5000</option>
+                        <option value="3">₹5000 – ₹10000</option>
+                        <option value="4">Above ₹10000</option>
+                    </select>
+                </div>
+
+
+
+
+            </div>
+
+            <!-- Table -->
+            <div class="table-responsive">
+                <table id="txnTable" class="table table-striped table-bordered nowrap responsive" style="width:100%;" data-bank-name="@Model.BankName" data-account-no="@Model.AccountNo">
+                    <thead class="TransactionHeaderCSS">
+                        <tr>
+                            <th><input type="checkbox" id="selectAll" /></th>
+                            <th>Sr. No</th>
+                            <th>Transaction ID</th>
+                            <th>Payment Purpose</th>
+                            <th>Receiver Name</th>
+                            <th>Date</th>
+                            <th>Amount(₹)</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="Tablelayout">
+                        @{
+                            int sr = 1;
+                            foreach (var txn in Model.TransactionList)
+                            {
+
+                                string rowId = "checkbox-" + sr;
+                                <tr>
+                                    <td><input type="checkbox" class="row-checkbox" id="@rowId" /></td>
+                                    <td></td>
+                                    <td title="@txn.TransactionId_ChequeId">@txn.TransactionId_ChequeId</td>
+                                    <td title="@txn.PaymentPurpose">@txn.PaymentPurpose</td>
+                                    <td title="@txn.ReceiverName">@txn.ReceiverName</td>
+                                    <td title="@(txn.PaidDate?.ToString("dd-MM-yyyy") ?? "N/A")">@(txn.PaidDate?.ToString("dd-MM-yyyy") ?? "N/A")</td>
+                                    <td title="@txn.Amount">₹@txn.Amount.ToString("N2")</td>
+                                    <td title="@txn.Status">
+                                        @if (txn.Status == "Credit")
+                                        {
+                                            <span style="color: green;">@txn.Status</span>
+                                        }
+                                        else if (txn.Status == "Debit")
+                                        {
+                                            <span style="color: red;">@txn.Status</span>
+                                        }
+                                        else
+                                        {
+                                            <span style="color:black;">@txn.Status</span>
+                                        }
+                                    </td>
+                                </tr>
+                                sr++;
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/Content/modules/jquery.min.js"></script>
+
+    <!-- 2. Bootstrap JS (bundle) -->
+    <script src="~/Content/modules/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- 3. DataTables core -->
+    <script src="~/Content/modules/datatables/datatables.min.js"></script>
+    <!-- 4. DataTables extension/buttons (if separate) -->
+    <script src="~/Content/modules/datatables/datatables.js"></script>
+    <!-- 5. Moment.js -->
+    <script src="~/Content/modules/moment.min.js"></script>
+    <!-- 6. Date Range Picker -->
+    <script src="~/Content/modules/bootstrap-daterangepicker/daterangepicker.js"></script>
+    <!-- 7. iziToast -->
+    <script src="~/Content/modules/izitoast/js/iziToast.min.js"></script>
+    <script src="~/Content/modules/izitoast/js/iziToast.js"></script>
+    <!-- 8. SweetAlert -->
+    <script src="~/Content/modules/sweetalert/sweetalert.min.js"></script>
+    <!-- 9. Your custom scripts (after all dependencies) -->
+
+    <script>
+        function clearAllSelectionsAfterExport(dt) {
+            // ✅ 1. Clear all row checkboxes (on current page)
+            dt.rows().every(function () {
+                $(this.node()).find('.row-checkbox').prop('checked', false);
+            });
+
+            // ✅ 2. Uncheck "Select All"
+            $('#selectAll').prop('checked', false);
+        }
+        function maskAccountNumber(acno) {
+            if (!acno) return "N/A";
+            acno = acno.toString().trim();
+            if (acno.length <= 4) return acno;
+            let last4 = acno.slice(-4);
+            return "*".repeat(acno.length - 4) + last4;
+        }
+
+        // ✅ Hide loader when page load complete
+        $(window).on('load', function () {
+            $('#listLoader').fadeOut(300);
+        });
+
+        // ✅ Hide loader when DataTable redraws
+        $(document).ready(function () {
+            $('#txnTable').on('draw.dt', function () {
+                $('#listLoader').fadeOut(300);
+            });
+        });
+        $(document).on('click', '#backBtn', function (e) {
+            e.preventDefault();
+            var href = this.href;
+            $('#listLoader').fadeIn(100);          // show loader
+            setTimeout(function () { window.location.href = href; }, 50); // navigate
+        });
+        function hasAnyRowSelected() {
+            return $('.row-checkbox:checked').length > 0;
+        }
+
+        function showToastWarning() {
+            iziToast.warning({
+                title: 'Warning!',
+                message: 'Please select at least one Record to export.',
+                position: 'topCenter'
+            });
+        }
+
+        $(document).ready(function () {
+            var table = $('#txnTable').DataTable({
+                order: [[5, 'desc']],
+                columnDefs: [
+                    {
+                        targets: '_all',
+                        render: function (data, type, row, meta) {
+                            if (data === null || data === undefined || data.toString().trim() === '') {
+                                return 'N/A';
+                            }
+                            return data;
+                        }
+                    }
+                ],
+                dom: "<'row'<'col-sm-12 col-md-6'B><'col-sm-12 col-md-6'f>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                responsive: true,
+                ordering: false,
+                pageLength: 10,
+
+                language: {
+                    infoFiltered: ""   // 🔥 "filtered from xxx entries" hide करतो
+                },
+
+                buttons: [
+                    // ✅ Excel Export
+                    {
+                        extend: 'csvHtml5',
+                        text: '<img src="/Content/img/icons8-csv-64.png" alt="CSV" style="height:32px;" title="Export CSV" />',
+                        className: 'export-buttons icon-only-btn',
+                        exportOptions: {
+                            rows: function (idx, data, node) {
+                                return $(node).find('input.row-checkbox').is(':checked');
+                            },
+                            columns: ':visible:not(:first-child)'
+                        },
+                        customize: function (csv) {
+                            const now = new Date();
+                            const society = "Green Valley Society - Bank Transaction";
+                            const timestamp = `Generated on: ${now.toLocaleString('en-IN', {
+                                day: '2-digit', month: '2-digit', year: 'numeric',
+                                hour: '2-digit', minute: '2-digit', hour12: true
+                            })}`;
+
+                            const bankName = $('#txnTable').data('bank-name') || 'N/A';
+                            const accountNo = $('#txnTable').data('account-no') || 'N/A';
+                            const maskedAcc = maskAccountNumber(accountNo);   // ✅ mask
+
+
+                            let lines = csv.split('\n').filter(line => line.trim() !== '');
+                            const header = lines[0].split(',');
+                            header[0] = 'Sr. No';
+                            lines[0] = header.join(',');
+
+                            for (let i = 1; i < lines.length; i++) {
+                                let rawLine = lines[i];
+                                let cols = [];
+                                let current = '';
+                                let inQuotes = false;
+
+                                for (let char of rawLine) {
+                                    if (char === '"') {
+                                        inQuotes = !inQuotes;
+                                    } else if (char === ',' && !inQuotes) {
+                                        cols.push(current);
+                                        current = '';
+                                    } else {
+                                        current += char;
+                                    }
+                                }
+                                cols.push(current);
+
+                                // Sr. No
+                                cols[0] = i.toString();
+
+                                cols = cols.map(col => {
+                                    let cleaned = col.replace(/['"]+/g, '').replace(/₹|â‚¹/g, '').trim();
+                                    if (cleaned.includes(',')) {
+                                        cleaned = `"${cleaned}"`;
+                                    }
+                                    return cleaned;
+                                });
+
+                                lines[i] = cols.join(',');
+                            }
+
+                            const spacingRow = new Array(header.length).fill('').join(',');
+                            const centerText = (text) => {
+                                const row = new Array(header.length).fill('');
+                                row[Math.floor(header.length / 2)] = text;
+                                return row.join(',');
+                            };
+
+                            return `${centerText(society)}\n${centerText(`Bank Name: ${bankName}`)}\n${centerText(`Account No: ${maskedAcc}`)}\n${centerText(timestamp)}\n${spacingRow}\n${lines.join('\n')}`;
+                        },
+
+                        filename: function () {
+                            const now = new Date();
+                            return 'Transaction_List_' + now.toLocaleDateString('en-GB').replace(/\//g, '-') + '_' +
+                                now.getHours().toString().padStart(2, '0') + now.getMinutes().toString().padStart(2, '0');
+                        },
+                        action: function (e, dt, button, config) {
+                            if ($('.row-checkbox:checked').length === 0) {
+                                iziToast.warning({
+                                    title: 'Warning!',
+                                    message: 'Please select at least one Record to export.',
+                                    position: 'topCenter'
+                                });
+                                return;
+                            }
+
+                            $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+
+                            setTimeout(function () {
+                                swal({
+                                    icon: 'success',
+                                    title: 'CSV Exported',
+                                    text: 'Your CSV file has been downloaded successfully!',
+                                    buttons: false,
+                                    timer: 2000,
+
+                                });
+                                clearAllSelectionsAfterExport(dt)
+
+                            }, 500);
+                        }
+                    },
+                    {
+                        extend: 'excelHtml5',
+                        text: '<img src="/Content/img/icons8-xls-64.png" style="height:32px;" title="Export Excel" />',
+                        className: 'export-buttons icon-only-btn',
+                        title: null,
+                        exportOptions: {
+                            rows: function (idx, data, node) {
+                                return $(node).find('input.row-checkbox').is(':checked');
+                            },
+                            columns: ':visible:not(:first-child)' // exclude checkbox & action
+                        },
+                        customizeData: function (data) {
+                            let sr = 1;
+                            data.body.forEach(function (row) {
+                                row[0] = sr++; // Sr No update
+                            });
+
+                            const now = new Date();
+                            const society = "Green Valley Society - Bank Transaction";
+                            const timestamp = `Generated on: ${now.toLocaleString('en-IN', {
+                                day: '2-digit', month: '2-digit', year: 'numeric',
+                                hour: '2-digit', minute: '2-digit', hour12: true
+                            })}`;
+
+                            const bankName = $('#txnTable').data('bank-name') || 'N/A';
+                            const accountNo = $('#txnTable').data('account-no') || 'N/A';
+                            const maskedAcc = maskAccountNumber(accountNo);   // ✅ mask
+
+                            const totalCols = data.header.length;
+                            const getCenteredRow = (text) => {
+                                const row = new Array(totalCols).fill('');
+                                row[Math.floor(totalCols / 2)] = text;
+                                return row;
+                            };
+
+                            data.body.unshift(data.header);                      // Re-add column header
+                            data.header = getCenteredRow(society);              // Society Title
+                            data.body.unshift(getCenteredRow(timestamp));       // Timestamp
+                            data.body.unshift(getCenteredRow(`Account No: ${maskedAcc}`));
+                            data.body.unshift(getCenteredRow(`Bank Name: ${bankName}`));
+                        },
+                        customize: function (xlsx) {
+                            const sheet = xlsx.xl.worksheets['sheet1.xml'];
+
+                            // Set center alignment to all cells
+                            $('row c', sheet).attr('s', '51'); // style index for center align (may vary if you use custom styles)
+                        },
+
+                        action: function (e, dt, button, config) {
+                            if ($('.row-checkbox:checked').length === 0) {
+                                iziToast.warning({
+                                    title: 'Warning!',
+                                    message: 'Please select at least one Record to export.',
+                                    position: 'topCenter'
+                                });
+                                return;
+                            }
+                            $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+                            setTimeout(function () {
+                                swal({
+                                    icon: 'success',
+                                    title: 'Excel Exported',
+                                    text: 'Your Excel file has been downloaded successfully!',
+                                    buttons: false,
+                                    timer: 2000,
+
+                                });
+                                clearAllSelectionsAfterExport(dt)
+                            }, 500);
+                        }
+                    },
+                   {
+      extend: 'pdfHtml5',
+      text: '<img src="/Content/img/icons8-pdf-64.png" alt="PDF" style="height:32px;" title="Export PDF" />',
+      className: 'export-buttons icon-only-btn',
+
+      orientation: 'landscape',
+      pageSize: 'A4',
+
+      exportOptions: {
+          rows: function (idx, data, node) {
+              return $(node).find('input.row-checkbox').is(':checked');
+          },
+
+          columns: [2, 3, 4, 5, 6, 7]
+
+      },
+      customize: function (doc) {
+          const now = new Date();
+          const timestamp = `Generated on: ${now.toLocaleString('en-IN', {
+              day: '2-digit', month: '2-digit', year: 'numeric',
+              hour: '2-digit', minute: '2-digit', hour12: true
+          })}`;
+
+          const bankName = $('#txnTable').data('bank-name') || 'N/A';
+          const accountNumber = $('#txnTable').data('account-no') || 'N/A';
+          const maskedAcc = maskAccountNumber(accountNumber);
+
+          // Remove default title
+          doc.content.splice(0, 1);
+
+          // ➤ Custom header directly pushed
+          doc.content.unshift(
+              { text: 'Green Valley Society - Bank Transaction', fontSize: 16, bold: true, alignment: 'center', margin: [0, 10, 0, 2] },
+              { text: timestamp, fontSize: 10, italics: true, alignment: 'center', margin: [0, 0, 0, 8] },
+              {
+                  columns: [
+                      { width: '*', text: '' }, // left spacer
+                      { width: 'auto', text: `Bank Name: ${bankName}`, alignment: 'left', fontSize: 10 },
+                      { width: 'auto', text: `Account No: ${maskedAcc}`, alignment: 'left', fontSize: 10 },
+                      { width: '*', text: '' }  // right spacer
+                  ],
+                  columnGap: 10,
+                  margin: [0, 0, 0, 10]
+              }
+          );
+
+          // ➤ Add Sr. No column
+          // ➤ Add Sr. No column
+          const table = doc.content.find(x => x.table);
+          if (table) {
+              const body = table.table.body;
+
+              // Sr. No add kara
+              body[0].unshift({ text: 'Sr No', style: 'tableHeader', alignment: 'center' });
+              for (let i = 1; i < body.length; i++) {
+                  body[i].unshift({ text: i.toString(), alignment: 'center' });
+              }
+
+              // Proper column widths set kara
+              table.table.widths = [
+                  '6%',   // Sr No
+                  '15%',  // Transaction ID
+                  '25%',  // Payment Purpose
+                  '15%',  // Receiver Name
+                  '12%',  // Date
+                  '12%',  // Amount
+                  '10%'   // Status
+              ];
+          }
+
+
+          // ➤ Header styles
+          doc.styles.tableHeader = {
+              bold: true,
+              fontSize: 11,
+              color: 'white',
+              fillColor: '#615677 !important;',
+              alignment: 'center'
+          };
+
+          // ➤ Default table layout
+          doc.defaultStyle = {
+              fontSize: 10,
+              alignment: 'center'
+          };
+
+          doc.content.forEach(function (content) {
+              if (content.table) {
+                  content.layout = 'lightHorizontalLines';
+
+              }
+          });
+
+          // ➤ Optional layout tweak for table lines
+          table.layout = {
+              hLineWidth: function () { return 0.5; },
+              vLineWidth: function () { return 0.5; },
+              hLineColor: function () { return '#aaa'; },
+              vLineColor: function () { return '#aaa'; },
+              paddingLeft: function () { return 4; },
+              paddingRight: function () { return 4; },
+              paddingTop: function () { return 2; },
+              paddingBottom: function () { return 2; }
+          };
+      },
+
+
+
+      action: function (e, dt, node, config) {
+          if (!hasAnyRowSelected()) return showToastWarning();
+          setTimeout(function () {
+              swal({
+                  icon: 'success',
+                  title: 'pdf Exported',
+                  text: 'Your pdf file has been downloaded successfully!',
+                  buttons: false,
+                  timer: 2000,
+              });
+              clearAllSelectionsAfterExport(dt)
+          }, 500);
+
+          $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, node, config);
+      }
+  },
+                    {
+                        extend: 'print',
+                        text: '<img src="/Content/img/icons8-print-100.png" alt="Print" style="height:32px;" title="Print" />',
+
+                        className: 'export-buttons icon-only-btn',
+                        title: '', // we'll inject our own header
+                        exportOptions: {
+                            rows: function (idx, data, node) {
+                                return $(node).find('input.row-checkbox').is(':checked');
+                            },
+                            columns: ':visible:not(:first-child)' // checkbox/action exclude
+                        },
+                        customize: function (win) {
+                            const now = new Date();
+                            const society = "Green Valley Society - Bank Transaction";
+                            const timestamp = `Generated on: ${now.toLocaleString('en-IN', {
+                                day: '2-digit', month: '2-digit', year: 'numeric',
+                                hour: '2-digit', minute: '2-digit', hour12: true
+                            })}`;
+
+                            const bankName = $('#txnTable').data('bank-name') || 'N/A';
+                            const accountNo = $('#txnTable').data('account-no') || 'N/A';
+                            const maskedAcc = maskAccountNumber(accountNo);   // ✅ mask
+
+                            const doc = win.document;
+
+                            // --- Styles ---
+                            const style = doc.createElement('style');
+                            style.type = 'text/css';
+                            style.innerHTML = `
+                            @@media print {
+                                body { -webkit-print-color-adjust: exact; }
+                            }
+                            .print-header { text-align:center; margin-bottom:16px; }
+                            .print-header h2 { margin:0; font-size:18px; }
+                            .print-header .sub { margin:2px 0; font-size:12px; }
+                            table.dataTable.print { width:100% !important; border-collapse: collapse; }
+                            table.dataTable.print thead th, table.dataTable.print tbody td {
+                                text-align:center;
+                                vertical-align:middle;
+                                padding:6px 8px;
+                                font-size:12px;
+                            }
+                        `;
+                                                (doc.head || doc.getElementsByTagName('head')[0]).appendChild(style);
+
+                                                // --- Custom Header ---
+                            const headerHTML = `
+                          <div class="print-header">
+                            <h2>${society}</h2>
+                            <div class="sub">Bank Name: <strong>${bankName}</strong></div>
+                            <div class="sub">Account No: <strong>${maskedAcc}</strong></div>
+                            <div class="sub">${timestamp}</div>
+                          </div>
+                        `;
+                            doc.body.insertAdjacentHTML('afterbegin', headerHTML);
+
+                            // --- Make table compact & centered ---
+                            $(doc.body).find('table')
+                                .addClass('print')
+                                .css({ 'font-size': '12px', 'margin': '0 auto' });
+
+                            // --- Hide checkbox column if exists ---
+                            $(doc.body).find('table thead th:first-child, table tbody td:first-child').hide();
+
+                            // --- ✅ Add Sr. No. column ---
+                            const $table = $(doc.body).find('table');
+                            $table.find('thead tr').prepend('<th>Sr. No.</th>');
+                            $table.find('tbody tr').each(function (i) {
+                                $(this).prepend(`<td>${i + 1}</td>`);
+                            });
+                        },
+
+                        action: function (e, dt, button, config) {
+                            if ($('.row-checkbox:checked').length === 0) {
+                                iziToast.warning({
+                                    title: 'Warning!',
+                                    message: 'Please select at least one Record to print.',
+                                    position: 'topCenter'
+                                });
+                                return;
+                            }
+                            // Call default print
+                            $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+
+                            // Small heads-up toast (print dialog opens immediately)
+                            setTimeout(function () {
+                                swal({
+                                    icon: 'success',
+                                    title: 'Print Ready',
+                                    text: 'Print preview opened with selected records.',
+                                    buttons: false,
+                                    timer: 1500
+                                });
+                                clearAllSelectionsAfterExport(dt)
+                            }, 300);
+                        }
+                    },
+
+
+
+
+                    {
+                        text: '<img src="/Content/img/icons8-refresh-50.png" alt="Refresh" style="height:28px;" title="Refresh Table" />',
+                        className: 'export-buttons icon-only-btn',
+                        action: function (e, dt, node, config) {
+                            // 🔄 Spin animation on refresh icon
+                            var $img = $(node).find('img');            // DataTables node = button element
+                            if ($img.length) {
+                                $img.addClass('btn-spin');             // ensure smooth transform
+                                $img.addClass('spin');                 // trigger spin
+                                setTimeout(function () {               // remove after one cycle
+                                    $img.removeClass('spin');
+                                }, 500);
+                            }
+
+                            // ✅ 1. Reset Credit/Debit dropdown
+                            $('#txnTypeFilter').val('').trigger('change');
+                            $('#amountRangeFilter').val('').trigger('change');
+
+                            // ✅ 2. Clear all row checkboxes (on current page)
+                            dt.rows().every(function () {
+                                $(this.node()).find('.row-checkbox').prop('checked', false);
+                            });
+                            $('#selectAll').prop('checked', false);
+
+                            // ✅ 3. Clear global search
+                            dt.search('').columns().search('');
+
+                            const start = moment().startOf('month');
+                            const end = moment();
+                            const displayFormat = 'DD-MM-YYYY';
+
+                            $('#fromDate1').val(start.format('YYYY-MM-DD'));
+                            $('#toDate1').val(end.format('YYYY-MM-DD'));
+
+                            $('.daterange-btn span').html(start.format(displayFormat) + ' - ' + end.format(displayFormat));
+                            $('.daterange-btn').data('daterangepicker').setStartDate(start);
+                            $('.daterange-btn').data('daterangepicker').setEndDate(end);
+
+                            $('#fromDate1, #toDate1').trigger('change');
+
+                            // ✅ 4. Redraw table without resetting pagination
+                            dt.draw();  // keep current page
+
+                            // ❌ Toaster removed as requested (no iziToast here)
+                        }
+                    },
+
+
+
+
+
+
+
+
+                ],
+                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    var pageInfo = this.api().page.info();
+                    $('td:eq(1)', nRow).html(pageInfo.start + iDisplayIndex + 1);
+                }
+            });
+
+            $('#selectAll').on('change', function () {
+                $('.row-checkbox', table.rows({ search: 'applied' }).nodes()).prop('checked', this.checked);
+            });
+
+            $(document).ready(function () {
+                var displayFormat = 'DD-MM-YYYY';
+
+                // Initialize daterangepicker
+                $('.daterange-btn').daterangepicker({
+                    opens: 'right',
+                    autoUpdateInput: false,
+                    locale: { format: displayFormat },
+                    ranges: {
+                        'Today': [moment(), moment()],
+                        'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                        'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                        'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                        'This Month': [moment().startOf('month'), moment().endOf('month')],
+                        'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                    },
+                    startDate: moment().startOf('month'),
+                    endDate: moment()
+
+                }, function (start, end) {
+                    $('.daterange-btn span').html(start.format(displayFormat) + ' - ' + end.format(displayFormat));
+                    $('#fromDate1').val(start.format('YYYY-MM-DD'));
+                    $('#toDate1').val(end.format('YYYY-MM-DD'));
+                    $('#txnTable').DataTable().draw();
+
+                });
+
+                // ✅ Default value display करतो
+                var defaultStart = moment().startOf('month');
+                var defaultEnd = moment(); // <-- change: use today instead of endOf('month')
+
+                $('.daterange-btn span').html(defaultStart.format(displayFormat) + ' - ' + defaultEnd.format(displayFormat));
+                $('#fromDate1').val(defaultStart.format('YYYY-MM-DD'));
+                $('#toDate1').val(defaultEnd.format('YYYY-MM-DD'));
+                $('#txnTable').DataTable().draw();
+            });
+
+
+            // --- Robust date-range search for DataTables using moment.js (replace your old ext.search) ---
+            $.fn.dataTable.ext.search.push(function (settings, data) {
+                // Read min/max from hidden inputs (format YYYY-MM-DD) or blank
+                var min = $('#fromDate1').val(); // e.g. "2025-08-15"
+                var max = $('#toDate1').val();
+
+                // Row date is at column index 5 as "DD-MM-YYYY"
+                var dateText = (data[5] || '').trim();
+                if (!dateText) {
+                    // if row has no date, include it (or change to false if you want to exclude)
+                    return true;
+                }
+
+                // Parse row date strictly
+                var rowMoment = moment(dateText, 'DD-MM-YYYY', true);
+                if (!rowMoment.isValid()) {
+                    return true; // keep row if date can't be parsed
+                }
+
+                // If neither min nor max provided, include all
+                if (!min && !max) return true;
+
+                // Convert min/max into moments (min startOf day, max endOf day) for inclusive comparison
+                var minMoment = min ? moment(min, 'YYYY-MM-DD', true).startOf('day') : null;
+                var maxMoment = max ? moment(max, 'YYYY-MM-DD', true).endOf('day') : null;
+
+                if (minMoment && rowMoment.isBefore(minMoment, 'day')) return false;
+                if (maxMoment && rowMoment.isAfter(maxMoment, 'day')) return false;
+
+                return true;
+            });
+
+            $('#txnTypeFilter').on('change', function () {
+                var selected = $(this).val(); // Credit or Debit
+                if (selected) {
+                    table.column(7).search('^' + selected + '$', true, false).draw(); // ✅ correct index
+                } else {
+                    table.column(7).search('').draw();
+                }
+            });
+            $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+                var selectedRange = $('#amountRangeFilter').val();
+                var amountText = data[6] || "0"; // Column 5 = Amount
+                var amount = parseFloat(amountText.replace(/[^\d.-]/g, '')) || 0;
+
+                switch (selectedRange) {
+                    case "1": return amount < 1000;
+                    case "2": return amount >= 1000 && amount <= 5000;
+                    case "3": return amount > 5000 && amount <= 10000;
+                    case "4": return amount > 10000;
+                    default: return true;
+                }
+            });
+            $('#amountRangeFilter').on('change', function () {
+                $('#txnTable').DataTable().draw();
+            });
+
+
+
+        });
+
+    </script>
+}

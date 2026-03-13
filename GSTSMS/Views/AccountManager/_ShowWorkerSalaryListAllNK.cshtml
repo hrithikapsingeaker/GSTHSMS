@@ -1,0 +1,756 @@
+﻿@model IEnumerable<GSTSMSLibrary.AccountManager.AccountManager>
+
+<!-- Include Daterangepicker CSS -->
+<link href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" rel="stylesheet" />
+<link href="~/Content/css/AuditReport.css" rel="stylesheet" />
+
+<!-- Modal Header -->
+<div class="modal-header bg-light p-2">
+    <h5 class="modal-title text-center w-100 text-dark">Full Worker Salary List - @DateTime.Now.Year</h5>
+    <button type="button" class="btn btn-danger btn-sm ifsc-close-btn" style="height:25px; width:25px;" onclick="closeModal()">
+        <i class="fa fa-times"></i>
+    </button>
+</div>
+
+
+<!-- Modal Body -->
+<div class="modal-body p-1 ps-2">
+    <!-- Date Range Picker and Total Amount in same row -->
+    <div class="card-body py-2 px-0">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <!-- Date Range Picker -->
+            <div class="form-group mb-0">
+                <a href="javascript:;" class="btn btn-primary daterange-btn icon-left btn-icon">
+                    <i class="fas fa-calendar"></i> <span>Choose Date</span>
+                </a>
+                <input type="hidden" id="fromDate1" />
+                <input type="hidden" id="toDate1" />
+            </div>
+
+            <!-- Total Amount Display -->
+            <div class="total-amount-display">
+                <span class="font-weight-bold text-dark" style=" font-weight:bold">Total Amount: </span>
+                <span id="totalAmountDisplay" class="font-weight-bold text-dark">₹0.00</span>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="table-responsive">
+        <table class="table table-sm table-bordered table-hover table-striped dataTableExport mb-0" id="salaryDataTable" style="width: 100%; table-layout: auto;">
+            <thead class="text-center">
+                <tr>
+                    <th style="width: 30px; padding: 0;" class="p-0">
+                        <div class="d-flex justify-content-center align-items-center" style="height: 100%;">
+                            <input type="checkbox" id="select-Worker" />
+                        </div>
+                    </th>
+                    <th>Sr.No</th>
+                    <th>Worker Name</th>
+                    <th>Type</th>
+                    <th>Contact</th>
+                    <th>Address</th>
+                    <th>Amount (₹)</th>
+                    <th>Paid Date</th>
+                </tr>
+            </thead>
+            <tbody class="small">
+                @{
+                    int i = 1;
+                    foreach (var item in Model)
+                    {
+                        <tr class="text-center">
+                            <td><input type="checkbox" class="row-checkbox" /></td>
+                            <td>@i</td>
+                            <td class="text-truncate" title="@item.WorkerName">@item.WorkerName</td>
+                            <td>@item.SubTypeName</td>
+                            <td>@item.WorkerContactNo</td>
+                            <td class="text-truncate" title="@item.Address">@item.Address</td>
+                            <td>₹@item.Amount.ToString("N2")</td>
+                            <td data-date="@item.PaidDate?.ToString(" yyyy-MM-dd")">@(item.PaidDate.HasValue ? item.PaidDate.Value.ToString("dd-MM-yyyy") : "")</td>
+                        </tr>
+                        i++;
+                    }
+                }
+            </tbody>
+            @*<tfoot>
+                    <tr>
+                        <td></td>
+                        <td colspan="5" class="text-right font-weight-bold">Total:</td>
+                        <td id="totalAmountFooter" class="text-center font-weight-bold text-dark">₹0.00</td>
+                        <td></td>
+                    </tr>
+                </tfoot>*@
+
+        </table>
+    </div>
+</div>
+
+<style>
+
+    .rotate-refresh {
+        animation: spin 0.6s linear;
+    }
+
+    @@keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+<!-- DataTables CSS -->
+<link href="~/Content/modules/izitoast/css/iziToast.min.css" rel="stylesheet" />
+<link href="~/Content/modules/datatables/datatables.min.css" rel="stylesheet" />
+<link href="~/Content/modules/datatables/DataTables-1.10.16/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
+
+<link href="~/Content/css/AuditReport.css" rel="stylesheet" />
+<link href="~/Content/modules/bootstrap-daterangepicker/daterangepicker.css" rel="stylesheet" />
+<!-- DataTables JS -->
+<script src="~/Content/modules/datatables/datatables.min.js"></script>
+
+<script src="~/Content/modules/izitoast/js/iziToast.min.js"></script>
+<script src="~/Content/modules/sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/modules/moment.min.js"></script>
+<script src="~/Content/modules/bootstrap-daterangepicker/daterangepicker.js"></script>
+
+<script>
+    function closeModal() {
+        $('#workerSalaryModal').modal('hide');
+    }
+
+    $(document).ready(function () {
+        var format = 'DD-MM-YYYY';
+        var enableDateFilter = false;
+
+        function formatAmountIndian(amount) {
+            if (isNaN(amount)) return '₹0.00';
+            let [int, dec] = amount.toFixed(2).split(".");
+            let last3 = int.slice(-3), other = int.slice(0, -3);
+            if (other) last3 = ',' + last3;
+            return '₹' + other.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + last3 + '.' + dec;
+        }
+
+
+
+        var table = $('#salaryDataTable').DataTable({
+            dom: "<'row'<'col-md-6'B><'col-md-6'f>>" +
+                "<'row'<'col-12'tr>>" +
+                "<'row'<'col-md-5'i><'col-md-7'p>>",
+            ordering: false,
+            buttons: [
+                {
+                    extend: 'csvHtml5',
+                    text: '<img src="/Content/img/icons8-csv-64.png" alt="CSV" style="height:32px;" title="Export CSV" />',
+                    className: 'export-buttons icon-only-btn',
+                    filename: 'Green Valley Society-Worker Report ' + moment().format("DD-MM-YYYY"),
+                    exportOptions: {
+                        columns: ':visible:not(:first-child)' // Skip checkbox column
+                    },
+                    customize: function (csv) {
+                        const headerTitle = 'Green Valley Society-Worker Report';
+                        const downloadedOn = 'Generated on: ' + moment().format('DD-MM-YYYY hh:mm A');
+
+                        const csvRows = csv.split('\n');
+
+                        // 🔹 Step 1: Replace first column name with "Sr No"
+                        const originalHeader = csvRows[0].split(',');
+                        originalHeader[0] = '"Sr No"';
+                        csvRows[0] = originalHeader.join(',');
+
+                        // 🔹 Step 2: Loop through each row and format columns
+                        for (let i = 1; i < csvRows.length; i++) {
+                            if (csvRows[i].trim() !== '') {
+                                const rowCols = csvRows[i].split(',');
+
+                                // 🟢 Sr No
+                                rowCols[0] = `"${i}"`;
+
+                                // 📞 Phone (index 4)
+                                if (rowCols[4]) {
+                                    const phone = rowCols[4].replace(/"/g, '').trim();
+                                    rowCols[4] = `"=""${phone}"""`;  // Excel treats as text
+                                }
+
+                                // 📅 Reg Date (index 8)
+                                if (rowCols[8]) {
+                                    rowCols[8] = `"${rowCols[8].replace(/"/g, '')}"`;
+                                }
+
+                                // 💰 Reg Fee (index 9)
+                                if (rowCols[9]) {
+                                    let cleanFee = rowCols[9].replace(/"/g, '').replace(/[^0-9.,]/g, '');
+                                    rowCols[9] = `"${cleanFee}"`;
+                                }
+
+                                csvRows[i] = rowCols.join(',');
+                            }
+                        }
+
+                        // 🔹 Step 3: Add title and timestamp (centered using empty columns)
+                        const emptyCols = originalHeader.length - 1;
+                        const centerPad = Math.floor(emptyCols / 2);
+                        const padString = Array(centerPad).fill('').join(',');
+
+                        const centeredTitle = padString + `"${headerTitle}"`;
+                        const centeredTimestamp = padString + `"${downloadedOn}"`;
+
+                        csvRows.unshift(centeredTimestamp);
+                        csvRows.unshift(centeredTitle);
+
+                        return csvRows.join('\n');
+                    },
+                    action: function (e, dt, button, config) {
+                        const selectedRows = dt.rows({ filter: 'applied' }).nodes().to$().filter(function () {
+                            return $(this).find('input.row-checkbox:checked').length > 0;
+                        });
+
+                        const isHeaderOnlyChecked = $('thead input.row-checkbox:checked').length > 0 && selectedRows.length === 0;
+                        if (isHeaderOnlyChecked || selectedRows.length === 0) {
+                            iziToast.warning({
+                                title: 'Warning',
+                                message: 'Please select at least one row to export CSV.',
+                                position: 'topCenter'
+                            });
+                            return;
+                        }
+
+                        const validRows = selectedRows.filter(function () {
+                            const name = $(this).find('td:nth-child(3)').text().trim();
+                            return name !== '';
+                        });
+
+                        if (validRows.length === 0) {
+                            iziToast.warning({
+                                title: 'Warning',
+                                message: 'Please select at least one valid row to export CSV.',
+                                position: 'topCenter'
+                            });
+                            return;
+                        }
+
+                        config.exportOptions.rows = function (idx, data, node) {
+                            return $(node).find('input.row-checkbox').is(':checked');
+                        };
+
+                        $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+
+                        setTimeout(function () {
+                            swal({
+                                icon: 'success',
+                                title: 'CSV Exported',
+                                text: 'Your CSV file has been downloaded successfully!',
+                                timer: 2000,
+                                buttons: false
+                            });
+                        }, 500);
+                        setTimeout(function () {
+                            dt.rows().nodes().to$().find('.row-checkbox').prop('checked', false);
+                            $('#select-Worker').prop('checked', false);
+                        }, 100);
+                    }
+                },
+                {
+                    extend: 'excelHtml5',
+                    text: '<img src="/Content/img/icons8-xls-64.png" style="height:32px;" title="Export Excel" />',
+                    className: 'export-buttons icon-only-btn',
+                    title: null,
+                    filename: 'Green Valley Society-Worker Report' + moment().format("DD-MM-YYYY"),
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $('input.row-checkbox', node).is(':checked');
+                        },
+                        columns: [1, 2, 3, 4, 5, 6, 7]
+                    },
+                    customize: function (xlsx) {
+                        const sheet = xlsx.xl.worksheets['sheet1.xml'];
+                        const styles = xlsx.xl['styles.xml'];
+                        const $ = window.jQuery;
+
+                        const title = 'Green Valley Society Worker Report';
+                        const timestamp = 'Generated on: ' + moment().format('DD-MM-YYYY hh:mm A');
+
+                        const sheetData = $('sheetData', sheet);
+                        const rows = sheetData.find('row');
+
+                        // Shift existing rows down by 2
+                        rows.each(function () {
+                            const r = parseInt($(this).attr('r')) + 2;
+                            $(this).attr('r', r);
+                            $(this).find('c').each(function () {
+                                const cellRef = $(this).attr('r');
+                                const col = cellRef.replace(/[0-9]/g, '');
+                                $(this).attr('r', col + r);
+                            });
+                        });
+
+                        // Insert custom header rows
+                        const titleRow = `
+<row r="1">
+    <c t="inlineStr" r="D1" s="2">
+        <is><t>${title}</t></is>
+    </c>
+</row>`;
+                        const dateRow = `
+<row r="2">
+    <c t="inlineStr" r="D2" s="2">
+        <is><t>${timestamp}</t></is>
+    </c>
+</row>`;
+
+                        sheetData.prepend(dateRow);
+                        sheetData.prepend(titleRow);
+
+                        // Add center style in styles.xml
+                        const cellXfs = $('cellXfs', styles);
+                        const centerStyleIndex = cellXfs.children().length;
+                        cellXfs.append(`
+<xf xfId="0" applyAlignment="1">
+    <alignment horizontal="center" vertical="center"/>
+</xf>`);
+
+                        // Apply center style to all cells
+                        $('sheetData row c', sheet).attr('s', centerStyleIndex);
+
+                        // Fix Sr.No column (A)
+                        let srNo = 1;
+                        $('row', sheet).each(function () {
+                            const rowIndex = parseInt($(this).attr('r'));
+                            if (rowIndex >= 4) {
+                                const firstCell = $('c[r^="A"]', this);
+                                if (firstCell.length) {
+                                    firstCell.attr('t', 'n');
+                                    firstCell.find('v').text(srNo++);
+                                }
+                            }
+                        });
+                    },
+                    action: function (e, dt, button, config) {
+                        const selected = dt.rows().nodes().to$().find('.row-checkbox:checked');
+
+                        // ✅ Condition 1: No checkbox selected
+                        if (selected.length === 0) {
+                            iziToast.warning({
+                                title: 'Warning',
+                                message: 'Please select at least one row to export Excel.',
+                                position: 'topCenter'
+                            });
+                            return;
+                        }
+
+                        // ✅ Condition 2: Header selected but no data rows
+                        const dataRows = dt.rows({ search: 'applied' }).nodes().to$().filter(function () {
+                            return $(this).find('.row-checkbox').length > 0;
+                        });
+
+                        if (dataRows.length === 0) {
+                            iziToast.warning({
+                                title: 'Warning',
+                                message: 'Please select at least one row to export Excel.',
+                                position: 'topCenter'
+                            });
+                            return;
+                        }
+
+                        // ✅ All good – allow export
+                        $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+
+                        swal({
+                            icon: 'success',
+                            title: 'Excel Exported',
+                            text: 'Your Excel file has been downloaded successfully!',
+                            timer: 2000,
+                            buttons: false
+
+                        });
+                        setTimeout(function () {
+                            dt.rows().nodes().to$().find('.row-checkbox').prop('checked', false);
+                            $('#select-Worker').prop('checked', false);
+                        }, 100);
+
+                    }
+                },
+                {
+                    extend: 'pdfHtml5',
+                    text: '<img src="/Content/img/icons8-pdf-64.png" alt="PDF" style="height:32px;" title="Export PDF" />',
+                    className: 'export-buttons icon-only-btn',
+                    orientation: 'landscape',
+                    filename: 'Green Valley Society-Worker Report ' + moment().format("DD-MM-YYYY"),
+                    pageSize: 'A4',
+                    title: '',
+                    messageTop: '',
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $('input.row-checkbox', node).is(':checked');
+                        },
+                        columns: ':visible:not(:first-child)',
+                        format: {
+                            body: function (data, row, col, node) {
+                                if (col === 0) return (row + 1).toString(); // Sr.No
+
+                                let text = $(node).attr('data-export') || $(node).text().trim();
+
+                                // 🔴 Optional: Limit description length
+                                if (col === 5 && text.length > 50) {
+                                    text = text.substring(0, 50) + '...';
+                                }
+
+                                return text;
+                            }
+                        }
+
+
+                    },
+                    customize: function (doc) {
+                        const now = moment().format("DD-MM-YYYY hh:mm A");
+                        doc.content.unshift({
+                            alignment: 'center',
+                            margin: [0, 0, 0, 12],
+                            text: [
+                                { text: 'Green Valley Society - Worker Report\n', fontSize: 18, bold: true },
+                                { text: 'Generated on: ' + now + '\n\n', fontSize: 12, italics: true }
+                            ]
+                        });
+
+                        const tableContent = doc.content.find(obj => obj.table);
+                        if (tableContent) {
+                            const colCount = tableContent.table.body[0].length;
+                            tableContent.table.widths = (colCount === 7)
+                                ? [20, 80, 100, 170, 100, 150, 70]
+                                : Array(colCount).fill('auto');
+
+                            tableContent.alignment = 'center';
+                            tableContent.table.body.forEach((row, rowIndex) => {
+                                row.forEach((cell, colIndex) => {
+                                    if (typeof cell === 'object') {
+                                        cell.alignment = 'center';
+                                    } else {
+                                        row[colIndex] = { text: cell, alignment: 'center' };
+                                    }
+                                });
+                            });
+
+                            tableContent.layout = {
+                                hLineWidth: () => 0.5,
+                                vLineWidth: () => 0.5,
+                                hLineColor: () => '#aaa',
+                                vLineColor: () => '#aaa',
+                                paddingLeft: () => 4,
+                                paddingRight: () => 4,
+                                paddingTop: () => 2,       // less padding → less height
+                                paddingBottom: () => 2     // less padding → less height
+                            };
+                        }
+
+                        doc.defaultStyle.fontSize = 10;
+                        doc.styles.tableHeader.fontSize = 11;
+                        doc.styles.tableHeader.bold = true;
+                        doc.styles.tableHeader.alignment = 'center';
+                        doc.styles.tableHeader.fillColor = '#615677 ';
+                        doc.styles.tableHeader.color = '#ffffff';
+                    },
+                    action: function (e, dt, button, config) {
+                        const selected = dt.rows().nodes().to$().find('.row-checkbox:checked');
+
+                        // ✅ Condition 1: No checkbox selected
+                        if (selected.length === 0) {
+                            iziToast.warning({
+                                title: 'Warning',
+                                message: 'Please select at least one row to export PDF.',
+                                position: 'topCenter'
+                            });
+                            return;
+                        }
+
+                        // ✅ Condition 2: Only header selected, no data rows
+                        const dataRows = dt.rows({ search: 'applied' }).nodes().to$().filter(function () {
+                            return $(this).find('.row-checkbox').length > 0;
+                        });
+
+                        if (dataRows.length === 0) {
+                            iziToast.warning({
+                                title: 'Warning',
+                                message: 'Please select at least one row to export PDF.',
+                                position: 'topCenter'
+
+                            });
+                            return;
+                        }
+
+                        // ✅ All good – allow export
+                        $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+
+                        swal({
+                            icon: 'success',
+                            title: 'PDF Exported',
+                            text: 'Your PDF file has been downloaded successfully!',
+                            timer: 2000,
+                            buttons: false
+
+                        });
+                        setTimeout(function () {
+                            dt.rows().nodes().to$().find('.row-checkbox').prop('checked', false);
+                            $('#select-Worker').prop('checked', false);
+                        }, 100);
+                    }
+                },
+                {
+                    extend: 'print',
+                    className: 'export-buttons icon-only-btn',
+                    title: '',
+                    text: '<img src="/Content/img/icons8-print-100.png" alt="Print" style="height:32px;" title="Print" />',
+                    titleAttr: 'Print',
+                    exportOptions: {
+                        columns: ':visible:not(:first-child)',
+                        modifier: { search: 'applied', order: 'applied', page: 'all' },
+                        rows: function (idx, data, node) {
+                            return $(node).find('input.row-checkbox').prop('checked');
+                        },
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 0) return (row + 1).toString();
+                                return data;
+                            }
+                        }
+                    },
+                    customize: function (win) {
+                        var now = new Date().toLocaleString('en-GB', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true
+                        });
+                        $(win.document.body)
+                            .css('font-size', '10pt')
+                            .prepend(
+                                '<div style="text-align:center; margin:0 0 10px 0;">' +
+                                '<h2>Green Valley Society : Worker Salary List</h2>' +
+                                '<p>Generated on: ' + now + '</p>' +
+                                '</div>'
+                            );
+
+                        $(win.document.body).find('table')
+                            .addClass('compact')
+                            .css({ fontSize: 'inherit', textAlign: 'center', margin: '0 auto', borderCollapse: 'collapse' });
+
+                        $(win.document.body).find('th, td')
+                            .css({ border: '1px solid black', padding: '5px' });
+
+                        $(win.document.body).find('th').css('text-align', 'center');
+
+                        const style = document.createElement('style');
+                        style.type = 'text/css';
+                        style.innerHTML = `
+  @@page { margin: 0; }
+  @@media print {
+    html, body { height: auto !important; min-height: 0 !important; margin: 0 !important; padding: 20px !important; }
+    .dt-print-view { overflow: visible !important; position: static !important; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; } /* fixed layout helps enforce widths */
+    thead { display: table-header-group; }
+    tfoot { display: table-footer-group; }
+    tr, td, th { break-inside: avoid; page-break-inside: avoid; }
+
+    /* Paid Date column width:
+       Adjust nth-child index to match the printed column position.
+       For columns: [Sr No, Payer, Paid To, Amount, Payment Mode, Purpose, Paid Date, Type]
+       Paid Date is 7th => nth-child(7). If it is 8th for your table, change both to (8). */
+    table.dataTable.print-table th:nth-child(7),
+    table.dataTable.print-table td:nth-child(7) {
+      width: 120px !important;      /* increase as needed */
+      max-width: 120px !important;
+      white-space: nowrap;          /* keep date on one line */
+    }
+  }
+`;
+                        $(win.document.head).append(style);
+
+                        // Optionally add a class to target the print table precisely
+                        $(win.document.body).find('table').addClass('print-table');
+                    },
+                    action: function (e, dt, button, config) {
+                        var selected = dt.rows(function (idx, data, node) {
+                            return $(node).find('input.row-checkbox').prop('checked');
+                        }, { search: 'applied', page: 'all' }).count();
+
+                        if (selected === 0) {
+                            iziToast.warning({
+                                title: 'Warning', message: 'Please select at least one row to export.', position: 'topCenter'
+                            });
+
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                    }
+                },
+                {
+                    text: '<img id="refreshIcon" src="/Content/img/icons8-refresh-50.png" alt="Refresh" style="height:28px;" title="Refresh Table" />',
+                    className: 'export-buttons icon-only-btn',
+                    action: function (e, dt, node, config) {
+                        $('#refreshIcon').addClass('rotate-refresh');
+
+                        setTimeout(function () {
+                            // Clear all filters and search
+                            dt.search('').columns().search('');
+                            $('#wingDropdown').val('');
+
+                            // Clear all checkboxes on ALL pages
+                            dt.$('.row-checkbox').prop('checked', false);
+                            $('#select-Worker').prop('checked', false);
+
+                            enableDateFilter = false;
+                            $('#fromDate1').val('');
+                            $('#toDate1').val('');
+                            $('.daterange-btn').find('span').html('Choose Date');
+
+                            // ✅ Redraw table
+                            dt.page('first').draw(false);
+
+                            $('#refreshIcon').removeClass('rotate-refresh');
+                        }, 500);
+                    }
+                }
+            ],
+            columnDefs: [
+                {
+                    orderable: false,
+                    targets: 0
+                }
+            ],
+            order: [[1, 'asc']],
+            pageLength: 10,
+            responsive: false,
+            scrollX: false,
+
+            language: {
+                search: "Search : _INPUT_",
+                searchPlaceholder: "",
+                infoFiltered: ""
+            },
+            initComplete: function () {
+                // ✅ Force draw after initComplete to update footer total
+                this.api().draw();
+            },
+            footerCallback: function (row, data, start, end, display) {
+                var api = this.api();
+                var total = 0;
+
+                // Get all rows (including filtered ones)
+                var rows = api.rows({ search: 'applied' }).nodes();
+
+                // Loop through each visible row after filtering
+                $(rows).each(function () {
+                    var amountText = $(this).find('td:eq(6)').text(); // 7th column (index 6)
+                    if (amountText) {
+                        var cleanValue = amountText.replace(/[₹,]/g, '').trim();
+                        var amount = parseFloat(cleanValue);
+                        if (!isNaN(amount)) total += amount;
+                    }
+                });
+
+                var formattedTotal = formatAmountIndian(total);
+                $('#totalAmountFooter').text(formattedTotal);
+                $('#totalAmountDisplay').text(formattedTotal);
+            },
+            drawCallback: function (settings) {
+                var api = this.api();
+                var pageInfo = api.page.info(); // Get current page info
+                var startIndex = pageInfo.start; // Starting index of current page
+
+                // ✅ Update Sr.No based on pagination
+                api.column(1, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = startIndex + i + 1; // Global index
+                });
+
+
+            }
+
+
+        });
+
+        $.fn.dataTable.ext.search.push(
+            function (settings, data, dataIndex) {
+                if (!enableDateFilter) {
+                    return true; // date filter बंद असेल तर सर्व rows दाखव
+                }
+
+                let min = $('#fromDate1').val();
+                let max = $('#toDate1').val();
+
+                // 👉 समजा तुझा Date column हा 3rd column आहे (index 2)
+                let dateStr = data[7]; // column index बदल तुझ्या table नुसार
+                let colDate = moment(dateStr, format);
+
+                if (min && colDate.isBefore(moment(min, format))) {
+                    return false;
+                }
+                if (max && colDate.isAfter(moment(max, format))) {
+                    return false;
+                }
+                return true;
+            }
+        );
+
+
+        initializeDateRangePicker();
+
+        function initializeDateRangePicker() {
+            $('.daterange-btn').daterangepicker({
+                locale: { format: format },
+                autoUpdateInput: false,   // ❌ auto overwrite बंद
+                opens: "right",
+                drops: "down",
+                showDropdowns: false,
+                linkedCalendars: false,
+                ranges: {
+                    'Today': [moment(), moment()],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    'This Month': [moment().startOf('month'), moment().endOf('month')],
+                    'Last Month': [moment().subtract(1, 'month').startOf('month'),
+                    moment().subtract(1, 'month').endOf('month')]
+                }
+            }, function (start, end) {
+                enableDateFilter = true;
+
+                // ✅ manually set input values
+                $('#fromDate1').val(start.format(format));
+                $('#toDate1').val(end.format(format));
+
+                $('.daterange-btn span').html(
+                    start.format(format) + ' - ' + end.format(format)
+                );
+
+                table.draw();
+            });
+
+            $('.daterange-btn span').html('Choose Date');
+        }
+
+
+
+
+
+        // ✅ Header "Select All" checkbox
+        $('#select-Worker').on('click', function () {
+            var isChecked = $(this).prop('checked');
+
+            // 🔹 सर्व pages वरचे checkboxes select/deselect कर
+            table.$('.row-checkbox').prop('checked', isChecked);
+        });
+
+        // ✅ Individual row checkbox → update header
+        $('#salaryDataTable').on('change', '.row-checkbox', function () {
+            var totalCheckboxes = table.$('.row-checkbox').length;
+            var checkedCheckboxes = table.$('.row-checkbox:checked').length;
+
+            $('#select-Worker').prop('checked', totalCheckboxes === checkedCheckboxes);
+        });
+
+
+    });
+</script>

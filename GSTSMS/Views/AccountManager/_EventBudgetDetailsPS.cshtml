@@ -1,0 +1,791 @@
+﻿>"@model List<GSTSMSLibrary.AccountManager.AccountManager>
+@{
+    Layout = null;
+    bool showDatePicker = ViewBag.ShowDatePicker ?? true;
+    string monthLabel = ViewBag.MonthLabel ?? "All Months";
+}
+
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Event Budget Details - @monthLabel</h5>
+        @if (showDatePicker)
+        {
+            <div class="seldate">
+                <a href="javascript:;" class="btn btn-primary daterange-btn icon-left btn-icon">
+                    <i class="fas fa-calendar"></i> <span>Choose Date</span>
+                </a>
+                <input type="hidden" id="fromDate" />
+                <input type="hidden" id="toDate" />
+            </div>
+        }
+    </div>
+
+    @if (Model != null && Model.Count > 0)
+    {
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered table-hover table-striped mb-0"
+                   id="eventBudgetTable" style="width:100%;">
+                <thead class="text-center">
+                    <tr>
+                        <th style="width: 30px;">
+                            <input type="checkbox" id="select-event-all" class="form-check-input m-0" />
+                        </th>
+                        <th style="width: 40px;">Sr.no</th>
+                        <th style="width: 150px;">Event Name</th>
+                        <th style="width: 150px;">Date</th>
+                        <th style="width: 130px;">Allocated Budget (₹)</th>
+                        <th style="width: 130px;">Actual Cost (₹)</th>
+                        <th style="width: 130px;">Difference (₹)</th>
+                    </tr>
+                </thead>
+                <tbody class="small">
+                    @for (int i = 0; i < Model.Count; i++)
+                    {
+                        var item = Model[i];
+                        var diff = item.AllocatedBudget - item.ActualCost;
+                        var diffClass = diff >= 0 ? "text-success" : "text-danger";
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="form-check-input row-checkbox" />
+                            </td>
+                            <td>@(i + 1)</td>
+                            <td>@item.EventName</td>
+                            <td data-full-date="@item.FromDate.ToString("yyyy-MM-dd")">@item.FromDate.ToString("dd-MM-yyyy")</td>
+                            <td>₹@item.AllocatedBudget.ToString("N2")</td>
+                            <td>₹@item.ActualCost.ToString("N2")</td>
+                            <td class="text-center font-weight-bold @diffClass">₹@diff.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot class="text-center font-weight-bold">
+                    <tr>
+                        <td colspan="4" class="text-right">Total</td>
+                        <td id="totalAllocated">₹0.00</td>
+                        <td id="totalActual">₹0.00</td>
+                        <td id="totalDifference">₹0.00</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info text-center">No event budget data found.</div>
+    }
+</div>
+
+<style>
+    .seldate {
+        padding-bottom: 10px;
+    }
+
+    table td, table th {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.85rem;
+        vertical-align: middle;
+    }
+
+    .text-success {
+        color: #28a745;
+    }
+
+    .text-danger {
+        color: #dc3545;
+    }
+
+    .font-weight-bold {
+        font-weight: 700;
+    }
+
+    .table-responsive {
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+
+    /* Export buttons styling */
+    .export-buttons.icon-only-btn {
+        background: transparent !important;
+        border: none !important;
+        padding: 2px 5px !important;
+        margin: 0 2px;
+    }
+
+    /* Refresh animation */
+    .rotate-refresh {
+        animation: rotate 0.7s linear infinite;
+    }
+
+    @@keyframes rotate {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Selected row styling */
+    tr.selected {
+        background-color: #e3f2fd !important;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+
+
+
+     // ✅ Event delegation वापरा
+$(document).on("click", "#AllEventBudgetDetails", function () {
+    console.log("Event Budget Details button clicked");
+
+    $.ajax({
+        url: '@Url.Action("GetEventBudgetDetailsPS", "AccountManager")',
+        type: "GET",
+        beforeSend: function() {
+            console.log("Loading data...");
+            $("#eventBudgetDetailsContainer").html(`
+                <div class="text-center p-4">
+                    <div class="spinner-border text-primary"></div>
+                    <p>Loading details...</p>
+                </div>
+            `);
+        },
+        success: function (response) {
+            console.log("Response received:", response);
+            $("#eventBudgetDetailsContainer").html(response);
+
+            // DataTable पुन्हा initialize करा
+            if ($.fn.DataTable.isDataTable('#eventBudgetTable')) {
+                $('#eventBudgetTable').DataTable().destroy();
+            }
+
+            // Modal show करा
+            var modal = new bootstrap.Modal(document.getElementById('eventBudgetModal'));
+            modal.show();
+        },
+        error: function (xhr, status, error) {
+            console.error("Error:", error);
+            $("#eventBudgetDetailsContainer").html(`
+                <div class="alert alert-danger">
+                    <h5>Error Loading Data</h5>
+                    <p>Status: ${xhr.status}</p>
+                    <p>Error: ${error}</p>
+                </div>
+            `);
+        }
+    });
+});
+        // Global variables
+        var table = null;
+        var selectedRows = {}; // Track selection across all pages
+
+        // ✅ 1. INITIALIZE DATE RANGE PICKER (FIXED - WORKS)
+        function initializeDateRangePicker() {
+            $('.daterange-btn').daterangepicker({
+                opens: 'right',
+                showDropdowns: true,
+                autoUpdateInput: false,
+                linkedCalendars: false,
+                showCustomRangeLabel: true,
+                ranges: {
+                    'Today': [moment(), moment()],
+                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                    'This Month': [moment().startOf('month'), moment().endOf('month')],
+                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                },
+                locale: {
+                    format: 'DD-MM-YYYY',
+                    cancelLabel: 'Clear',
+                    applyLabel: 'Apply',
+                    customRangeLabel: 'Custom Range',
+                    daysOfWeek: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+                    monthNames: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    firstDay: 1
+                }
+            });
+
+            // Apply button handler
+            $('.daterange-btn').on('apply.daterangepicker', function (ev, picker) {
+                $(this).html('<i class="fas fa-calendar"></i> ' +
+                    picker.startDate.format('DD-MM-YYYY') + ' - ' +
+                    picker.endDate.format('DD-MM-YYYY'));
+
+                $('#fromDate').val(picker.startDate.format('YYYY-MM-DD'));
+                $('#toDate').val(picker.endDate.format('YYYY-MM-DD'));
+
+                if (table) {
+                    table.draw();
+                }
+            });
+
+            // Cancel button handler
+            $('.daterange-btn').on('cancel.daterangepicker', function (ev, picker) {
+                $(this).html('<i class="fas fa-calendar"></i> <span>Choose Date</span>');
+                $('#fromDate').val('');
+                $('#toDate').val('');
+
+                if (table) {
+                    table.draw();
+                }
+            });
+        }
+
+        // ✅ 2. CUSTOM DATE FILTER (FIXED - WORKS)
+        $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+            var fromDate = $('#fromDate').val();
+            var toDate = $('#toDate').val();
+
+            // If no date filter applied, show all rows
+            if (!fromDate && !toDate) {
+                return true;
+            }
+
+            // Get the row element
+            var row = table.row(dataIndex).node();
+            if (!row) return false;
+
+            // Get date from data-full-date attribute
+            var fullDateStr = $(row).find('td:eq(3)').attr('data-full-date');
+            if (!fullDateStr) return false;
+
+            var rowDate = new Date(fullDateStr);
+            var fromDateObj = fromDate ? new Date(fromDate) : null;
+            var toDateObj = toDate ? new Date(toDate) : null;
+
+            // Filter logic
+            if (fromDateObj && rowDate < fromDateObj) {
+                return false;
+            }
+
+            if (toDateObj) {
+                var toDatePlusOne = new Date(toDateObj);
+                toDatePlusOne.setDate(toDatePlusOne.getDate() + 1);
+                if (rowDate >= toDatePlusOne) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+
+        // ✅ 3. INITIALIZE DATATABLE WITH ALL FEATURES
+        table = $('#eventBudgetTable').DataTable({
+            dom: "<'row mb-2'<'col-md-6'B><'col-md-6 text-end'f>>" +
+                "<'row'<'col-12'tr>>" +
+                "<'row mt-2'<'col-md-5'i><'col-md-7 text-end'p>>",
+            ordering: false,
+            pageLength: 10,
+            responsive: false,
+            scrollX: false,
+
+            language: {
+                info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                infoEmpty: "Showing 0 to 0 of 0 entries",
+                infoFiltered: "",
+                search: "Search:",
+                searchPlaceholder: "Search events..."
+            },
+
+            buttons: [
+                // ✅ CSV Export Button (FIXED - WORKS)
+                {
+                    extend: 'csvHtml5',
+                    text: '<img src="/Content/img/icons8-csv-64.png" alt="CSV" style="height:32px;" title="Export CSV" />',
+                    className: 'export-buttons icon-only-btn',
+                    filename: 'Event_Budget_Report_' + moment().format("DD-MM-YYYY"),
+                    exportOptions: {
+                        columns: ':visible:not(:first-child)',
+                        rows: function (idx, data, node) {
+                            // If select-all checked, export ALL FILTERED rows
+                            if ($('#select-event-all').is(':checked')) {
+                                return table.rows({ search: 'applied' }).nodes().index(node) !== -1;
+                            }
+                            return $(node).find('.row-checkbox').is(':checked');
+                        },
+                        format: {
+                            body: function (data, row, column, node) {
+                                var $originalRow = $(node);
+
+                                // Date column (index 2 in export)
+                                if (column === 2) {
+                                    var fullDate = $originalRow.find('td:eq(3)').attr('data-full-date') || $originalRow.find('td:eq(3)').text();
+                                    return moment(fullDate).format('DD-MM-YYYY');
+                                }
+
+                                // Amount columns (3,4,5 in export)
+                                if (column === 3 || column === 4 || column === 5) {
+                                    return data.toString().replace(/[₹,]/g, '').trim();
+                                }
+
+                                return ('' + data).replace(/[\r\n]+/g, ' ');
+                            }
+                        }
+                    },
+                    customize: function (csv) {
+                        const headerTitle = 'Event Budget Report';
+                        const downloadedOn = 'Generated on: ' + moment().format('DD-MM-YYYY hh:mm A');
+                        const csvRows = csv.split('\n');
+
+                        csvRows[0] = ['"Sr No"', '"Event Name"', '"Date"', '"Allocated Budget"', '"Actual Cost"', '"Difference"'].join(',');
+
+                        for (let i = 1, j = 1; i < csvRows.length; i++) {
+                            if (!csvRows[i] || csvRows[i].trim() === '') continue;
+                            const cols = csvRows[i].split(',');
+                            cols[0] = j.toString();
+                            for (let k = 3; k <= 5; k++) {
+                                if (cols[k]) {
+                                    const num = parseFloat(cols[k].replace(/[^\d.-]/g, ''));
+                                    if (!isNaN(num)) cols[k] = num.toFixed(2);
+                                }
+                            }
+                            csvRows[i] = cols.join(',');
+                            j++;
+                        }
+
+                        csvRows.unshift(',,,,,' + downloadedOn);
+                        csvRows.unshift(',,,,' + headerTitle);
+
+                        return csvRows.join('\n');
+                    },
+                    action: function (e, dt, button, config) {
+                        const hasSelection = $('#select-event-all').is(':checked') || dt.rows().nodes().to$().find('.row-checkbox:checked').length > 0;
+                        if (!hasSelection) {
+                            iziToast.warning({
+                                title: 'Warning',
+                                message: 'Please select at least one row to export CSV.',
+                                position: 'topCenter'
+                            });
+                            return;
+                        }
+
+                        $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+
+                        setTimeout(() => {
+                            swal({
+                                icon: 'success',
+                                title: 'CSV Exported',
+                                text: 'Your CSV file has been downloaded successfully!',
+                                timer: 2000,
+                                buttons: false
+                            });
+                        }, 150);
+                    }
+                },
+
+                // ✅ Excel Export Button (FIXED - WORKS)
+                {
+                    extend: 'excelHtml5',
+                    text: '<img src="/Content/img/icons8-xls-64.png" style="height:32px;" title="Export Excel" />',
+                    className: 'export-buttons icon-only-btn',
+                    title: null,
+                    filename: 'Event_Budget_Report_' + moment().format("DD-MM-YYYY"),
+                    exportOptions: {
+                        columns: [1, 2, 3, 4, 5, 6],
+                        rows: function (idx, data, node) {
+                            if ($('#select-event-all').is(':checked')) return true;
+                            return $(node).find('.row-checkbox').is(':checked');
+                        }
+                    },
+                    customize: function (xlsx) {
+                        try {
+                            const sheet = xlsx.xl.worksheets['sheet1.xml'];
+                            const styles = xlsx.xl['styles.xml'];
+                            const $ = window.jQuery;
+
+                            const title = 'Event Budget Report';
+                            const timestamp = 'Generated on: ' + moment().format('DD-MM-YYYY hh:mm A');
+
+                            const sheetData = $('sheetData', sheet);
+                            const rows = sheetData.find('row');
+
+                            rows.each(function () {
+                                const r = parseInt($(this).attr('r')) + 2;
+                                $(this).attr('r', r);
+                                $(this).find('c').each(function () {
+                                    const cellRef = $(this).attr('r');
+                                    const col = cellRef.replace(/[0-9]/g, '');
+                                    $(this).attr('r', col + r);
+                                });
+                            });
+
+                            const titleRow = `<row r="1"><c t="inlineStr" r="D1" s="2"><is><t>${title}</t></is></c></row>`;
+                            const dateRow = `<row r="2"><c t="inlineStr" r="D2" s="2"><is><t>${timestamp}</t></is></c></row>`;
+                            sheetData.prepend(dateRow);
+                            sheetData.prepend(titleRow);
+
+                            const cellXfs = $('cellXfs', styles);
+                            const centerStyleIndex = cellXfs.children().length;
+                            cellXfs.append(`<xf xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>`);
+                            $('sheetData row c', sheet).attr('s', centerStyleIndex);
+
+                            let srNo = 1;
+                            $('row', sheet).each(function () {
+                                const rowIndex = parseInt($(this).attr('r'));
+                                if (rowIndex >= 4) {
+                                    const firstCell = $('c[r^="A"]', this);
+                                    if (firstCell.length) {
+                                        firstCell.attr('t', 'n');
+                                        firstCell.find('v').text(srNo++);
+                                    }
+                                }
+                            });
+                        } catch (ex) {
+                            console.warn('Excel customize failed:', ex);
+                        }
+                    },
+                    action: function (e, dt, button, config) {
+                        const selected = dt.rows().nodes().to$().find('.row-checkbox:checked');
+                        if (selected.length === 0) {
+                            iziToast.warning({
+                                title: 'Warning',
+                                message: 'Please select at least one row to export Excel.',
+                                position: 'topCenter'
+                            });
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+
+                        setTimeout(() => {
+                            swal({
+                                icon: 'success',
+                                title: 'Excel Exported',
+                                text: 'Your Excel file has been downloaded successfully!',
+                                timer: 2000,
+                                buttons: false
+                            });
+                        }, 150);
+                    }
+                },
+
+                // ✅ PDF Export Button (FIXED - WORKS)
+                {
+                    extend: 'pdfHtml5',
+                    text: '<img src="/Content/img/icons8-pdf-64.png" alt="PDF" style="height:32px;" title="Export PDF" />',
+                    className: 'export-buttons icon-only-btn',
+                    orientation: 'landscape',
+                    filename: 'Event_Budget_Report_' + moment().format("DD-MM-YYYY"),
+                    pageSize: 'A4',
+                    title: '',
+                    messageTop: '',
+                    exportOptions: {
+                        columns: ':visible:not(:first-child)',
+                        rows: function (idx, data, node) {
+                            if ($('#select-event-all').is(':checked')) return true;
+                            return $(node).find('.row-checkbox').is(':checked');
+                        }
+                    },
+                    customize: function (doc) {
+                        const now = moment().format("DD-MM-YYYY hh:mm A");
+                        doc.content.unshift({
+                            alignment: 'center',
+                            margin: [0, 0, 0, 12],
+                            text: [
+                                { text: 'Event Budget Report\n', fontSize: 18, bold: true },
+                                { text: 'Generated on: ' + now + '\n\n', fontSize: 12, italics: true }
+                            ]
+                        });
+
+                        const tableContent = doc.content.find(obj => obj.table);
+                        if (tableContent) {
+                            const colCount = tableContent.table.body[0].length;
+                            for (let i = 1; i < tableContent.table.body.length; i++) {
+                                if (tableContent.table.body[i].length > 0) {
+                                    tableContent.table.body[i][0] = { text: i.toString(), alignment: 'center' };
+                                }
+                            }
+
+                            tableContent.table.widths = Array(colCount).fill('*');
+                            tableContent.table.body.forEach((row) => {
+                                row.forEach((cell, idx) => {
+                                    if (typeof cell === 'object') cell.alignment = 'center';
+                                });
+                            });
+
+                            tableContent.layout = {
+                                hLineWidth: () => 0.5,
+                                vLineWidth: () => 0.5,
+                                hLineColor: () => '#aaa',
+                                vLineColor: () => '#aaa',
+                                paddingLeft: () => 5,
+                                paddingRight: () => 5,
+                                paddingTop: (rowIndex) => rowIndex === 0 ? 8 : 4,
+                                paddingBottom: (rowIndex) => rowIndex === 0 ? 8 : 4
+                            };
+                        }
+
+                        doc.defaultStyle.fontSize = 8;
+                        if (doc.styles && doc.styles.tableHeader) {
+                            doc.styles.tableHeader.fontSize = 9;
+                            doc.styles.tableHeader.bold = true;
+                            doc.styles.tableHeader.alignment = 'center';
+                            doc.styles.tableHeader.fillColor = '#615677';
+                            doc.styles.tableHeader.color = '#ffffff';
+                        }
+                    },
+                    action: function (e, dt, button, config) {
+                        const selected = dt.rows().nodes().to$().find('.row-checkbox:checked');
+                        if (selected.length === 0) {
+                            iziToast.warning({
+                                title: 'Warning',
+                                message: 'Please select at least one row to export PDF.',
+                                position: 'topCenter'
+                            });
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+
+                        setTimeout(() => {
+                            swal({
+                                icon: 'success',
+                                title: 'PDF Exported',
+                                text: 'Your PDF file has been downloaded successfully!',
+                                timer: 2000,
+                                buttons: false
+                            });
+                        }, 150);
+                    }
+                },
+
+                // ✅ Print Button (FIXED - WORKS)
+                {
+                    extend: 'print',
+                    text: '<img src="/Content/img/icons8-print-100.png" alt="Print" style="height:32px;" title="Print" />',
+                    className: 'export-buttons icon-only-btn',
+                    title: '',
+                    messageTop: null,
+                    exportOptions: {
+                        columns: [1, 2, 3, 4, 5, 6],
+                        modifier: { search: 'applied', order: 'applied', page: 'all' },
+                        rows: function (idx, data, node) {
+                            if ($('#select-event-all').is(':checked')) return true;
+                            return $(node).find('.row-checkbox').is(':checked');
+                        },
+                        format: {
+                            body: function (data, row, col, node) {
+                                if (col === 3 || col === 4 || col === 5) {
+                                    const numericValue = ('' + data).replace(/[₹,]/g, '');
+                                    return '₹' + numericValue;
+                                }
+                                return ('' + data).replace(/[\r\n]+/g, ' ');
+                            }
+                        }
+                    },
+                    customize: function (win) {
+                        $(win.document.body).find('h1').remove();
+                        var $table = $(win.document.body).find('table');
+                        var header = `<div style="text-align: center; margin-bottom: 20px;">
+                                <h2>Event Budget Report</h2>
+                                <p>Generated on: ${moment().format('DD-MM-YYYY hh:mm A')}</p>
+                              </div>`;
+                        $table.before(header);
+
+                        $table.find('tbody tr').each(function (index) {
+                            $(this).find('td:first').text(index + 1);
+                            $(this).find('td:nth-child(4), td:nth-child(5), td:nth-child(6)').each(function () {
+                                var currentText = $(this).text();
+                                if (currentText && !currentText.includes('₹')) $(this).text('₹' + currentText);
+                            });
+                        });
+
+                        $table.addClass('compact').css('font-size', '10pt').css('width', '100%');
+
+                        const style = document.createElement('style');
+                        style.innerHTML = `@@page { margin: 0.5in; } body { font-family: Arial, sans-serif; } table { width: 100% !important; border-collapse: collapse; margin-top: 20px; } th, td { padding: 8px !important; border: 1px solid #ddd; text-align: center; } th { background-color: #f8f9fa; font-weight: bold; } .text-success { color: #28a745 !important; } .text-danger { color: #dc3545 !important; } .font-weight-bold { font-weight: bold !important; } .amount-cell { font-weight: bold; }`;
+                        win.document.head.appendChild(style);
+
+                        $table.find('th:nth-child(4)').html('Allocated Budget (₹)');
+                        $table.find('th:nth-child(5)').html('Actual Cost (₹)');
+                        $table.find('th:nth-child(6)').html('Difference (₹)');
+                    },
+                    action: function (e, dt, button, config) {
+                        if ($('#select-event-all').is(':checked')) {
+                            $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                            return;
+                        }
+
+                        var selectedRows = dt.rows().nodes().to$().filter(function () {
+                            return $(this).find('.row-checkbox').is(':checked');
+                        });
+
+                        if (selectedRows.length === 0) {
+                            iziToast.warning({
+                                title: 'No Rows Selected',
+                                message: 'Please select at least one row to print.',
+                                position: 'topCenter'
+                            });
+                            return;
+                        }
+
+                        $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                    }
+                },
+
+                // ✅ Refresh Button (FIXED - WORKS)
+                {
+                    text: '<img id="refreshIcon" src="/Content/img/icons8-refresh-50.png" alt="Refresh" style="height:28px;" title="Refresh Table" />',
+                    className: 'export-buttons icon-only-btn',
+                    action: function (e, dt, node, config) {
+                        $('#refreshIcon').addClass('rotate-refresh');
+
+                        setTimeout(function () {
+                            // Clear all selections
+                            selectedRows = {};
+                            dt.rows().nodes().to$().find('.row-checkbox').prop('checked', false);
+                            $('#select-event-all').prop('checked', false).prop('indeterminate', false);
+                            dt.rows().nodes().to$().removeClass('selected');
+
+                            // Reset search & filters
+                            dt.search('').columns().search('').draw();
+
+                            // Reset date range picker
+                            $('.daterange-btn').html('<i class="fas fa-calendar"></i> <span>Choose Date</span>');
+                            $('#fromDate').val('');
+                            $('#toDate').val('');
+
+                            // Recalculate totals
+                            calculateTotals();
+
+                            // Remove spinner
+                            $('#refreshIcon').removeClass('rotate-refresh');
+
+                            iziToast.info({
+                                title: 'Refreshed',
+                                message: 'Table has been refreshed',
+                                position: 'topCenter'
+                            });
+                        }, 500);
+                    }
+                }
+            ],
+
+            drawCallback: function (settings) {
+                // Update Sr.no dynamically
+                table.column(1, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1;
+                });
+
+                // Restore checkbox states
+                restoreCheckboxState();
+
+                // Update select-all checkbox
+                updateSelectAllCheckbox();
+
+                // Calculate and update totals
+                calculateTotals();
+            }
+        });
+
+        // ✅ 4. CHECKBOX HANDLING FUNCTIONS (FIXED - WORKS)
+
+        // Individual row checkbox
+        $('#eventBudgetTable tbody').on('change', '.row-checkbox', function () {
+            var $row = $(this).closest('tr');
+            var rowIndex = table.row($row).index();
+
+            selectedRows[rowIndex] = this.checked;
+            $row.toggleClass('selected', this.checked);
+
+            updateSelectAllCheckbox();
+        });
+
+        // Select All checkbox (FIXED - selects ALL FILTERED rows)
+        $('#select-event-all').on('change', function () {
+            var isChecked = this.checked;
+
+            // Clear or fill selectedRows based on checkbox state
+            if (isChecked) {
+                table.rows({ search: 'applied' }).every(function (rowIdx) {
+                    selectedRows[rowIdx] = true;
+                    $(this.node()).find('.row-checkbox').prop('checked', true);
+                    $(this.node()).addClass('selected');
+                });
+            } else {
+                selectedRows = {};
+                table.rows({ search: 'applied' }).every(function (rowIdx) {
+                    $(this.node()).find('.row-checkbox').prop('checked', false);
+                    $(this.node()).removeClass('selected');
+                });
+            }
+
+            calculateTotals();
+        });
+
+        function restoreCheckboxState() {
+            table.rows().every(function (rowIdx) {
+                var $row = $(this.node());
+                var isChecked = !!selectedRows[rowIdx];
+                $row.find('.row-checkbox').prop('checked', isChecked);
+                $row.toggleClass('selected', isChecked);
+            });
+        }
+
+        function updateSelectAllCheckbox() {
+            var allFilteredRows = table.rows({ search: 'applied' }).count();
+            var checkedCount = 0;
+
+            // Count checked rows among filtered rows
+            table.rows({ search: 'applied' }).every(function (rowIdx) {
+                if (selectedRows[rowIdx]) {
+                    checkedCount++;
+                }
+            });
+
+            if (allFilteredRows === 0) {
+                $('#select-event-all').prop('checked', false).prop('indeterminate', false);
+            } else if (checkedCount === allFilteredRows) {
+                $('#select-event-all').prop('checked', true).prop('indeterminate', false);
+            } else if (checkedCount > 0) {
+                $('#select-event-all').prop('checked', false).prop('indeterminate', true);
+            } else {
+                $('#select-event-all').prop('checked', false).prop('indeterminate', false);
+            }
+        }
+
+        // ✅ 5. TOTALS CALCULATION (FIXED - updates dynamically on search/pagination/filter)
+        function calculateTotals() {
+            var totalAllocated = 0;
+            var totalActual = 0;
+
+            table.rows({ search: 'applied' }).every(function () {
+                var $row = $(this.node());
+                var allocated = parseFloat($row.find('td:eq(4)').text().replace(/[₹,]/g, '')) || 0;
+                var actual = parseFloat($row.find('td:eq(5)').text().replace(/[₹,]/g, '')) || 0;
+                totalAllocated += allocated;
+                totalActual += actual;
+            });
+
+            var totalDiff = totalAllocated - totalActual;
+
+            $('#totalAllocated').text('₹' + totalAllocated.toLocaleString('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }));
+
+            $('#totalActual').text('₹' + totalActual.toLocaleString('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }));
+
+            $('#totalDifference').text('₹' + totalDiff.toLocaleString('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }))
+                .removeClass('text-success text-danger')
+                .addClass(totalDiff >= 0 ? 'text-success' : 'text-danger');
+        }
+
+        // ✅ 6. SEARCH FUNCTIONALITY (FIXED - WORKS)
+        // Already included in DataTable config
+
+        // ✅ 7. PAGINATION (FIXED - WORKS)
+        // Already included in DataTable config
+
+        // ✅ 8. INITIALIZE EVERYTHING
+        initializeDateRangePicker();
+        calculateTotals(); // Initial totals calculation
+    });
+</script>

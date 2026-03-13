@@ -1,0 +1,175 @@
+﻿
+
+
+@model Dictionary<string, string>
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Salary Payment Receipt</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 14px;
+            padding: 30px;
+            background: white;
+        }
+
+        .receipt-container {
+            width: 500px;
+            margin: auto;
+            background: #fff;
+            border-radius: 12px;
+            padding: 30px 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #e0e0e0;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .transaction-code-label {
+            font-size: 13px;
+            color: #777;
+            font-weight: 500;
+        }
+
+        .transaction-code {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 3px 0;
+            color: #000;
+        }
+
+        .society {
+            font-size: 18px;
+            font-weight: bold;
+            color: #615677;
+            margin-bottom: 2px;
+        }
+
+        .location {
+            font-size: 13px;
+            color: #777;
+        }
+
+        /* Title */
+        .receipt-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 20px 0 10px;
+        }
+
+        .divider {
+            border-top: 1px solid #ddd;
+            margin: 0 auto 20px;
+        }
+
+        /* Table styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        td {
+            padding: 6px 4px;
+            vertical-align: top;
+        }
+
+        .label {
+            font-weight: 600;
+            color: #000;
+            width: 45%;
+        }
+
+        .value {
+            color: #333;
+        }
+
+        .amount {
+            font-weight: bold;
+            color: #615677;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 20px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .authorized {
+            text-align: center;
+            font-weight: 600;
+            margin-top: 20px;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="transaction-code-label">Transaction Code</div>
+            <div class="transaction-code">@Model["TransactionRef"]</div>
+            <div class="society">Green Valley Society</div>
+            <div class="location">Pune - 411038</div>
+        </div>
+
+        <!-- Title -->
+        <div class="receipt-title">Salary Payment Receipt</div>
+        <div class="divider"></div>
+
+        <!-- Info Table -->
+        <table>
+            <tr>
+                <td class="label">Employee Name</td>
+                <td class="value">@Model["WorkerName"]</td>
+            </tr>
+            <tr>
+                <td class="label">Contact Number</td>
+                <td class="value">@Model["Contact"]</td>
+            </tr>
+            <tr>
+                <td class="label">Role</td>
+                <td class="value">@Model["Role"]</td>
+            </tr>
+            <tr>
+                <td class="label">Attendance Month</td>
+                <td class="value">@DateTime.Parse(Model["AttendanceMonth"]).ToString("MMMM - yyyy")</td>
+            </tr>
+            <tr>
+                <td class="label">Amount Paid</td>
+                <td class="value amount">₹@Model["TotalAmount"]</td>
+            </tr>
+            <tr>
+                <td class="label">Paid Date &amp; Time</td>
+                <td class="value">@DateTime.Now.ToString("dd MMM yyyy hh:mm tt")</td>
+            </tr>
+            <tr>
+                <td class="label">Payment Mode</td>
+                <td class="value">@Model["PaymentModeName"]</td>
+            </tr>
+        </table>
+
+        <!-- Footer -->
+        <div class="footer">
+            <strong>Receipt Generated On:</strong> @DateTime.Now.ToString("dd MMM yyyy hh:mm tt")
+        </div>
+
+        <!-- Authorized -->
+        <div class="authorized">
+            Authorized By: Accountant Meena Bhaskar Deshmukh
+        </div>
+    </div>
+</body>
+</html>
+

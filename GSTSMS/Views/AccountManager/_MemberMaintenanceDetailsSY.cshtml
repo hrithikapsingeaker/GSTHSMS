@@ -1,0 +1,380 @@
+﻿@model List<GSTSMSLibrary.AccountManager.AccountManager>
+
+@if (Model != null && Model.Any())
+{
+    var first = Model.First();
+    //decimal total = 0;
+
+    //decimal totalChargeAmount = Model.Sum(x => x.ChargeAmount);
+    //decimal totalPenaltyAmount = Model.Sum(x => x.PenaltyAmount);
+    //decimal yearlyGrandTotal = totalChargeAmount + totalPenaltyAmount;
+    @* Hidden fields for persisting member info *@
+    <input type="hidden" id="hdnMemberCode" value="@first.MemberCode" />
+    <input type="hidden" id="hdnMaintTypeId" value="@first.MaintananceTypeId" />
+    <input type="hidden" id="hdnEntityCode" value="@first.EntityCode" />
+    <input type="hidden" id="hdnPaidDate" value="@first.PaidDate" />
+
+
+    <link rel="stylesheet" href="~/Content/css/style.css" />
+    <link rel="stylesheet" href="~/Content/css/components.css" />
+    <link rel="stylesheet" href="~/Content/css/MaintainanceManagementSY.css" />
+    <style>
+
+        .modal-body {
+            overflow: visible !important;
+        }
+
+        element.style {
+            text-align: center;
+            margin-left: 141px !important;
+        }
+
+        .close-square-btn {
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            border-radius: 5px !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            line-height: 1;
+            background-color: red;
+            color: white;
+            border: none;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+            .close-square-btn i {
+                margin: 0;
+            }
+
+        .title {
+            font-size: 16px;
+            color: black !important;
+            font-weight: bold;
+            padding-left: 12px;
+            margin-bottom: 15px;
+        }
+
+        .mb-0 {
+            text-align: center;
+        }
+
+        .text-success-custom {
+            color: black !important;
+            font-weight: bold;
+            text-align: right;
+        }
+
+        .sec-divider {
+            border: none;
+            border-top: 2px dotted black;
+            margin-top: 0px;
+            margin-bottom: 15px;
+        }
+
+        .card-body .row span.text-label {
+            font-size: 16px;
+            color: black;
+        }
+
+        /* New styles for expandable section */
+        .expandable-section {
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .expand-icon {
+            transition: transform 0.3s;
+        }
+
+        .expanded .expand-icon {
+            transform: rotate(45deg);
+        }
+
+        .hidden-details {
+            display: none;
+            padding-left: 20px;
+            border-left: 2px solid #eee;
+            margin-top: 5px;
+        }
+
+        .expanded + .hidden-details {
+            display: block;
+        }
+
+        .charge-item {
+            padding: 6px 12px;
+            font-size: 0.95rem;
+            border-bottom: 1px solid #eee;
+        }
+    </style>
+    <div class="card card-primary shadow-sm mx-auto" style="max-width: 600px;">
+
+        <div class="card-header custom-header d-flex justify-content-between align-items-center " style="background-color: #615677; height: 10px; min-height: 45px; color: white">
+            <h4 class="mb-0" style="margin-left: 141px; font-size:18px;">Maintenance Details</h4>
+            <button type="button" class="btn btn-danger btn-sm close-square-btn" onclick="closeModal()" title="Close" style="margin-right:-13px">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+
+
+        <div class="card-body px-4 py-4" style="padding: 1rem;">
+            <div id="maintenanceContent">
+                <!-- Member Info -->
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <div class="title" style="margin-bottom: 0; font-size: 1.1rem; font-weight: 600;">
+                        Member Info
+                    </div>
+                    <!-- Buttons right side of Member Info -->
+                    <div class="btn-group" role="group" aria-label="Toggle View">
+                        <button type="button" class="btn btn-light btn-sm fw-bold"
+                                onclick="filterView('monthly', '@first.MemberCode', @(first.MaintananceTypeId ?? 0), '@first.EntityCode', '@(first.PaidDate?.ToString("yyyy-MM-dd") ?? "")')">
+                            Monthly
+                        </button>
+
+                        <button type="button" class="btn btn-light btn-sm fw-bold"
+                                onclick="filterView('yearly', '@first.MemberCode', @(first.MaintananceTypeId ?? 0))">
+                            Yearly
+                        </button>
+                    </div>
+
+                </div>
+                <hr class="expense-divider" style="margin: 4px 0;" />
+
+
+                <div class="row mb-3" style="margin-bottom: 6px;">
+                    <div class="col-md-6 col-sm-12" style="margin-bottom: 2px;">
+                        <span class="text-label" style="font-weight: 600; margin-right: 4px;">Name&nbsp;:</span>
+                        <span>@first.FullName</span>
+                    </div>
+                    <div class="col-md-6 col-sm-12 text-md-end mt-2 mt-md-0" style="margin-bottom: 2px;">
+                        <span class="text-label" style="font-weight: 600; margin-right: 4px;">Flat No&nbsp;:</span>
+                        <span>@first.FlatCode</span>
+                    </div>
+                </div>
+                <!--  Payment Info -->
+                <!--<div class="title" style="margin-bottom: 4px; font-size: 1.1rem; font-weight: 600;">Payment Info</div>
+                <hr class="expense-divider" style="margin: 4px 0;" />
+
+                <div class="row mb-3" style="margin-bottom: 6px;">
+                    <div class="col-md-6 col-sm-12" style="margin-bottom: 2px;">
+                        <span class="text-label" style="font-weight: 600; margin-right: 4px;">Date:</span>
+                        <span>@(first.PaidDate?.ToString("dd-MM-yyyy") ?? "-")</span>
+                    </div>
+                    <div class="col-md-6 col-sm-12 text-md-end mt-2 mt-md-0" style="margin-bottom: 2px;">
+                        <span class="text-label" style="font-weight: 600; margin-right: 4px;">Time:</span>
+                        <span>@(first.PaidDate?.ToString("hh:mm tt") ?? "-")</span>
+                    </div>
+                </div>-->
+                <!-- Charge Details -->
+                <div class="title" style="margin-bottom: 4px; font-size: 1.1rem; font-weight: 600;">Charge Details</div>
+                <hr class="expense-divider" style="margin: 4px 0;" />
+
+                <div class="scrollable-charges mb-2" style="max-height: 250px; overflow-y: auto;">
+                    <div class="list-group">
+                        @{
+                            // ✅ PaidDate नुसार grouping
+                            var groupedCharges = Model
+                                .GroupBy(x => x.PaidDate.HasValue ? x.PaidDate.Value.ToString("dd-MMM-yyyy") : "Unpaid")
+                                .Select(g => new
+                                {
+                                    PaidDate = g.Key,
+                                    Charges = g.ToList(),
+                                    TotalCharge = g.Sum(x => x.ChargeAmount)
+                                })
+                                .ToList();
+
+                            foreach (var group in groupedCharges)
+                            {
+                                <div class="list-group-item bg-light fw-bold">
+                                    Paid Date : @group.PaidDate
+                                </div>
+
+                                // ✅ First 4 दाखवायचे
+                                var defaultItems = group.Charges.Take(4).ToList();
+                                var remainingItems = group.Charges.Skip(4).ToList();
+
+                                foreach (var item in defaultItems)
+                                {
+                                    <div class="list-group-item d-flex justify-content-between align-items-center charge-item">
+                                        <span>@item.MaintenanceName</span>
+                                        <span class="text-dark">₹ @item.ChargeAmount.ToString("0.00")</span>
+                                    </div>
+                                }
+
+                                if (remainingItems.Any())
+                                {
+                                    <div class="expandable-section list-group-item charge-item" onclick="toggleExpand(this)">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="fw-semibold text-dark">
+                                                <i class="fas fa-plus"></i>
+                                                View More Details
+                                                <small class="text-muted ms-1">(@remainingItems.Count items)</small>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="hidden-details">
+                                        @foreach (var item in remainingItems)
+                                        {
+                                            <div class="list-group-item d-flex justify-content-between align-items-center charge-item">
+                                                <span>@item.MaintenanceName</span>
+                                                <span class="text-dark">₹ @item.ChargeAmount.ToString("0.00")</span>
+                                            </div>
+                                        }
+
+                                        <!-- ✅ Group Total -->
+                                        <div class="d-flex justify-content-between align-items-center px-3 py-2 border-top" style="padding: 6px 12px;">
+                                            <span class="text-success-custom" style="font-weight: 600;font-size:16px;">Total Maintenance Amount</span>
+                                            <span class="text-success-custom" style="font-weight: 600; font-size:16px;">
+                                                ₹ @group.TotalCharge.ToString("0.00")
+                                            </span>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        }
+                    </div>
+
+                </div>
+            </div>
+
+            @{
+                bool isYearly = ViewContext.RouteData.Values["action"].ToString().Contains("Yearly");
+
+                decimal yearlyPenalty = 0, yearlyPaid = 0, yearlyGrand = 0;
+
+                if (isYearly)
+                {
+                    // ✅ Group by month
+                    var monthlyGroups = Model
+                        .Where(x => x.PaidDate.HasValue)
+                        .GroupBy(x => x.PaidDate.Value.ToString("MMM-yyyy"))
+                        .Select(g => new
+                        {
+                            Month = g.Key,
+                            TotalPaid = g.Sum(x => x.ChargeAmount),
+
+                            TotalPenalty = g.Any() ? g.First().PenaltyAmount : 0m
+                        })
+                        .ToList();
+
+                    // ✅ Yearly totals
+                    yearlyPaid = Model.Sum(x => x.ChargeAmount);
+                    yearlyPenalty = monthlyGroups.Sum(x => x.TotalPenalty);
+                    yearlyGrand = yearlyPaid + yearlyPenalty;
+                }
+            }
+
+
+            @if (isYearly)
+            {
+                <div class="d-flex justify-content-between align-items-center px-3 py-2 border-top">
+                    <span class="text-danger fw-bold">Total Penalty (Yearly)</span>
+                    <span class="text-danger fw-bold">₹ @yearlyPenalty.ToString("0.00")</span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center px-3 py-2 border-top">
+                    <span class="text-success-custom fw-bold">Total Maintenance Amount (Yearly)</span>
+                    <span class="text-success-custom fw-bold">₹ @yearlyPaid.ToString("0.00")</span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center px-3 py-2 border-top bg-light">
+                    <span class="text-primary fw-bold">Grand Total (Yearly)</span>
+                    <span class="text-primary fw-bold">₹ @yearlyGrand.ToString("0.00")</span>
+                </div>
+            }
+
+            @if (!isYearly)
+            {
+                <div class="d-flex justify-content-between align-items-center px-3 py-2 border-top">
+                    <span class="text-danger fw-bold">Penalty Amount</span>
+                    <span class="text-danger fw-bold">
+                        ₹ @first.PenaltyAmount.ToString("0.00")
+                    </span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center px-3 py-2 border-top">
+                    <span class="text-success-custom fw-bold">Total Amount Paid</span>
+                    <span class="text-success-custom fw-bold">
+                        ₹ @first.PaidAmount.ToString("0.00")
+                    </span>
+                </div>
+            }
+
+        </div>
+    </div>
+
+    <script>
+        function closeModal() {
+            $('#maintenanceModal').modal('hide');
+        }
+
+        function toggleExpand(element) {
+            element.classList.toggle('expanded');
+
+            // Toggle the icon
+            const icon = element.querySelector('i');
+            icon.classList.toggle('fa-plus');
+            icon.classList.toggle('fa-minus');
+
+            // Find the next sibling with hidden-details class
+            const detailsSection = element.nextElementSibling;
+            if (detailsSection && detailsSection.classList.contains('hidden-details')) {
+                if (detailsSection.style.display === 'block') {
+                    detailsSection.style.display = 'none';
+                } else {
+                    detailsSection.style.display = 'block';
+                    // Scroll to show the expanded content if needed
+                    detailsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }
+        }
+
+
+        $(document).on('shown.bs.modal', '#maintenanceModal', function () {
+            let initialContent = $("#maintenanceModal .card-body").html();
+            $("#maintenanceModal").data("initialContent", initialContent);
+        });
+
+        function filterView(type, memberCode, maintainanceTypeId, entityCode = null, paidDate = null) {
+            if (type === "monthly") {
+
+                let cached = $("#maintenanceModal").data("initialContent");
+                if (cached) {
+                    $("#maintenanceModal .card-body").html(cached);
+                }
+                return;
+            }
+
+
+            let url = '/AccountManager/YearlyMaintainanceDetailsSY';
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: {
+                    memberCode: memberCode,
+                    maintainanceTypeId: maintainanceTypeId
+                },
+                success: function (res) {
+                    $("#maintenanceModal .card-body").html($(res).find('.card-body').html());
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error loading data:", error);
+                    alert("Something went wrong while fetching maintenance details.");
+                }
+            });
+        }
+
+
+    </script>
+}
+else
+{
+    <div class="alert alert-warning text-center rounded shadow-sm">
+        <i class="fas fa-info-circle me-1"></i> No maintenance details found.
+    </div>
+}

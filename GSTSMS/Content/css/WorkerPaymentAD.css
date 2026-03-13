@@ -1,0 +1,401 @@
+﻿#cashPaymentModal .modal-content {
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 5px 15px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
+
+#payPaymentModal.modal-dim {
+    z-index: 1051 !important; /* Cash modal च्या backdrop(1050) पेक्षा 1 जास्त */
+}
+
+    #payPaymentModal.modal-dim .modal-content {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+
+#payDimOverlay {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.38);
+    z-index: 1065; /* backdrop(1060) पेक्षा जास्त, पण Cash modal(1070) पेक्षा कमी */
+    pointer-events: none;
+}
+
+
+body.modal-open {
+    overflow: hidden !important; /* Page scroll बंद */
+    padding-right: 0 !important; /* Scrollbar मुळे येणारा gap काढून टाक */
+}
+
+element.style {
+    display: block;
+    padding-left: 0px;
+    height: max-content;
+}
+
+
+
+#paymentModal .modal-body {
+    max-height: calc(100vh - 200px); /* Modal height control */
+    overflow-y: auto; /* Scroll only inside modal body */
+}
+
+
+body.modal-open {
+    overflow: hidden !important;
+    padding-right: 0 !important;
+}
+
+.custom-cash-btnn {
+    background-color: green;
+    color: white;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    transition: all 0.3s ease-in-out;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+    .custom-cash-btnn:hover {
+        background-color: #00b67a;
+        color: black;
+        cursor: pointer;
+    }
+
+
+
+
+.mb-2 {
+    color: grey !important;
+}
+
+#cash-pay {
+    background-color: green;
+    color: white;
+}
+
+    #cash-pay:hover {
+        color: black;
+        background-color: #00b67a;
+    }
+
+.modal-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-left: 125px;
+}
+
+
+.btn-action {
+    font-size: 16px;
+    padding: 6px 16px;
+    border: none;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+
+.pay-btn i {
+    margin-right: 6px;
+}
+
+
+
+.modal.fade .modal-dialog {
+    transform: scale(0.7);
+    opacity: 0;
+    transition: all 0.4s ease-in-out;
+}
+
+.modal.show .modal-dialog {
+    transform: scale(1);
+    opacity: 1;
+}
+
+/* Vertically center the modal */
+.modal-dialog.modal-dialog-centered {
+    display: flex;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.modal-dialog {
+    max-width: 700px;
+    width: 100%;
+}
+
+.modal-content {
+    min-height: 200px;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.modal-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: black;
+}
+
+/* Close button */
+.ifsc-close-btn {
+    background-color: #dc3545;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    color: white;
+}
+
+    .ifsc-close-btn i {
+        font-size: 14px;
+    }
+
+
+
+.section-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    font-size: 1.1rem;
+    color: black;
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+/* Modal body content */
+.modal-body strong {
+    color: #333;
+}
+
+.modal-body .col-6 {
+    font-size: 16px;
+    font-family: 'Poppins', sans-serif;
+    margin-bottom: 6px;
+}
+
+
+#bankSelect {
+    font-size: 1rem;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    border: 1px solid #ced4da;
+    color: #000;
+}
+
+/* Bank balance color logic handled via JS */
+
+/* ------------------------------------------
+   Action Buttons
+--------------------------------------------- */
+
+.btn-action {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    padding: 6px 12px;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+/*
+#rzp-confirm:hover {
+    background-color: #28a745 !important;
+}*/
+
+/*#cash-pay:hover {
+    background-color: #e0a800 !important;
+}*/
+/* ------------------------------------------
+   iziToast override
+--------------------------------------------- */
+.iziToast {
+    font-family: 'Poppins', sans-serif !important;
+}
+
+/* ------------------------------------------
+   Prevent background scaling or shifting
+--------------------------------------------- */
+
+body.modal-open {
+    padding-right: 0 !important;
+    overflow: hidden !important;
+    font-size: 100% !important;
+    zoom: 100% !important;
+    -webkit-font-smoothing: auto !important;
+}
+
+    body.modal-open .sidebar,
+    body.modal-open .main-wrapper,
+    body.modal-open .content-wrapper,
+    body.modal-open #workerTable {
+        transform: none !important;
+        filter: none !important;
+    }
+
+
+@media (max-width: 576px) {
+    #bankSelect {
+        font-size: 1rem;
+        padding: 0.5rem;
+        width: 100%; /* 🔥 Makes dropdown take full width */
+        margin-top: 0.5rem;
+    }
+
+    .modal-body .row > div {
+        width: 100% !important; /* Each field takes full line */
+    }
+
+    .form-label {
+        margin-bottom: 0.3rem;
+    }
+}
+/* Font Reset for entire page */
+body, html {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+
+.modal-header {
+    background-color: #615677 !important;
+    color: white;
+    padding: 0.5rem 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: none;
+    position: relative;
+    text-align: center;
+    /*    border-radius: 4px;
+*/
+}
+
+
+/*.btn-pay-custom {
+    background-color: #20c997;/ / calm green */
+/*color: black;
+    border: none;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}*/
+
+/*    .btn-pay-custom:hover {
+        background-color: #1aa179;
+        color: white;
+    }*/
+
+.btn-action {
+    min-width: 130px;
+    font-weight: 500;
+    margin: 0 10px; /* horizontal margin */
+}
+
+/* Optional media query for responsive stacking */
+@media (max-width: 480px) {
+    .btn-action {
+        width: 100%;
+        margin: 5px 0;
+    }
+}
+
+.modal-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    color: white;
+}
+
+
+.btn-close {
+    color: white;
+    background-color: Red !important;
+    border: none;
+    font-size: 1.4rem;
+    cursor: pointer;
+    transition: none; /* disable transition if not needed */
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Prevent color change on hover */
+/*    .btn-close:hover,
+    .btn-close:focus,
+    .btn-close:active {
+        color: red !important;
+    }*/
+
+
+/*    .btn-close:hover {
+        color: red;
+        background-color: #c82333;
+    }*/
+
+.section-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: black;
+    margin: 1rem 0 0.5rem;
+    border-bottom: 1px dotted black; /* ✅ dotted and colored line */
+    padding-bottom: 4px;
+}
+
+
+.modal-body strong {
+    color: #333;
+}
+
+.row > div {
+    font-size: 16px;
+    padding-bottom: 0.3rem;
+}
+
+.btn-action {
+    min-width: 130px; /* sets a minimum width */
+    max-width: 180px; /* prevents button from becoming too long */
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap; /* button madhe text wrap hou naye */
+}
+
+
+.modal-body {
+    font-size: 0.9rem;
+}
+
+@media (max-width: 576px) {
+    .modal-body .row {
+        flex-direction: column;
+    }
+}
+
+/* Just in case content overflows */
+.modal-body {
+    overflow-x: auto;
+}
+
+#bankSelect {
+    border-radius: 8px;
+}
+
+@media (max-width: 576px) {
+    #bankSelect {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    #bankSelect {
+        font-size: 1rem;
+        padding: 0.5rem;
+    }
+}

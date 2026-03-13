@@ -1,0 +1,284 @@
+﻿@{
+    Layout = null;
+}
+
+<div class="calendar-wrapper">
+    <div id="myCalendar"></div>
+</div>
+
+
+<link href="~/Content/modules/fullcalendar/fullcalendar.min.css" rel="stylesheet" />
+<link href="~/Content/modules/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/css/CalenderSV.css" rel="stylesheet" />
+<script src="~/Content/modules/jquery.min.js"></script>
+<script src="~/Content/modules/moment.min.js"></script>
+<script src="~/Content/modules/fullcalendar/fullcalendar.min.js"></script>
+<script src="~/Content/modules/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<style>
+
+
+    tr:first-child > td > .fc-day-grid-event {
+        margin-top: 37px !important
+    }
+    /* Calendar Container sizefixed */
+    .calendar-wrapper {
+        height: 600px; /* Adjust as needed */
+        overflow: hidden;
+    }
+    /* Calendar Container */
+    .calendar-container {
+        width: 100%;
+        padding: 15px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    /* Header Toolbar */
+    .fc-toolbar {
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+    }
+
+    .modal-content {
+        /*        border-radius: 0.75rem;*/
+        padding: 0px !important;
+    }
+
+
+    /* Day Headers - Make all equal width */
+    .fc-day-header {
+        padding: 8px 0;
+        font-weight: 500;
+        color: #555;
+        font-size: 0.8em;
+        text-transform: uppercase;
+        width: calc(100% / 7) !important;
+        text-align: center;
+    }
+
+    /* Calendar Cells - Fixed equal size */
+    .fc-day {
+        /*height: 100px !important;*/
+        width: calc(100% / 7) !important;
+        padding: 2px;
+        border: 1px solid #e9ecef !important;
+        position: relative;
+    }
+
+    /* Date Numbers */
+    .fc-day-number {
+        position: absolute;
+        top: 3px;
+        right: 3px;
+        font-size: 0.9em;
+        background: #f8f9fa;
+        width: 24px;
+        height: 24px;
+        text-align: center;
+        line-height: 24px;
+        border-radius: 50%;
+    }
+
+    /* Today's Date */
+    .fc-today {
+        background-color: rgba(0,123,255,0.05) !important;
+    }
+
+        .fc-today .fc-day-number {
+            background: #007bff;
+            color: white !important;
+        }
+
+    /* Events */
+    .fc-event {
+        margin: 1px 0;
+        padding: 2px 4px;
+        font-size: 0.75em;
+        border: none !important;
+        border-left: 3px solid !important;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .fc-day {
+            height: 70px !important;
+        }
+
+        .fc-event {
+            font-size: 0.65em;
+        }
+    }
+
+
+    body, .calendar-wrapper, .modal-content {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+</style>
+
+<script>
+    $(document).ready(function() {
+        // Initialize the calendar
+        initCalendar();
+
+        function initCalendar() {
+            $('#myCalendar').fullCalendar({
+                header: {
+                    left: 'prev,next',
+                    center: 'title',
+                    right: 'today'
+                },
+                defaultView: 'month',
+                fixedWeekCount: false,
+                height: 'auto',
+                contentHeight: 'auto',
+                aspectRatio: 1.5,
+                events: function(start, end, timezone, callback) {
+                    $.when(
+                        $.get('@Url.Action("GetCalendarEvents", "AccountManager")'),
+                        $.get('@Url.Action("GetCalendarMeetings", "AccountManager")')
+                    ).then(function(eventsResponse, meetingsResponse) {
+                        var events = eventsResponse[0] || [];
+                        var meetings = meetingsResponse[0] || [];
+
+                        var processedMeetings = meetings.map(function(m) {
+                            return {
+                                title: m.title,
+                                start: m.start,
+                                MeetingCode: m.MeetingCode,
+                                allDay: true,
+                                className: 'fc-event-meeting'
+                            };
+                        });
+
+                        var processedEvents = events.map(function(e) {
+                            return {
+                                title: e.title,
+                                start: e.start,
+                                EventCode: e.EventCode,
+                                allDay: true,
+                                className: 'fc-event-event'
+                            };
+                        });
+
+                        callback(processedEvents.concat(processedMeetings));
+                    }).fail(function(error) {
+                        console.error("Error loading events:", error);
+                        callback([]);
+                    });
+                },
+                eventRender: function(event, element) {
+                    element.css({
+                        'font-size': '0.8em',
+                        'padding': '2px 4px',
+                        'white-space': 'nowrap',
+                        'overflow': 'hidden',
+                        'text-overflow': 'ellipsis',
+                        'border-radius': '3px',
+                        'margin-bottom': '2px',
+                        'cursor': 'pointer'
+                    });
+
+                    if (event.MeetingCode) {
+                        element.css({
+                            'background': 'linear-gradient(135deg, #3498db, #2980b9)',
+                            'border-left': '3px solid #1d6fa5',
+                            'color': 'white'
+                        });
+                    } else {
+                        element.css({
+                            'background': 'linear-gradient(135deg, #fd7e14, #e06600)',
+                            'border-left': '3px solid #1e8449',
+                            'color': 'white'
+                        });
+                    }
+
+                    // Add tooltip with event title
+                    element.attr('title', event.title);
+
+                    element.tooltip({
+                        placement: 'top',
+                        trigger: 'hover',
+                        container: 'body',
+                        template: '<div class="tooltip" role="tooltip"><div class="tooltip-arrow" style="border-top-color: #333"></div><div class="tooltip-inner" style="background-color: white; color: black; border: 1px solid #ddd; font-weight: normal; box-shadow: 0 4px 8px rgba(0,0,0,0.15);"></div></div>'
+                    });
+                },
+                eventClick: function(event) {
+                    showEventDetails(event);
+                },
+                dayRender: function(date, cell) {
+                    cell.empty();
+                    var dayNumber = $('<a class="fc-day-number"></a>').text(date.date());
+                    cell.append(dayNumber);
+
+                    if (date.isSame(moment(), 'day')) {
+                        cell.css('background-color', 'rgba(0, 123, 255, 0.1)');
+                        dayNumber.css({
+                            'font-weight': 'bold',
+                            'color': '#fff',
+                            'background': '#007bff',
+                            'border-radius': '50%',
+                            'width': '24px',
+                            'height': '24px',
+                            'text-align': 'center',
+                            'line-height': '24px',
+                            'display': 'inline-block'
+                        });
+                    }
+                }
+            });
+        }
+
+        function showEventDetails(event) {
+            var url = event.EventCode ?
+                '@Url.Action("GetEventDetailsByCode", "AccountManager")' :
+                '@Url.Action("GetMeetingDetailsByCode", "AccountManager")';
+            var data = event.EventCode ?
+                { eventCode: event.EventCode } :
+                { meetingCode: event.MeetingCode };
+
+            // Store calendar state before opening event details
+            var calendarModalWasOpen = $('#calendarModal').hasClass('show');
+
+            if (calendarModalWasOpen) {
+                $('#calendarModal').modal('hide');
+            }
+
+            $.get(url, data, function (html) {
+                $('#eventDetailsBody').html(html);
+
+                // Get title from partial
+                let detailTitle = $('#eventDetailsBody').find('#modalDetailTitle').text().trim();
+                if (detailTitle) {
+                    $('#eventDetailsModal .modal-title').text(detailTitle);
+                } else {
+                    $('#eventDetailsModal .modal-title').text('Event Details'); // fallback
+                }
+
+                $('#eventDetailsModal').modal({
+                    backdrop: 'static',
+                    keyboard: false
+                }).on('hidden.bs.modal', function() {
+                    // When event details modal is closed, reopen the calendar modal
+                    if (calendarModalWasOpen) {
+                        $('#calendarModal').modal('show');
+                    }
+                }).modal('show');
+            });
+        }
+
+        // Show calendar modal
+        $('#showCalendarModal').click(function(e) {
+            e.preventDefault();
+            $('#calendarContainer').load('@Url.Action("CalendarPartial", "AccountManager")', function() {
+                $('#calendarModal').modal({
+                    backdrop: 'static',
+                    keyboard: false
+                }).modal('show');
+            });
+        });
+    });
+</script>

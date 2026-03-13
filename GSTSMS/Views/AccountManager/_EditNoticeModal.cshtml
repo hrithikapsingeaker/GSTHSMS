@@ -1,0 +1,644 @@
+﻿@model GSTSMSLibrary.AccountManager.AccountManager
+
+@using (Html.BeginForm("UpdateNotice", "AccountManager", FormMethod.Post, new { enctype = "multipart/form-data", id = "editNoticeForm" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.NoticeCode)
+
+    <div class="modal-header">
+        <h5 class="modal-title">Edit Notice</h5>
+        <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal" aria-label="Close" style="margin-right:-14px">×</button>
+    </div>
+
+    <div class="modal-body">
+        @* <div id="emailLoader" class="custom-loader-container hidden">
+                <div class="loader"></div>
+                <div class="text-center text-muted mt-2">Updating notice, please wait...</div>
+            </div>*@
+
+        <!-- 🟩 Notice Title -->
+        <div class="mb-3">
+            <label class="form-label">Notice Title : <span class="text-danger">*</span></label>
+            @Html.TextBoxFor(m => m.NoticeTitle, new { @class = "form-control", id = "editNoticeTitle", placeholder = "Enter notice title", maxlength = "80" })
+            <div id="editNoticeTitleError" class="text-danger small mt-1 d-none">Title is required.</div>
+        </div>
+
+        <!-- 🟩 Description -->
+        <div class="mb-3">
+            <label class="form-label">Description : <span class="text-danger">*</span></label>
+            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 5, id = "editDescription", placeholder = "Enter description", maxlength = "250" })
+            <div id="editDescriptionError" class="text-danger small mt-1 d-none">Description is required.</div>
+        </div>
+        <div class="row">
+            <!-- 🟩 Publish Date -->
+            <div class="col-md-6 mb-3">
+                @*<a href="~/Views/AccountManager/_EditNoticeModal.cshtml">~/Views/AccountManager/_EditNoticeModal.cshtml</a>*@
+                <label class="form-label">Publish Date : <span class="text-danger">*</span></label>
+                @Html.TextBoxFor(m => m.PublishDate, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control", id = "editPublishDate", min = "@today" })
+                <div id="editPublishDateError" class="text-danger small mt-1 d-none">Publish date is required.</div>
+            </div>
+
+            <!-- 🟩 End Date -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">End Date : <span class="text-danger">*</span></label>
+                @Html.TextBoxFor(m => m.EndDate, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control", id = "editEndDate", min = "@today" })
+                <div id="editEndDateError" class="text-danger small mt-1 d-none">End date is required.</div>
+            </div>
+        </div>
+
+
+
+        <!-- Updated File Attachment Section -->
+        <div class="form-group mt-4" style="max-width: 100%;">
+            <label>Attachment :</label>
+            <div class="custom-file">
+                <input type="file" name="PostedFiles" id="editPostedFiles" class="custom-file-input" multiple accept=".pdf,.jpg,.jpeg,.png" onchange="handleEditFilePreview(this)">
+                <label class="custom-file-label" for="editPostedFiles">Choose files</label>
+            </div>
+            <div id="editFilePreviewList" class="mt-2"></div>
+
+            @if (Model.AttachmentList != null && Model.AttachmentList.Any())
+            {
+                <div id="existingFiles" class="mt-2 d-flex flex-wrap gap-2">
+                    @foreach (var file in Model.AttachmentList.Distinct())
+                    {
+                        if (!string.IsNullOrWhiteSpace(file))
+                        {
+                            <div class="file-preview">
+                                <a href="@Url.Content("~/Uploads/Notices/" + file)" target="_blank">
+                                    <i class="fas fa-file-alt text-primary"></i>
+                                    <span title="@file">@file</span>
+                                </a>
+                                <input type="hidden" name="KeepFiles" value="@file" />
+                                <button type="button" onclick="removeExistingFile(this)">×</button>
+                            </div>
+                        }
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="modal-footer justify-content-center">
+        <button type="submit" class="btn btn-success"
+                style="background-color: #28a745; width: 150px; height: 40px; font-size: 16px; border-color: #28a745; color: white; transition: all 0.3s ease;">
+            Update
+        </button>
+    </div>
+}
+
+<style>
+
+    .btn.btn-sm {
+        padding: 1px 6px;
+        font-size: 18px;
+    }
+
+
+    .attachment-disabled {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    .custom-file-input:focus ~ .custom-file-label {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    .custom-file-label::after {
+        content: "Browse";
+    }
+
+    #editFilePreviewList {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+        #editFilePreviewList .file-preview {
+            display: inline-flex;
+            align-items: center;
+            font-size: 15px;
+            background: none;
+            border: none;
+            padding: 0;
+            max-width: 100%;
+        }
+
+            #editFilePreviewList .file-preview a {
+                color: #007bff;
+                text-decoration: underline;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 250px;
+                display: inline-block;
+            }
+
+            #editFilePreviewList .file-preview button {
+                background: none;
+                border: none;
+                color: red;
+                font-size: 16px;
+                margin-left: 5px;
+                padding: 0;
+                line-height: 1;
+                cursor: pointer;
+            }
+
+
+
+
+
+
+
+    /* Custom size for Edit Notice modal */
+    .edit-notice-dialog {
+        max-width: 600px; /* Same as View Notice modal */
+        width: auto;
+        margin: 1.75rem auto;
+    }
+
+    /* Ensure content fits properly */
+    #editNoticeModal .modal-content {
+        width: 100%;
+    }
+
+    /* Adjust modal body padding */
+    #editNoticeModal .modal-body {
+        width: 100%;
+        padding: 15px;
+    }
+
+    /* Responsive behavior for smaller screens */
+    @@media (max-width: 576px) {
+        .edit-notice-dialog {
+            max-width: 95%;
+            margin: 1.75rem auto;
+        }
+    }
+
+
+
+    .modal-body, .modal-header, .modal-footer {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        color: #000;
+        font-size: 15.5px;
+        font-weight: 400;
+    }
+
+        .modal-body label,
+        .modal-header label,
+        .modal-footer label {
+            font-size: 16px;
+            font-weight: 400;
+        }
+
+        .modal-body label {
+            color: #000;
+        }
+
+    .stisla-loader-container {
+        position: absolute;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        z-index: 9999;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 30px 50px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .stisla-loader {
+        width: 45px;
+        height: 45px;
+        border: 4px solid #3f51b5;
+        border-top: 4px solid transparent;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin: auto;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    .modal-body {
+        position: relative;
+    }
+
+    #editFilePreviewList .btn-danger {
+        padding: 2px 6px;
+    }
+
+    #editFilePreviewList i.fas.fa-file-alt {
+        margin-right: 6px;
+    }
+
+    .modal-header {
+        background-color: #615677 !important; /* Changed to #615677 */
+        justify-content: center !important;
+        align-items: center;
+        padding-top: 10px;
+        padding-bottom: 8px;
+        height: 45px; /* Added fixed height */
+    }
+
+        .modal-header .modal-title {
+            color: #fff !important;
+            text-align: center;
+            width: 100%;
+            font-size: 18px !important; /* Changed to 18px */
+            margin-bottom: 0;
+        }
+
+    .modal-content {
+        border-radius: 4px !important; /* Added border radius */
+    }
+
+    .modal-body {
+        padding-bottom: 12px !important;
+    }
+
+    .modal-footer {
+        display: flex !important;
+        justify-content: center !important;
+    }
+
+    #existingFiles {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+        #existingFiles .file-preview {
+            display: inline-flex;
+            align-items: center;
+            font-size: 15px;
+            background: none;
+            border: none;
+            padding: 0;
+            max-width: 100%;
+        }
+
+            #existingFiles .file-preview a {
+                color: #007bff;
+                text-decoration: underline;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 250px;
+                display: inline-block;
+            }
+
+            #existingFiles .file-preview button {
+                background: none;
+                border: none;
+                color: red;
+                font-size: 16px;
+                margin-left: 5px;
+                padding: 0;
+                line-height: 1;
+                cursor: pointer;
+            }
+
+    .modal-footer .btn.btn-success:hover {
+        background-color: #00b67a !important;
+        border-color: #00b67a !important;
+        color: black !important;
+    }
+
+    /* Additional styles for the custom file input */
+    .custom-file-input:focus ~ .custom-file-label {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    .custom-file-label::after {
+        content: "Browse";
+    }
+
+    .custom-file {
+        width: 100%;
+    }
+
+    .custom-file-label {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    #editFilePreviewList {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+        #editFilePreviewList .file-preview {
+            display: inline-flex;
+            align-items: center;
+            font-size: 15px;
+            background: none;
+            border: none;
+            padding: 0;
+            max-width: 100%;
+        }
+
+            #editFilePreviewList .file-preview a {
+                color: #007bff;
+                text-decoration: underline;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 250px;
+                display: inline-block;
+            }
+
+            #editFilePreviewList .file-preview button {
+                background: none;
+                border: none;
+                color: red;
+                font-size: 16px;
+                margin-left: 5px;
+                padding: 0;
+                line-height: 1;
+                cursor: pointer;
+            }
+</style>
+
+
+
+<script>
+    let selectedEditFiles = [];
+    let existingFilesCount = 0; // Initialize to 0, will be set when modal opens
+
+    // ==================== FILE HANDLING FUNCTIONS ====================
+    function handleEditFilePreview(input) {
+        const newFiles = Array.from(input.files);
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+        const previewContainer = document.getElementById("editFilePreviewList");
+        const attachmentDiv = document.querySelector(".custom-file");
+        const maxSizeMB = 5;
+        const maxSizeBytes = maxSizeMB * 1024 * 1024;
+
+        // Check total files won't exceed 3 (new + existing)
+        if (selectedEditFiles.length + newFiles.length + existingFilesCount > 3) {
+            iziToast.warning({
+                title: 'Limit Reached',
+                message: 'You can only have up to 3 files total (including existing ones).',
+                position: 'topRight',
+                timeout: 3000
+            });
+            input.value = "";
+            return;
+        }
+
+        // Check file types and sizes
+        const invalidFiles = newFiles.filter(file => {
+            if (!allowedTypes.includes(file.type)) {
+                iziToast.warning({
+                    title: 'Invalid File Type',
+                    message: `"${file.name}" is not a valid file type (PDF, JPG, PNG only)`,
+                    position: 'topRight',
+                    timeout: 3000
+                });
+                return true;
+            }
+            if (file.size > maxSizeBytes) {
+                iziToast.warning({
+                    title: 'File Too Large',
+                    message: `"${file.name}" exceeds ${maxSizeMB}MB limit`,
+                    position: 'topRight',
+                    timeout: 3000
+                });
+                return true;
+            }
+            return false;
+        });
+
+        if (invalidFiles.length > 0) {
+            input.value = "";
+            return;
+        }
+
+        // Add valid files
+        for (let file of newFiles) {
+            if (!selectedEditFiles.find(f => f.name === file.name && f.size === file.size)) {
+                selectedEditFiles.push(file);
+            }
+        }
+
+        // Update UI
+        renderEditFilePreview(previewContainer);
+        updateAttachmentDivState();
+        input.value = "";
+    }
+
+    function renderEditFilePreview(container) {
+        container.innerHTML = "";
+
+        selectedEditFiles.forEach((file) => {
+            const fileURL = URL.createObjectURL(file);
+            const wrapper = document.createElement("div");
+            wrapper.className = "file-preview";
+
+            const icon = document.createElement("i");
+            icon.className = "fas fa-file-alt text-primary";
+
+            const link = document.createElement("a");
+            link.href = fileURL;
+            link.target = "_blank";
+            link.title = file.name;
+
+            const span = document.createElement("span");
+            span.textContent = file.name;
+
+            link.appendChild(icon);
+            link.appendChild(span);
+
+            const removeBtn = document.createElement("button");
+            removeBtn.type = "button";
+            removeBtn.innerHTML = "×";
+            removeBtn.onclick = () => {
+                removeEditFile(file.name);
+                URL.revokeObjectURL(fileURL);
+            };
+
+            wrapper.appendChild(link);
+            wrapper.appendChild(removeBtn);
+            container.appendChild(wrapper);
+        });
+    }
+
+    function removeEditFile(filename) {
+        selectedEditFiles = selectedEditFiles.filter(f => f.name !== filename);
+        renderEditFilePreview(document.getElementById("editFilePreviewList"));
+        updateAttachmentDivState();
+    }
+
+    function removeExistingFile(btn) {
+        const previewDiv = btn.closest(".file-preview");
+        if (previewDiv) {
+            const input = previewDiv.querySelector('input[type="hidden"]');
+            if (input) {
+                input.name = "RemovedFiles"; // Mark file for removal
+                previewDiv.remove();
+                existingFilesCount--;
+                updateAttachmentDivState();
+            }
+        }
+    }
+
+    function updateAttachmentDivState() {
+        const attachmentDiv = document.querySelector(".custom-file");
+        const totalFiles = selectedEditFiles.length + existingFilesCount;
+
+        if (totalFiles >= 3) {
+            attachmentDiv.classList.add("attachment-disabled");
+        } else {
+            attachmentDiv.classList.remove("attachment-disabled");
+        }
+    }
+
+    function countExistingFiles() {
+        existingFilesCount = document.querySelectorAll('#existingFiles .file-preview').length;
+        updateAttachmentDivState();
+    }
+
+    // ==================== DATE HANDLING ====================
+    function setupDatePickers() {
+        const today = new Date();
+        const todayString = today.toISOString().split('T')[0];
+        $('#editPublishDate, #editEndDate').attr('min', todayString);
+
+        const publishDateVal = $('#editPublishDate').val();
+        if (publishDateVal === todayString) {
+            $('#editPublishDate, #editEndDate').prop('disabled', true).css('background-color', '#f8f9fa');
+        } else {
+            $('#editPublishDate, #editEndDate').prop('disabled', false).css('background-color', '');
+        }
+
+        $('#editPublishDate').off('change').on('change', function() {
+            $('#editEndDate').attr('min', $(this).val());
+        });
+    }
+
+    // ==================== FORM VALIDATION & SUBMISSION ====================
+    $(document).on("submit", "#editNoticeForm", function(e) {
+        $('input[disabled]').prop('disabled', false);
+
+        const fields = [
+            { input: '#editNoticeTitle', error: '#editNoticeTitleError', message: 'Title is required.' },
+            { input: '#editDescription', error: '#editDescriptionError', message: 'Description is required.' },
+            { input: '#editPublishDate', error: '#editPublishDateError', message: 'Publish date is required.' },
+            { input: '#editEndDate', error: '#editEndDateError', message: 'End date is required.' }
+        ];
+
+        let isValid = true;
+        fields.forEach(f => {
+            const val = $(f.input).val().trim();
+            const errorElement = $(f.error);
+
+            if (!val) {
+                $(f.input).addClass("is-invalid").removeClass("is-valid");
+                errorElement.removeClass("d-none").text(f.message);
+                isValid = false;
+                setTimeout(() => errorElement.addClass("d-none"), 3000);
+            } else {
+                $(f.input).removeClass("is-invalid").addClass("is-valid");
+                errorElement.addClass("d-none");
+            }
+        });
+
+        // Validate date range
+        if ($('#editPublishDate').val() && $('#editEndDate').val()) {
+            const pubDate = new Date($('#editPublishDate').val());
+            const endDate = new Date($('#editEndDate').val());
+
+            if (endDate < pubDate) {
+                $('#editEndDate').addClass("is-invalid").removeClass("is-valid");
+                $('#editEndDateError').text("End date cannot be before publish date.").removeClass("d-none");
+                isValid = false;
+                setTimeout(() => $('#editEndDateError').addClass("d-none"), 3000);
+            }
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            return;
+        }
+
+        // Prepare files for submission
+        const fileInput = document.getElementById("editPostedFiles");
+        const dataTransfer = new DataTransfer();
+        selectedEditFiles.forEach(f => dataTransfer.items.add(f));
+        fileInput.files = dataTransfer.files;
+
+        document.getElementById("emailLoader").classList.remove("hidden");
+    });
+
+    // ==================== MODAL EVENT HANDLERS ====================
+    $('#editNoticeModal').on('shown.bs.modal', function() {
+        setupDatePickers();
+        countExistingFiles();
+        resetEditNoticeFormValidation();
+    });
+
+    $('#editNoticeModal').on('hidden.bs.modal', function() {
+        // Maintain existingFilesCount between modal openings
+        selectedEditFiles = [];
+        document.getElementById("editFilePreviewList").innerHTML = "";
+        document.getElementById("editPostedFiles").value = "";
+    });
+
+    function resetEditNoticeFormValidation() {
+        $('.is-valid, .is-invalid').removeClass('is-valid is-invalid');
+        $('.text-danger').addClass('d-none');
+        document.getElementById("emailLoader").classList.add("hidden");
+    }
+
+    // Initialize on page load
+    $(document).ready(function() {
+        countExistingFiles(); // Initial count of existing files
+        setupDatePickers();
+    });
+
+    // ==================== NOTIFICATION HANDLING ====================
+    @if (ViewBag.Message != null)
+    {
+        <text>
+        Swal.fire({
+            icon: 'success',
+            title: 'Notice Updated!',
+            text: '@ViewBag.Message',
+            showConfirmButton: false,
+            timer: 3000
+        }).then(() => {
+            iziToast.success({
+                message: 'Notice updated successfully.',
+                position: 'topRight'
+            });
+        });
+        </text>
+    }
+    else if (ViewBag.Error != null)
+    {
+        <text>
+        Swal.fire({
+            icon: 'error',
+            title: 'Failed to Update Notice',
+            text: '@ViewBag.Error',
+            showConfirmButton: false,
+            timer: 3000
+        });
+        </text>
+    }
+</script>

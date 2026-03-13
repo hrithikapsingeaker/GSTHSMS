@@ -1,0 +1,390 @@
+﻿@model GSTSMSLibrary.AccountManager.AccountManager
+<div class="modal show-from-center" id="cashPaymentModal" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog-centered custom-modal-dialog" style=" margin-left: 33%;" role="document">
+        <div class="modal-content all">
+            <div class="modal-header custom-modal-headerexpense" style=" background-color: #615877; color: white; height: 45px; align-items: center; justify-content: space-between;">
+                <h5 class="modal-title w-100 text-center" style=" margin-top: -20px!important; ">Cash Payment</h5>
+                <button type="button" class="btn-close-modal" onclick="closeCashModal()">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Hidden Inputs -->
+                <input type="hidden" id="cashExpenseCode" value="@Model.ExpenseCode" />
+                <input type="hidden" id="cashTotalAmount" value="@Model.Amount" />
+                <input type="hidden" id="cashPaidAmount" value="@Model.PaidAmount" />
+                <input type="hidden" id="cashInHand" value="@Model.CashInHand" />
+
+                <h6 class="cash-section-heading" style="color: black; font-size: 18px">Vendor Information</h6>
+                <hr class="cash-divider" />
+
+                <!-- Business/Vendor Info -->
+                <div class="row mb-2">
+                    <div class="col-6 d-flex">
+                        <label class="expense-label">Business Name</label>
+                        <span class="colon" style=" margin-left: 28px!important">:</span>
+                        <span class="expense-data">@Model.BusinessName</span>
+                    </div>
+                    <div class="col-6 d-flex">
+                        <label class="expense-label">Vendor Name</label>
+                        <span class="colon">:</span>
+                        <span class="expense-data">@Model.VendorName</span>
+                    </div>
+                </div>
+
+                <div class="row mb-2">
+                    <div class="col-6 d-flex">
+                        <label class="expense-label">Vendor Contact</label>
+                        <span class="colon" style="margin-left: 24px;">:</span>
+                        <span class="expense-data no-format">@Model.PhoneNumber</span>
+                    </div>
+                    <div class="col-6 d-flex">
+                        <label class="expense-label">Service Type</label>
+                        <span class="colon">:</span>
+                        <span class="expense-data">@Model.SubTypeName</span>
+                    </div>
+                </div>
+
+                <h6 class="cash-section-heading" style="color:black ; font-size:18px">Payment Information</h6>
+                <hr class="cash-divider" />
+
+                <!-- Amount Info -->
+                <div class="row mb-2">
+                    <div class="col-6 d-flex">
+                        <label class="expense-label">Total Amount</label>
+                        <span class="colon" style="margin-left: 37px;">:</span>
+                        <span class="expense-data">₹@Model.Amount</span>
+                    </div>
+                    <div class="col-6 d-flex">
+                        <label class="expense-label">Paid Amount</label>
+                        <span class="colon">:</span>
+                        <span class="expense-data">₹@Model.PaidAmount</span>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-6 d-flex">
+                        <label class="expense-label">Remaining Amount</label>
+                        <span class="colon">:</span>
+                        <span class="expense-data" style="color:red ; font-size:16px;">₹@(Model.Amount - Model.PaidAmount)</span>
+                    </div>
+                    <div class="col-6 d-flex">
+                        <label class="expense-label">Cash In Hand</label>
+                        <span class="colon">:</span>
+                        <span class="expense-data" style="color:green">₹@Math.Ceiling(Model.CashInHand).ToString("0.00")</span>
+
+                    </div>
+                </div>
+
+                <!-- Input -->
+                <div class="form-group1 d-flex align-items-center mt-3">
+                    <label class="expense-label mb-0" for="txtCashAmount">Enter Amount<span class="text-danger">*</span></label>
+                    <span class="colon" style="margin-left: 30px!important">:</span>
+                    <div class="input-group" style="max-width: 200px;">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" style="background-color: #e9ecef; font-size: 16px; height: 36px;">₹</span>
+                        </div>
+                        <input type="text" class="form-control" id="txtCashAmount" placeholder="Enter amount" />
+                    </div>
+                </div>
+                <small id="amountErrorMsg" class="text-danger" style="display:none; margin-left: 130px;"></small>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn" style="background-color:green ; color:white ; font-size:16px" onclick="confirmCashPayment()">Save Payment</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+
+
+
+
+
+
+
+
+    function closeCashModal() {
+        $("#cashPaymentModal").removeClass("show").hide();
+        $("body").removeClass("modal-open");
+        $(".modal-backdrop").remove();
+        $("#ifscModal").modal("show");
+    }
+
+
+
+    // Format number into Indian comma format (eg. 3,45,678.90)
+    function formatINR(amount) {
+        if (isNaN(amount)) return amount;
+
+        const parts = amount.toString().split(".");
+        let integer = parts[0];
+        const decimal = parts.length > 1 ? "." + parts[1] : "";
+
+        let lastThree = integer.substring(integer.length - 3);
+        let otherNumbers = integer.substring(0, integer.length - 3);
+
+        if (otherNumbers !== "") {
+            lastThree = "," + lastThree;
+        }
+
+        const formatted =
+            otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree;
+
+        return formatted + decimal;
+    }
+
+
+
+
+    function validateAmountLive(inputSelector, errorSelector, remainingAmount) {
+        const inputField = $(inputSelector);
+        const errorBox = $(errorSelector);
+        let val = inputField.val().replace(/[^0-9.]/g, '');
+        if ((val.match(/\./g) || []).length > 1) val = val.slice(0, -1);
+        if (val.startsWith(".")) val = "0" + val;
+        const amount = parseFloat(val || 0);
+        if (!val || isNaN(amount) || amount <= 0) {
+            inputField.removeClass("is-valid").addClass("is-invalid");
+            errorBox.text("Please enter a valid amount.").show();
+            setTimeout(() => {
+                errorBox.fadeOut();
+                inputField.removeClass("is-invalid");
+            }, 3000);
+        } else if (amount > remainingAmount) {
+            inputField.val("");
+            inputField.removeClass("is-valid").addClass("is-invalid");
+            errorBox.text("Amount should not exceed ₹" + formatINR(remaining.toFixed(2)));
+            setTimeout(() => {
+                errorBox.fadeOut();
+                inputField.removeClass("is-invalid");
+            }, 3000);
+        } else {
+            inputField.removeClass("is-invalid").addClass("is-valid");
+            errorBox.hide();
+        }
+    }
+
+    $(document).ready(function () {
+        const total = parseFloat($("#cashTotalAmount").val());
+        const paid = parseFloat($("#cashPaidAmount").val());
+        const remaining = total - paid;
+
+
+
+        $(".expense-data").each(function () {
+
+            // Skip vendor contact / any non-money amounts
+            if ($(this).hasClass("no-format")) return;
+
+            let text = $(this).text().replace(/[₹,\s]/g, "");
+            let num = parseFloat(text);
+
+            if (!isNaN(num)) {
+                $(this).text("₹" + formatINR(num.toFixed(2)));
+            }
+
+        });
+
+
+
+
+        $("#txtCashAmount").on("input", function () {
+            validateAmountLive("#txtCashAmount", "#amountErrorMsg", remaining);
+
+            let val = $(this).val().replace(/[^0-9.]/g, "");
+            let parts = val.split(".");
+            if (parts.length > 2) {
+                val = parts[0] + "." + parts.slice(1).join("");
+            }
+            $(this).val(val);
+        });
+
+
+        $("#txtCashAmount").on("keypress", function (e) {
+            let charCode = e.which ? e.which : e.keyCode;
+
+            if (
+                charCode == 8 || charCode == 9 || charCode === 46 ||
+                (charCode >= 37 && charCode <= 40)
+            ) {
+                return true;
+            }
+
+            if (charCode === 46) {
+                if ($(this).val().includes(".")) {
+                    return false;
+                }
+                return true;
+            }
+
+            if (charCode < 48 || charCode > 57) {
+                return false;
+            }
+            return true;
+        });
+    });
+
+    function confirmCashPayment() {
+        const expenseCode = $("#cashExpenseCode").val();
+        const total = parseFloat($("#cashTotalAmount").val());
+        const paid = parseFloat($("#cashPaidAmount").val());
+        const remaining = total - paid;
+        const cashInHand = parseFloat($("#cashInHand").val());
+        const inputField = $("#txtCashAmount");
+        const errorBox = $("#amountErrorMsg");
+        const val = inputField.val().trim().replace(/[^0-9.]/g, '');
+        const amount = parseFloat(val || 0);
+
+        if (!val || isNaN(amount) || amount <= 0) {
+            inputField.removeClass("is-valid").addClass("is-invalid");
+            errorBox.text("Please enter a valid amount.").show();
+            setTimeout(() => {
+                errorBox.fadeOut();
+                inputField.removeClass("is-invalid");
+            }, 3000);
+            return;
+        }
+
+        if (amount > remaining) {
+            inputField.removeClass("is-valid").addClass("is-invalid");
+            errorBox.text("Entered amount exceeds remaining balance ₹" + remaining.toFixed(2)).show();
+            setTimeout(() => {
+                errorBox.fadeOut();
+                inputField.removeClass("is-invalid");
+            }, 3000);
+            return;
+        }
+
+        if (amount > cashInHand) {
+            inputField.removeClass("is-valid").addClass("is-invalid");
+            errorBox.hide();
+            iziToast.warning({
+                title: "Insufficient Cash",
+                message: "Amount exceeds available Cash In Hand ₹" + formatINR(cashInHand.toFixed(2)),
+                position: "topCenter"
+            });
+            return;
+        }
+
+        $.ajax({
+            url: '/AccountManager/SaveCashTransactionPS',
+            type: 'POST',
+            data: {
+                expenseCode: expenseCode,
+                amount: amount.toFixed(2)
+            },
+            success: function (res) {
+                if (res.success) {
+
+                    swal({
+                        icon: 'success',
+                        title: 'Success',
+                        text: 'Your Cash Transaction saved successfully!',
+                        timer: 2000,
+                        buttons: false
+                    });
+                    $("#cashPaymentModal").modal("hide");
+
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+
+                    swal({
+                        icon: 'error',
+                        title: 'Error',
+                        text: res.error || "Transaction not saved.",
+                        button: 'OK'
+                    });
+                }
+            },
+            error: function (xhr) {
+                console.error("XHR Error:", xhr.responseText);
+                swal({
+                    icon: 'error',
+                    title: 'Error',
+                    text: "Something went wrong. Please try again.",
+                    button: 'OK'
+                });
+            }
+        });
+    }
+</script>
+
+<style>
+
+
+    /* Standardized close button for all modals */
+    .btn-close-modal {
+        position: absolute;
+        top: 50%;
+        right: 15px;
+        transform: translateY(-50%);
+        background: none;
+        border: none !important;
+        background-color: orangered;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        padding: 5px 10px;
+        width: 26px;
+        height: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s;
+        z-index: 1000;
+        border-radius: 3px;
+    }
+        /* Remove outline and box-shadow on focus */
+        .btn-close-modal:focus,
+        .btn-close-modal:active {
+            outline: none !important;
+            box-shadow: none !important;
+            border: none !important;
+        }
+
+        /* Remove any potential inherited borders */
+        .btn-close-modal:hover {
+            border: none !important;
+        }
+
+
+    /* Ensure modal headers have relative positioning */
+    .modal-header {
+        position: relative;
+    }
+
+    /*
+    .custom-btn-close {
+        position: absolute;
+        right: 10px;
+        top: 5%;
+        transform: translateY(-50%);
+        border: none;
+        background-color: orangered;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        padding: 5px 10px;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.3s ease;
+        width: 25px;
+    }*/
+
+    .expense-label {
+        min-width: 130px; /* सर्व labels एकाच रुंदीत */
+        font-weight: 500;
+    }
+
+    .colon {
+        display: inline-block;
+        width: 30px; /* `:` साठी fix जागा */
+        text-align: center;
+    }
+</style>

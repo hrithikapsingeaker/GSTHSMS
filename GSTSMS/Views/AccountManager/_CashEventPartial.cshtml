@@ -1,0 +1,298 @@
+﻿@model GSTSMSLibrary.AccountManager.AccountManager
+
+<div id="paymentContent">
+    <div class="modal-header d-flex align-items-center justify-content-between">
+        <h6 class="modal-title" id="title">Cash Payment</h6>
+        <button type="button" class="modal-close-btn" onclick="closeCashPayment()" aria-label="Close">
+            <span class="close-icon">×</span>
+        </button>
+    </div>
+
+    <div class="modal-body">
+        <!-- Hidden Inputs -->
+        <input type="hidden" id="eventCode" value="@Model.EventCode" />
+        <input type="hidden" id="memberCode" value="@Model.MemberCode" />
+
+        <div class="container-fluid">
+            <!-- Event Information -->
+            <div class="section-title">Event Information</div>
+
+            <div class="info-pair-row">
+                <div class="info-group">
+                    <div class="info-label">Event Name</div>
+                    <div class="info-value"><span class="colon">:</span> @Model.EventName</div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">Handler</div>
+                    <div class="info-value"><span class="colon">:</span> @Model.EventHandlerName</div>
+                </div>
+            </div>
+
+            <div class="info-pair-row">
+                <div class="info-group">
+                    <div class="info-label">Allocated Budget</div>
+                    <div class="info-value"><span class="colon">:</span> ₹@Model.AllocatedBudget.ToString("N0")</div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">Actual Cost</div>
+                    <div class="info-value"><span class="colon">:</span> ₹@Model.ActualCost.ToString("N0")</div>
+                </div>
+            </div>
+
+            <div class="info-pair-row">
+                <div class="info-group">
+                    <div class="info-label">Cash In Hand</div>
+                    <div class="info-value">
+                        <span class="colon">:</span>
+                        <span id="cashInHandAmount" style="color: @(Model.CashInHand >= Model.ActualCost ? "#198754" : "#dc3545")">
+                            ₹@(Model.CashInHand.ToString("N0") ?? "-")
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="text-center mt-4">
+                <button id="submitCashPaymentBtn" class="cash-payment-btn" style="border: none; outline: none; box-shadow: none;">
+                    Save Payment
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom close button styles */
+    .modal-close-btn {
+        border: none;
+        outline: none;
+        box-shadow: none;
+        width: 32px;
+        height: 32px;
+        background-color: #dc3545;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0;
+        border-radius: 4px;
+    }
+
+    .close-icon {
+        font-size: 18px;
+        color: white;
+        line-height: 1;
+        font-weight: bold;
+    }
+
+    .modal-close-btn:hover {
+        background-color: #c82333;
+    }
+
+    /* Modal Container */
+    #EventCashPayment .modal-content {
+        border-radius: 4px !important;
+    }
+
+    /* Modal Header */
+    .modal-header {
+        height: 45px !important;
+        align-items: center;
+        justify-content: center;
+        background-color: #615677 !important;
+        color: white;
+        padding: 0.5rem 1rem;
+        display: flex;
+        border-bottom: none;
+        border-top-left-radius: 4px !important;
+        border-top-right-radius: 4px !important;
+    }
+
+    .modal-title {
+        font-size: 18px !important;
+        font-weight: bold !important;
+        color: white;
+        margin: 0 auto;
+    }
+
+    /* Modal Body */
+    .modal-body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        padding: 1.5rem;
+    }
+
+    .section-title {
+        font-weight: bold !important;
+        font-size: 16px !important;
+        color: black;
+        margin: 0.0rem 0 0.0rem;
+        border-bottom: 1px dotted black;
+        padding-bottom: 4px;
+    }
+
+    .modal-body strong {
+        color: #333;
+        font-size: 16px !important;
+        font-weight: bold !important;
+    }
+
+    .data-text {
+        font-size: 16px !important;
+        font-weight: normal !important;
+    }
+
+    .row > div {
+        padding-bottom: 0.3rem;
+    }
+
+    /* Cash Payment Button */
+    .cash-payment-btn {
+        background-color: green !important;
+        color: white !important;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        height: 40px;
+        width: 165px;
+        border-radius: 4px;
+        border: none;
+        margin: 0 auto;
+        font-size: 16px;
+    }
+
+        .cash-payment-btn:hover {
+            background-color: #00b67a !important;
+            color: black !important;
+        }
+
+        .cash-payment-btn i {
+            font-size: 1rem;
+        }
+
+        .cash-payment-btn:disabled {
+            background-color: #6c757d !important;
+            cursor: not-allowed;
+        }
+
+    /* Responsive adjustments */
+    @@media (max-width: 576px) {
+        .modal-body .row > div {
+            width: 100% !important;
+        }
+
+        .cash-payment-btn {
+            width: 100%;
+            margin: 5px 0;
+        }
+    }
+</style>
+
+<script src="~/Content/modules/sweetalert/sweetalert.min.js"></script>
+<script>
+    // Function to close the cash modal (when user clicks X in cash modal)
+    function closeCashPayment() {
+        // close the modal
+        $('#EventCashPayment .modal').modal('hide');
+
+        // remove overlay
+        $('#cashPaymentOverlay').remove();
+
+        // 👉 show the original event payment partial back
+        $('#paymentContent').show();
+    }
+
+    $(document).ready(function () {
+        // Check cash balance on load
+        checkCashBalance();
+    });
+
+    function checkCashBalance() {
+        const cashInHand = parseFloat('@Model.CashInHand') || 0;
+        const actualCost = parseFloat('@Model.ActualCost') || 0;
+
+        if (cashInHand < actualCost) {
+            swal({
+                title: "Warning",
+                text: "Cash in hand is insufficient for this payment",
+                icon: "warning",
+                buttons: false,
+                timer: 3000
+            });
+        }
+    }
+
+    function submitCashPayment() {
+        const eventCode = '@Model.EventCode';
+        const memberCode = '@Model.MemberCode';
+        const amount = parseFloat('@Model.ActualCost') || 0;
+        const cashInHand = parseFloat('@Model.CashInHand') || 0;
+
+        // Check cash balance before submitting
+        if (cashInHand < amount) {
+            swal({
+                title: "Error",
+                text: "Cannot proceed. Cash in hand is insufficient for this payment.",
+                icon: "error",
+                buttons: false,
+                timer: 3000
+            });
+            return;
+        }
+
+        $.ajax({
+            url: '/AccountManager/SaveCashTransactionSV',
+            type: 'POST',
+            data: {
+                eventCode: eventCode,
+                memberCode: memberCode,
+                amount: amount
+            },
+            success: function (response) {
+                if (response.success) {
+                    swal({
+                        title: "Success",
+                        text: "Cash payment processed successfully!",
+                        icon: "success",
+                        buttons: false,
+                        timer: 3000
+                    }).then(() => {
+                        if (response.redirectUrl) {
+                            window.location.href = response.redirectUrl;
+                        } else {
+                            location.reload();
+                        }
+                    });
+                } else {
+                    swal({
+                        title: "Success",
+                        text: "Cash payment processed successfully!",
+                        icon: "success",
+                        buttons: false,
+                        timer: 3000
+                    }).then(() => {
+                        if (response.redirectUrl) {
+                            window.location.href = response.redirectUrl;
+                        } else {
+                            location.reload();
+                        }
+                    });
+                }
+            },
+            error: function (xhr) {
+                swal({
+                    title: "Error",
+                    text: xhr.responseJSON?.message || "An error occurred while processing your request",
+                    icon: "error",
+                    buttons: false,
+                    timer: 3000
+                });
+            }
+        });
+    }
+
+    // Update your submit button to call this function
+    $('#submitCashPaymentBtn').click(submitCashPayment);
+</script>

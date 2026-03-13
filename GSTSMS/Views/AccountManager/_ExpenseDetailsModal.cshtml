@@ -1,0 +1,817 @@
+﻿@model GSTSMSLibrary.AccountManager.AccountManager
+<!-- Modal Start -->
+<div class="modal custom-fade-center" id="expenseDetailsModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered custom-modal-xl">
+        <div class="modal-content">
+            <div class="modal-header custom-modal-header">
+                <h5 class="modal-title w-100 text-center" style="margin-top: -15px !important; margin-left: -5px!important;">Expense Details</h5>
+                <button type="button" class="btn-close-modal" onclick="closeModal()">
+                    <i class="fa fa-times"></i>
+                </button>
+
+            </div>
+            <div class="modal-body scroll-modal" id="expenseModalBody">
+                <div class="container-fluid">
+
+                    <!-- Vendor Info -->
+                    <h6 class="section-heading-all" style="font-size: 18px">Vendor Information</h6>
+                    <hr />
+                    <div class="row mb-3">
+                        <div class="col-md-6 d-flex mb-2">
+                            <label class="expense-label">Business Name</label>
+                            <span class="colon">:</span>
+                            <span class="expense-data">@Model.BusinessName</span>
+                        </div>
+                        <div class="col-md-6 d-flex mb-2">
+                            <label class="expense-label">Vendor Name</label>
+                            <span class="colon">:</span>
+                            <span class="expense-data">@Model.VendorName</span>
+                        </div>
+                        <div class="col-md-6 d-flex mb-2">
+                            <label class="expense-label">Email</label>
+                            <span class="colon">:</span>
+                            <span class="expense-data">@Model.Email</span>
+                        </div>
+                        <div class="col-md-6 d-flex mb-2">
+                            <label class="expense-label">Contact No</label>
+                            <span class="colon">:</span>
+                            <span class="expense-data">@Model.PhoneNumber</span>
+                        </div>
+                        <div class="col-md-12 d-flex mb-2">
+                            <label class="expense-label">Address</label>
+                            <span class="colon">:</span>
+                            <span class="expense-data">@Model.Address</span>
+                        </div>
+                    </div>
+
+                    <!-- Expense Info -->
+                    <h6 class="section-heading-all" style="font-size: 18px">Expense Information</h6>
+                    <hr />
+                    <div class="row mb-3">
+                        <div class="col-md-6 d-flex mb-2">
+                            <label class="expense-label">Expense Type</label>
+                            <span class="colon">:</span>
+                            <span class="expense-data">@Model.ExpenseType</span>
+                        </div>
+                        <div class="col-md-6 d-flex mb-2">
+                            <label class="expense-label">Name</label>
+                            <span class="colon">:</span>
+                            <span class="expense-data">@Model.ExpenseName</span>
+                        </div>
+                        <div class="col-md-6 d-flex mb-2">
+                            <label class="expense-label">Description</label>
+                            <span class="colon">:</span>
+                            <span class="expense-data">@Model.Description</span>
+                        </div>
+                        <div class="col-md-6 d-flex mb-2">
+                            <label class="expense-label">Added Date</label>
+                            <span class="colon">:</span>
+                            <span class="expense-data">@Model.AddedDate.ToString("dd-MM-yyyy")</span>
+                        </div>
+                    </div>
+
+                    <!-- Transactions -->
+                    <h6 class="section-heading-all" style="font-size: 18px">Transaction Information</h6>
+                    <hr />
+                    <div class="row align-items-center mb-2">
+                        <div class="col-md-6 d-flex">
+                            <label class="expense-label">Total Transactions</label>
+                            <span class="colon">:</span>
+                            <span class="expense-data">@Model.AllTransactions.Count</span>
+                        </div>
+                        <div class="col-md-6 d-flex">
+                            <label class="expense-label">Total Amount</label>
+                            <span class="colon">:</span>
+                            <span class="expense-data">₹@Model.AllTransactions.Sum(x => x.TransactionAmount).ToString("N2")</span>
+                        </div>
+                    </div>
+
+                    @if (Model.AllTransactions != null && Model.AllTransactions.Any())
+                    {
+                        <div class="mb-2 d-flex align-items-center">
+                            <button class="btn btn-outline-primary btn-sm mr-3" type="button" id="toggleTxnBtn">
+                                <i class="fa fa-eye me-1"></i> View Transactions
+                            </button>
+                        </div>
+
+                        <div class="collapse" id="transactionSection">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-sm custom-table" id="transactionTable" style="width:100%">
+                                    <thead class="bg-light text-dark">
+                                        <tr>
+                                            <th style="width: 30px; text-align: center; vertical-align: middle;">
+                                                <input type="checkbox" style="margin-left:10px ; accent-color: #007bff;
+                        width: 16px; height: 13px;
+                        cursor: pointer;" id="select-all-txn" />
+                                            </th>
+                                            <th style="width: 40px; text-align:center;">Sr.No</th>
+                                            <th>Amount</th>
+                                            <th>Payment Mode</th>
+                                            <th>Transaction Ref</th>
+                                            <th class="ifsc-hide">IFSC</th>
+                                            <th class="ifsc-hide">Bank Code</th>
+                                            <th>Account No</th>
+                                            <th>Bank Name</th>
+                                            <th>Paid Date & Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{
+                                            int sr = 1;
+                                            foreach (var trx in Model.AllTransactions)
+                                            {
+                                                <tr>
+                                                    <td style="text-align: center; vertical-align: middle; accent-color: #007bff; width: 16px; height: 16px; cursor: pointer; "><input type="checkbox" class="row-checkbox" /></td>
+                                                    <td style="text-align:center;">@sr</td>
+                                                    <td>₹@trx.TransactionAmount.ToString("N2")</td>
+                                                    <td>@trx.PaymentMode</td>
+                                                    <td>@(string.IsNullOrEmpty(trx.TransactionRef) ? "N/A" : trx.TransactionRef)</td>
+                                                    <td class="ifsc-hide">@(string.IsNullOrEmpty(trx.IFSCCode) ? "-" : trx.IFSCCode)</td>
+                                                    <td class="ifsc-hide">@(string.IsNullOrEmpty(trx.BankCode) ? "N/A" : trx.BankCode)</td>
+                                                    <td>@(string.IsNullOrEmpty(trx.AccountNo) ? "N/A" : "*****" + trx.AccountNo.Substring(Math.Max(0, trx.AccountNo.Length - 4)))</td>
+                                                    <td>@(string.IsNullOrEmpty(trx.BankName) ? "N/A" : trx.BankName)</td>
+                                                    <td>@(trx.PaidDate.HasValue ? trx.PaidDate.Value.ToString("dd-MM-yyyy hh:mm tt") : "Not Paid")</td>
+                                                </tr>
+                                                sr++;
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-muted">No Transactions Found</div>
+                    }
+
+                    <!-- Attachments -->
+                    <h6 class="section-heading-all mt-4">Attachments</h6>
+                    <hr />
+                    @if (Model.Attachments != null && Model.Attachments.Any())
+                    {
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var doc in Model.Attachments)
+                            {
+                                <a href="@Url.Content(doc.Document)" target="_blank" class="text-primary me-3 mb-2">
+                                    <i class="fa fa-file-alt mr-1"></i> @System.IO.Path.GetFileName(doc.Document)
+                                </a>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-muted">No Attachments</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .expense-label {
+        min-width: 100px;
+        font-weight: 500;
+    }
+
+    .colon {
+        display: inline-block;
+        width: 30px;
+        text-align: center;
+    }
+
+    .expense-data {
+        flex: 1;
+    }
+
+    .btn-close-modal {
+        position: absolute;
+        top: 50%;
+        right: 15px;
+        transform: translateY(-50%);
+        background: none;
+        border: none !important;
+        background-color: orangered;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        padding: 5px 10px;
+        width: 26px;
+        height: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s;
+        z-index: 1000;
+        border-radius: 3px;
+    }
+        /* Remove outline and box-shadow on focus */
+        .btn-close-modal:focus,
+        .btn-close-modal:active {
+            outline: none !important;
+            box-shadow: none !important;
+            border: none !important;
+        }
+    /* Remove default background + border on normal and hover */
+    button.transparent-btn,
+    button.transparent-btn:hover,
+    button.transparent-btn:focus {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+</style>
+
+
+<link href="~/Content/modules/datatables/datatables.min.css" rel="stylesheet" />
+<link href="~/Content/modules/datatables/DataTables-1.10.16/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
+
+<link href="~/Content/modules/izitoast/css/iziToast.min.css" rel="stylesheet" />
+
+<script src="~/Content/modules/sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/modules/datatables/datatables.min.js"></script>
+@*<script src="~/Content/modules/datatables/Buttons-1.5.1/js/dataTables.buttons.min.js"></script>*@
+@*<script src="~/Content/modules/datatables/Buttons-1.5.1/js/buttons.bootstrap4.min.js"></script>*@
+@*<script src="~/Content/modules/datatables/JSZip-2.5.0/jszip.min.js"></script>*@
+@*<script src="~/Content/modules/datatables/pdfmake-0.1.36/pdfmake.min.js"></script>*@
+@*<script src="~/Content/modules/datatables/pdfmake-0.1.36/vfs_fonts.js"></script>*@
+@*<script src="~/Content/modules/datatables/Buttons-1.5.1/js/buttons.html5.min.js"></script>*@
+@*<script src="~/Content/modules/datatables/Select-1.2.6/js/dataTables.select.min.js"></script>*@
+<script src="~/Content/modules/izitoast/js/iziToast.min.js"></script>
+<script src="~/Content/modules/moment.min.js"></script>
+
+<script>
+
+
+    $(document).ready(function () {
+
+
+
+
+
+            // Enable Bootstrap tooltip on list table
+            $('[data-toggle="tooltip"]').tooltip({
+                trigger: 'hover',
+                placement: 'top',
+                container: 'body'
+            });
+
+            // Optional: apply title attribute from cell text if not already set
+            $('#transactionTable tbody td').each(function () {
+                if (!$(this).attr('title')) {
+                    $(this).attr('title', $(this).text().trim());
+                }
+            });
+
+
+
+
+    // *** Toggle show/hide table & scrollbar
+    $("#toggleTxnBtn").on("click", function () {
+        $("#transactionSection").collapse("toggle");
+    });
+
+    $('#transactionSection').on('show.bs.collapse', function () {
+        $("#expenseModalBody").addClass("scroll-modal");
+    });
+
+    $('#transactionSection').on('hide.bs.collapse', function () {
+        $("#expenseModalBody").removeClass("scroll-modal");
+    });
+
+
+
+
+
+            //function maskAccountNo(accNo) {
+            //    if (!accNo || accNo === "N/A") return accNo;
+            //    let clean = accNo.replace(/\s+/g, ''); // spaces काढून टाका
+            //    if (clean.length <= 4) return clean;
+            //    return '*'.repeat(clean.length - 4) + clean.slice(-4);
+            //}
+
+            // Account No Masking Function
+            function maskAccountNo(accNo) {
+                if (!accNo || accNo === "N/A" || accNo.trim() === "") return "N/A";
+
+                // Remove all spaces and special characters
+                let clean = accNo.replace(/[\s\-]/g, '');
+
+                // Check if it's a valid number
+                if (clean.length <= 4) return clean;
+
+                // Return last 4 digits with stars
+                return '*'.repeat(clean.length - 4) + clean.slice(-4);
+            }
+
+            // Helper function for formatting (keeps original for backend use)
+            function formatAccountNoForDisplay(accNo) {
+                return maskAccountNo(accNo);
+            }
+
+
+        function getFormattedDateTime() {
+            const now = new Date();
+            const datePart = now.getDate().toString().padStart(2, '0') + '-' +
+                (now.getMonth() + 1).toString().padStart(2, '0') + '-' +
+                now.getFullYear();
+            let hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+            return {
+                date: datePart,
+                time: hours.toString().padStart(2, '0') + ':' + minutes + ' ' + ampm
+            };
+        }
+
+        function getExportHeader() {
+    let dt = getFormattedDateTime();
+    let totalAmount = '@Model.AllTransactions.Sum(x => x.TransactionAmount).ToString("N2")';
+    return (
+        'Green Valley Society - Expense Transaction\n' +
+        'Generated on: ' + dt.date + ' ' + dt.time + '\n\n' +
+        'Business Name:,@Model.BusinessName\n' +
+        'Vendor Name:,@Model.VendorName\n' +
+        'Expense Name:,@Model.ExpenseName\n' +
+        'Total Amount:,"₹' + totalAmount + '"\n\n'
+    );
+}
+
+
+        var table = $('#transactionTable').DataTable({
+            dom: 'Bfrtip',
+            ordering: false,
+            searching: false,
+            paging: false,
+            info: false,
+            buttons: [
+
+{
+    extend: 'excelHtml5',
+    text: '<img src="/Content/img/icons8-xls-64.png" style="height:25px;" title="Export Excel" />',
+    className:'transparent-btn',
+    title: null,
+    messageTop: function () {
+        let dt = getFormattedDateTime();
+        return [
+            'Green Valley Society - Expense Transaction',
+            'Generated on: ' + dt.date + ' ' + dt.time,
+            'Business Name: ' + '@Html.Raw(Model.BusinessName)',
+            'Vendor Name: mukesh shendre',
+            'Expense Type: Direct',
+            'Name: Water Bill',
+            'Total Amount: ₹' + '@Model.AllTransactions.Sum(x => x.TransactionAmount).ToString("N2")'
+        ].join('\n');
+    },
+    exportOptions: {
+        rows: function (idx, data, node) {
+            return $('.row-checkbox:checked').length === 0 || $(node).find('.row-checkbox').is(':checked');
+        },
+        columns: ':visible:not(:first-child)',
+        format: {
+            body: function (data, row, col) {
+                if (col === 0) return row + 1; // Sr. No.
+                if (col === 1 && row >= 0) return '₹' + data.replace(/[₹,]/g, '');
+
+                return data.replace(/(\r\n|\n|\r)/gm, ' ');
+            }
+        }
+    },
+    customize: function (xlsx) {
+        var sheet = xlsx.xl.worksheets['sheet1.xml'];
+        var styles = xlsx.xl['styles.xml'];
+
+        // Extract metadata lines and remove original
+        var messageLines = $('row[r="1"] c t', sheet).text().split('\n');
+        $('row[r="1"]', sheet).remove();
+
+        // Shift existing rows down by number of metadata lines
+        $('row', sheet).each(function () {
+            var r = parseInt($(this).attr('r'));
+            $(this).attr('r', r + messageLines.length);
+            $(this).find('c').each(function () {
+                var col = $(this).attr('r').replace(/[0-9]/g, '');
+                $(this).attr('r', col + (r + messageLines.length));
+            });
+        });
+
+        // Convert Amount column to inline string (if in column E)
+        $('row c[r^="E"]', sheet).each(function () {
+            var cell = $(this);
+            var value = cell.text().trim();
+            cell.attr('t', 'inlineStr');
+            cell.empty().append('<is><t>' + value + '</t></is>');
+        });
+
+        // -------------------- Styles --------------------
+        // White font
+        var fontId = $(styles).find('fonts font').length;
+        $(styles).find('fonts').append('<font><sz val="12"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>');
+
+        // Purple fill
+        var fillId = $(styles).find('fills fill').length;
+        $(styles).find('fills').append('<fill><patternFill patternType="solid"><fgColor rgb="FF615677"/><bgColor indexed="64"/></patternFill></fill>');
+
+        // Header style: white font + purple bg + center
+        var headerStyleId = $(styles).find('cellXfs xf').length;
+        $(styles).find('cellXfs').append(
+            '<xf numFmtId="0" fontId="' + fontId + '" fillId="' + fillId + '" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1">' +
+            '<alignment horizontal="center" vertical="center"/></xf>'
+        );
+
+        // Center alignment for table data
+        var centerNoBgId = $(styles).find('cellXfs xf').length;
+        $(styles).find('cellXfs').append(
+            '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1">' +
+            '<alignment horizontal="center" vertical="center"/></xf>'
+        );
+
+        // Left alignment for metadata
+        var leftAlignId = $(styles).find('cellXfs xf').length;
+        $(styles).find('cellXfs').append(
+            '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1">' +
+            '<alignment horizontal="left" vertical="center"/></xf>'
+        );
+
+        // -------------------- Add Metadata Rows --------------------
+        var newRows = '';
+        for (let i = 0; i < messageLines.length; i++) {
+            let styleId = (i <= 1) ? centerNoBgId : leftAlignId;
+            newRows +=
+                '<row r="' + (i + 1) + '">' +
+                '<c t="inlineStr" s="' + styleId + '" r="A' + (i + 1) + '">' +
+                '<is><t>' + messageLines[i] + '</t></is></c>' +
+                '</row>';
+        }
+        $('sheetData', sheet).prepend(newRows);
+
+        // Merge metadata cells
+        $('mergeCells', sheet).remove();
+        $(sheet).find('worksheet').append(
+            '<mergeCells count="' + messageLines.length + '">' +
+            Array.from({ length: messageLines.length }, (_, i) =>
+                '<mergeCell ref="A' + (i + 1) + ':G' + (i + 1) + '"/>'
+            ).join('') +
+            '</mergeCells>'
+        );
+
+        // -------------------- Header Row --------------------
+        var headerRowIndex = messageLines.length + 1;
+        $('row[r="' + headerRowIndex + '"] c', sheet).attr('s', headerStyleId);
+
+        // -------------------- Table Data --------------------
+        $('row', sheet).each(function () {
+            var r = parseInt($(this).attr('r'));
+            if (r > headerRowIndex) {
+                $(this).find('c').attr('s', centerNoBgId);
+            }
+        });
+
+        // -------------------- Narrow Columns --------------------
+        $('col', sheet).each(function () {
+            $(this).attr('width', 12);
+        });
+    },
+    action: function (e, dt, button, config) {
+        var selected = dt.rows().nodes().to$().find('.row-checkbox:checked');
+        if (selected.length === 0) {
+            iziToast.warning({ title: 'Warning', message: 'Please select at least one row to export Excel.', position: 'topCenter' });
+            return;
+        }
+        $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+        swal({ icon: 'success', title: 'Excel Exported', text: 'Your Excel file has been downloaded successfully!', timer: 2000, buttons: false });
+
+        // ✅ clear checkboxes
+        setTimeout(function () {
+            dt.rows().nodes().to$().find('.row-checkbox').prop('checked', false);
+            $('#select-all-txn').prop('checked', false);
+        }, 100);
+    }
+},
+
+
+            // CSV
+     {
+    extend: 'csvHtml5',
+         text: '<img src="/Content/img/icons8-csv-64.png" style="height:25px;" title="Export CSV" />',
+         className: 'transparent-btn',
+    title: null,
+    customize: function (csv) {
+        // Add BOM for UTF-8 and prepend custom header
+        return '\uFEFF' + getExportHeader() + csv;
+    },
+    exportOptions: {
+        rows: function (idx, data, node) {
+            return $(node).find('.row-checkbox').is(':checked');
+        },
+        columns: ':visible:not(:first-child)',
+        format: {
+            body: function (data, row, col) {
+                // Sr. No. column (just return index+1)
+                if (col === 0) return row + 1;
+
+                // Amount column (col === 1) - prepend ₹
+                if (col === 1 && row >= 0) {
+                    return '₹' + data.replace(/[₹,]/g, '').trim();
+                }
+
+                // Paid Date column (last column, e.g., col === 6) - format to 12hr
+                if (col === 6 && data) {
+                    let dateObj = new Date(data);
+                    if (!isNaN(dateObj.getTime())) {
+                        let day = dateObj.getDate().toString().padStart(2, '0');
+                        let month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+                        let year = dateObj.getFullYear();
+                        let hours = dateObj.getHours();
+                        let minutes = dateObj.getMinutes().toString().padStart(2, '0');
+                        let ampm = hours >= 12 ? 'PM' : 'AM';
+                        hours = hours % 12 || 12;
+                        return `${day}-${month}-${year} ${hours}:${minutes} ${ampm}`;
+                    }
+                }
+
+                // Default: clean line breaks & center align
+                return `"${data.replace(/(\r\n|\n|\r)/gm, ' ').trim()}"`;
+            }
+        }
+    },
+    action: function (e, dt, button, config) {
+        var selected = dt.rows().nodes().to$().find('.row-checkbox:checked');
+        if (selected.length === 0) {
+            iziToast.warning({
+                title: 'Warning',
+                message: 'Please select at least one row to export CSV.',
+                position: 'topCenter'
+            });
+            return;
+        }
+        $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+        swal({
+            icon: 'success',
+            title: 'CSV Exported',
+            text: 'Your CSV file has been downloaded successfully!',
+            timer: 2000,
+            buttons: false
+        });
+        // ✅ clear checkboxes
+        setTimeout(function () {
+            dt.rows().nodes().to$().find('.row-checkbox').prop('checked', false);
+            $('#select-all-txn').prop('checked', false);
+        }, 100);
+    }
+                },
+
+
+
+             // PDF
+     {
+    extend: 'pdfHtml5',
+    text: '<img src="/Content/img/icons8-pdf-64.png" style="height:25px;" title="Export PDF" />',
+    className: 'transparent-btn',
+    title: null,
+    orientation: 'landscape',
+    pageSize: 'A4',
+    exportOptions: {
+        rows: function (idx, data, node) {
+            return $(node).find('.row-checkbox').is(':checked');
+        },
+        columns: ':visible:not(:first-child)',
+        format: {
+            body: function (data, row, col, node) {
+                return data.replace(/[₹,]/g, '');
+            }
+        }
+    },
+    customize: function (doc) {
+        let dt = getFormattedDateTime();
+
+        // ✅ Header Title
+        doc.content.unshift({
+            alignment: 'center',
+            text: 'Green Valley Society - Expense Transaction',
+            fontSize: 14,
+            bold: true,
+            margin: [0, 0, 0, 5]
+        });
+
+        // ✅ Generated Date/Time
+        doc.content.splice(1, 0, {
+            alignment: 'center',
+            text: 'Generated on: ' + dt.date + ' ' + dt.time,
+            fontSize: 11,
+            margin: [0, 0, 0, 10]
+        });
+
+        // ✅ Expense Info Section (Label Bold + Colon + Gap + Value)
+// ✅ Expense Info Section (Label Bold + Gap + Colon + Gap + Value without table)
+doc.content.splice(2, 0, {
+    margin: [0, 0, 0, 10],
+    fontSize: 10,
+    alignment: 'left',
+    stack: [
+        {
+            text: [
+                { text: 'Business Name', bold: true },
+                { text: '   :   ' }, // gap + colon + gap
+                { text: '@Model.BusinessName' }
+            ]
+        },
+        {
+            text: [
+                { text: 'Vendor Name', bold: true },
+                { text: '       :   ' },
+                { text: '@Model.VendorName' }
+            ]
+        },
+        {
+            text: [
+                { text: 'Expense Type', bold: true },
+                { text: '       :   ' },
+                { text: '@Model.ExpenseType' }
+            ]
+        },
+        {
+            text: [
+                { text: 'Expense Name', bold: true },
+                { text: '     :   ' },
+                { text: '@Model.ExpenseName' }
+            ]
+        },
+        {
+            text: [
+                { text: 'Total Amount', bold: true },
+                { text: '        :   ' },
+                { text: '₹@Model.AllTransactions.Sum(x => x.TransactionAmount).ToString("N2")' }
+            ]
+        }
+    ]
+});
+
+
+
+        // ✅ Table Styling
+        const tableContent = doc.content.find(obj => obj.table);
+        if (tableContent) {
+            // Add Sr. No
+            tableContent.table.body.forEach((row, i) => {
+                if (i > 0) row[0].text = i;
+            });
+
+            // ✅ Fix all column widths = 120px
+            tableContent.table.widths = [50, 90, 90, 120, 120, 120, 120];
+
+            tableContent.layout = {
+                hLineWidth: () => 0.5,
+                vLineWidth: () => 0.5,
+                hLineColor: () => '#000',
+                vLineColor: () => '#000',
+                paddingLeft: () => 4,
+                paddingRight: () => 4,
+                paddingTop: () => 3,
+                paddingBottom: () => 3
+            };
+
+            // ✅ Center Align + Currency Symbol
+            tableContent.table.body.forEach((row, rIndex) => {
+                row.forEach((cell, cIndex) => {
+                    if (typeof cell === 'object') {
+                        cell.alignment = 'center';
+                        if (cIndex === 1 && rIndex > 0) {
+                            cell.text = '₹' + cell.text;
+                        }
+                    }
+                });
+            });
+        }
+
+        // ✅ Table Header Style
+        doc.styles.tableHeader = {
+            fontSize: 11,
+            bold: true,
+            alignment: 'center',
+            fillColor: '#615677',
+            color: '#ffffff'
+        };
+
+        // ✅ Default Font Style
+        doc.defaultStyle.fontSize = 10;
+    },
+    action: function (e, dt, button, config) {
+        var selected = dt.rows().nodes().to$().find('.row-checkbox:checked');
+        if (selected.length === 0) {
+            iziToast.warning({
+                title: 'Warning',
+                message: 'Please select at least one row to export PDF.',
+                position: 'topCenter'
+            });
+            return;
+        }
+        $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+
+        swal({
+            icon: 'success',
+            title: 'PDF Exported',
+            text: 'Your PDF file has been downloaded successfully!',
+            timer: 2000,
+            buttons: false
+        });
+
+        // ✅ clear checkboxes after export
+        setTimeout(function () {
+            dt.rows().nodes().to$().find('.row-checkbox').prop('checked', false);
+            $('#select-all-txn').prop('checked', false);
+        }, 100);
+    }
+},
+
+
+
+               {
+    extend: 'print',
+    text: '<img src="/Content/img/icons8-print-100.png" alt="Print" style="height:23px;" title="Print" />',
+    className: 'transparent-btn',
+    title: '',
+    exportOptions: {
+        rows: function (idx, data, node) {
+            return $(node).find('.row-checkbox').is(':checked');
+        },
+        columns: ':visible:not(:first-child)'
+    },
+    customize: function (win) {
+        let dt = getFormattedDateTime();
+
+        // Header Add
+        $(win.document.body).prepend(
+            '<h3 style="text-align:center;">Green Valley Society - Expense Transaction</h3>' +
+            '<p style="text-align:center;">Generated on: ' + dt.date + ' ' + dt.time + '</p>' +
+            '<p><b>Business Name:</b> @Model.BusinessName<br/>' +
+            '<b>Vendor Name:</b> @Model.VendorName<br/>' +
+            '<b>Expense Type:</b> @Model.ExpenseType<br/>' +
+            '<b>Expense Name:</b> @Model.ExpenseName<br/>' +
+            '<b>Total Amount:</b> ₹@Model.AllTransactions.Sum(x => x.TransactionAmount).ToString("N2")</p><hr/>'
+        );
+
+        // Reset Sr.No.
+        $(win.document.body).find('table tbody tr').each(function (i) {
+            $(this).find('td:first').text(i + 1);
+        });
+
+        // Table style
+        $(win.document.body).find('table')
+            .addClass('compact')
+            .css('font-size', '11px')
+            .css('border-collapse', 'collapse')
+            .css('width', '100%');
+
+        $(win.document.body).find('table th, table td')
+            .css('border', '1px solid black')
+            .css('padding', '5px')
+            .css('text-align', 'center');
+    },
+    action: function (e, dt, button, config) {
+        var selected = dt.rows().nodes().to$().find('.row-checkbox:checked');
+        if (selected.length === 0) {
+            iziToast.warning({
+                title: 'Warning',
+                message: 'Please select at least one row to Print.',
+                position: 'topCenter'
+            });
+            return;
+        }
+
+        // Normal print action
+        $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+        // ✅ clear checkboxes
+        setTimeout(function () {
+            dt.rows().nodes().to$().find('.row-checkbox').prop('checked', false);
+            $('#select-all-txn').prop('checked', false);
+        }, 100);
+
+
+    }
+}
+
+        ]
+    });
+
+
+    $('#select-all-txn').on('click', function () {
+        var rows = table.rows({ 'search': 'applied' }).nodes();
+        $('input.row-checkbox', rows).prop('checked', this.checked);
+    });
+
+    window.closeModal = function () {
+        $('#expenseDetailsModal').modal('hide');
+    };
+
+});
+</script>
+
+
+
+
+
+
+

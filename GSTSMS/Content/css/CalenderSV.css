@@ -1,0 +1,98 @@
+﻿.modal-header h5 {
+    margin-left: 54px;
+    font-size: 18px;
+}
+
+#calendarModal .modal-dialog {
+    width: 83%;
+    max-width: 1200px;
+    height: 90vh;
+    /* NEW: Flexbox center horizontally */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Optional for spacing from top and bottom */
+    margin: 0 auto;
+}
+
+
+#calendarModal .modal-content {
+    height: auto;
+    width: 70%;
+}
+
+#calendarModal .modal-body {
+    padding: 0;
+    height: calc(100% - 57px); /* Subtract header height */
+}
+
+#modal-content {
+}
+/* Event colors */
+.fc-event-event {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    border-left: 3px solid #1e8449 !important;
+}
+
+.fc-event-meeting {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    border-left: 3px solid #1d6fa5 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    #calendarModal .modal-dialog {
+        width: 98%;
+        height: 85vh;
+    }
+}
+
+@media (max-width: 768px) {
+    #calendarModal .modal-dialog {
+        width: 100%;
+        height: 100vh;
+        margin: 0;
+        max-width: none;
+    }
+
+    #calendarModal .modal-content {
+        border-radius: 0;
+    }
+}
+
+@media (max-width: 576px) {
+    #calendarModal .modal-header {
+        padding: 0.5rem;
+    }
+
+    #calendarModal .modal-title {
+        font-size: 1.1rem;
+    }
+}
+
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.9em;
+    color: #555;
+}
+
+.legend-color-box {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%; /* This makes the box a perfect circle */
+    display: inline-block;
+    border: 1px solid #ccc;
+    /* The box-shadow property is intentionally omitted to remove any shadow. */
+}
+
+.meeting-color {
+    background: #3498db; /* Changed to a solid color for a flat look */
+    border-left: none; /* Removing the border to show a consistent circle */
+}
+
+.event-color {
+    background: #ff9933;
+    border-left: none;
+}

@@ -1,0 +1,43 @@
+﻿@model IEnumerable<GSTSMSLibrary.AccountManager.AccountManager>
+@{
+    int srNo = 1;
+}
+<table id="cashTable" class="table table-striped table-bordered w-100">
+    <thead>
+        <tr class="tableheader" style="color:white; height:30px;">
+            <th class="cashtdth"><input type="checkbox" id="select-all" /></th>
+            <th class="cashtdth" style="color:white;">Sr. No</th>
+            <th class="cashtdth" style="color:white;">Payment By</th>
+            <th class="cashtdth" style="color:white;">Paid To</th>
+            <th class="cashtdth" style="color:white;">Amount</th>
+            <th class="cashtdth" style="color:white;">Payment Mode</th>
+            <th class="cashtdth" style="color:white;">Payment Purpose</th>
+            <th class="cashtdth" style="color:white;">Paid Date</th>
+            <th class="cashtdth" style="color:white;">Transaction type</th>
+            <th class="cashtdth" style="color:white;">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td class="cashtdth"><input type="checkbox" class="row-checkbox" value="@item.TransactionId" /></td>
+                <td class="cashtdth">@(srNo++)</td>
+                <td class="cashtdth" title="@item.PaymentByName">@item.PaymentByName</td>
+                <td class="cashtdth" title="@item.PaidToName">@item.PaidToName</td>
+                <td class="cashtdth">@item.Amount.ToString("C")</td>
+                <td class="cashtdth">@item.PaymentModeName</td>
+                <td class="cashtdth" title="@item.PaymentPurpose">@item.PaymentPurpose</td>
+                <td class="cashtdth">@(item.PaidDate?.ToString("dd-MM-yyyy") ?? "")</td>
+                <td class="cashtdth" style="@(item.TransactionNature.Equals("Credited", StringComparison.OrdinalIgnoreCase) ? "color:green !important" : "color:red !important")">
+                    @item.TransactionNature
+                </td>
+                <td class="cashtdth">
+                    <button class=" btn-view-transaction" data-id="@item.TransactionId">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

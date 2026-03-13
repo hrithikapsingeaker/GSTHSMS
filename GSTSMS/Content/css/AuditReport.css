@@ -1,0 +1,468 @@
+﻿/* custom-table.css - uniform row height and layout for tables */
+#expenceAllLIST tbody tr,
+#salaryDataTable tbody tr,
+#workerSalaryTable tbody tr,
+#expenseDetailTable tbody tr,
+#vendorDataTable tbody tr,
+#memberDataTable tbody tr,
+#workerDataTable tbody tr,
+#incomeExpenseTable tbody tr,
+#eventBudgetTable tbody tr,
+#distributionEventTable tbody tr {
+    height: 25px;
+}
+
+
+
+
+
+
+#expenceAllLIST th, #expenceAllLIST td,
+#salaryDataTable th, #salaryDataTable td,
+#workerSalaryTable th, #workerSalaryTable td,
+#expenseDetailTable th, #expenseDetailTable td,
+#vendorDataTable th, #vendorDataTable td,
+#memberDataTable th, #memberDataTable td,
+#workerDataTable th, #workerDataTable td,
+#incomeExpenseTable th, #incomeExpenseTable td,
+#eventBudgetTable th, #eventBudgetTable td,
+#distributionEventTable th, #distributionEventTable td {
+    vertical-align: middle !important;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    font-size: 0.85rem;
+}
+
+/* Optional: remove py-3 padding if used accidentally */
+#expenceAllLIST tr.py-3,
+#workerSalaryTable tr.py-3,
+#salaryDataTable tr.py-3,
+#expenseDetailTable tr.py-3,
+#vendorDataTable tr.py-3,
+#memberDataTable tr.py-3,
+#workerDataTable tr.py-3,
+#incomeExpenseTable tr.py-3,
+#eventBudgetTable tr.py-3,
+#distributionEventTable tr.py-3 {
+    padding: 0 !important;
+}
+
+/* Ellipsis text if too long */
+#expenceAllLIST td,
+#workerSalaryTable td,
+#salaryDataTable td,
+#expenseDetailTable td,
+#vendorDataTable td,
+#memberDataTable td,
+#workerDataTable td,
+#incomeExpenseTable td,
+#eventBudgetTable td,
+#distributionEventTable td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+.modal-xl {
+    max-width: 85% !important;
+    margin: auto;
+}
+
+
+.modal-content {
+    border-radius: 0.75rem;
+    padding: 0.5rem;
+}
+
+
+
+.modal-body {
+    overflow-x: hidden;
+    padding: 0.75rem;
+}
+
+table td, table th {
+    padding: 0.25rem 0.5rem !important;
+    vertical-align: middle;
+    font-size: 0.85rem;
+}
+
+
+td.text-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+}
+
+
+#expenceAllLIST thead,
+#workerSalaryTable thead,
+#salaryDataTable thead,
+#expenseDetailTable thead,
+#vendorDataTable thead,
+#memberDataTable thead,
+#workerDataTable thead,
+#incomeExpenseTable thead,
+#eventBudgetTable thead,
+#distributionEventTable thead {
+    background-color: #615677 !important;
+    color: white !important;
+    height: 30px;
+}
+
+table.dataTable tbody tr.selected {
+    background-color: transparent !important;
+}
+
+    table.dataTable tbody tr.selected td {
+        color: #212529 !important;
+    }
+
+
+        table.dataTable tbody tr.selected td.select-checkbox::before {
+            background-color: transparent !important;
+            color: #007bff !important;
+        }
+
+/*.btn-teal {
+    background-color: #17a2b8 !important;
+    border-color: #17a2b8 !important;
+    color: #fff !important;
+}
+
+    .btn-teal:hover {
+        background-color: #117a8b !important;
+        border-color: #117a8b !important;
+    }*/
+
+.btn-rounded {
+    border-radius: 50rem !important;
+    padding-left: 0.6rem !important;
+    padding-right: 0.6rem !important;
+}
+
+.dt-buttons .btn i {
+    font-size: 16px;
+}
+
+
+
+#expenceAllLIST tbody tr:hover,
+#workerSalaryTable tbody tr:hover,
+#salaryDataTable tbody tr:hover,
+#expenseDetailTable tbody tr:hover,
+#vendorDataTable tbody tr:hover,
+#memberDataTable tbody tr:hover,
+#workerDataTable tbody tr:hover,
+#incomeExpenseTable tbody tr:hover,
+#eventBudgetTable tbody tr:hover,
+#distributionEventTable tbody tr:hover {
+    background-color: #f9f9f9 !important;
+}
+
+.dt-buttons .btn + .btn {
+    margin-left: 0.5rem;
+}
+
+.dt-buttons .btn {
+    border-radius: 0.1rem !important;
+}
+
+/* Fix hover and active styles for daterangepicker ranges */
+.daterangepicker .ranges li {
+    color: #000 !important; /* Black text */
+    background-color: transparent; /* No background by default */
+}
+
+    .daterangepicker .ranges li:hover {
+        color: #fff !important; /* White text on hover */
+        background-color: #007bff !important; /* Blue background on hover */
+    }
+
+    .daterangepicker .ranges li.active {
+        color: #fff !important; /* White text when active */
+        background-color: #007bff !important; /* Blue background when active */
+    }
+
+
+
+/********************  Expence Details List**/
+
+
+#expense-loading .spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+
+
+.modal-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.modal-title {
+    width: 100%;
+    text-align: center;
+    margin: 0;
+}
+
+#incomeExpenseDetailsModal .close {
+    position: absolute;
+    right: 15px;
+}
+
+
+.modal.fade .modal-dialog {
+    transition: none !important;
+    transform: none !important;
+}
+
+.modal-backdrop {
+    pointer-events: none !important; /* Clicks allow करत नाही */
+}
+
+
+
+/*for remove black background from icons */
+button.export-buttons.icon-only-btn {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 5px;
+}
+
+    /* 🔽 Optional: Remove hover background */
+    button.export-buttons.icon-only-btn:hover {
+        background-color: transparent !important;
+        box-shadow: none !important;
+    }
+
+
+
+
+
+
+/*for Responsive */
+
+
+/* 🔹 Default mobile-first styles */
+.maincontaint {
+    margin-top: 0 !important;
+    padding-top: 1rem;
+}
+
+.card.h-100 {
+    height: auto !important;
+    min-height: unset;
+}
+
+#expenseChart,
+#workerMonthlyChart,
+#container,
+#lineChart {
+    width: 100% !important;
+    min-height: 300px;
+}
+
+#monthDisplay,
+#yearDisplay,
+workerYearDisplay {
+    max-width: 100px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.modal-body > table {
+    width: 100% !important;
+}
+
+.modal.fade .modal-dialog {
+    transition: none !important;
+    transform: none !important;
+}
+
+.cmnbtnvd {
+    border-radius: 5px;
+    background-color: #EF6351;
+    color: white;
+    border: none;
+    margin: 1px 0 0;
+    padding: 2px 15px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+    .cmnbtnvd:hover {
+        background-color: #F38375;
+    }
+/* 🔹 Responsive: Tablets and up */
+@media screen and (min-width: 768px) {
+    .maincontaint {
+        margin-top: -130px !important;
+    }
+}
+/* 🔹 Responsive: Large desktops */
+@media screen and (min-width: 992px) {
+    .modal-dialog {
+        max-width: 900px;
+    }
+}
+/* 🔹 Responsive: Small devices (e.g. iPhone SE) */
+@media screen and (max-width: 576px) {
+    .maincontaint {
+        padding: 0.5rem;
+    }
+
+    h1, h2, h3, h4, h5 {
+        font-size: 1rem;
+    }
+
+    .card-header h5 {
+        font-size: 14px;
+    }
+
+    .btn-sm,
+    .form-control-sm {
+        font-size: 12px;
+    }
+
+    #monthPicker,
+    #yearPicker {
+        max-width: 70px !important;
+        font-size: 12px;
+    }
+
+    .card-header label,
+    .card-header .btn {
+        font-size: 12px;
+        padding: 2px 6px;
+    }
+
+    #viewAllIncomeExpenseDetails,
+    #viewAllBudgetDetails {
+        padding: 2px 6px;
+        font-size: 12px;
+    }
+}
+/* ✅ Card Main Style */
+.custom-card-stat {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 18px 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+    .custom-card-stat:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+/* ✅ Icon Box */
+.icon-box {
+    width: 80px;
+    height: 80px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    color: #fff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    flex-shrink: 0;
+}
+/* ✅ Gradient Backgrounds */
+.gradient-blue {
+    background: linear-gradient(135deg, #4e73df, #375db3);
+}
+
+.gradient-cyan {
+    background: linear-gradient(135deg, #17a2b8, #0d8fa8);
+}
+
+.gradient-orange {
+    background: linear-gradient(135deg, #fd7e14, #e06600);
+}
+/* ✅ Text Area */
+.text-box h4 {
+    font-size: 18px;
+    color: #34395e;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.text-box p {
+    font-size: 22px;
+    font-weight: bold;
+    color: #000;
+    margin: 0;
+}
+
+/* Main Loader for all page */
+
+#monthPicker,
+#yearPicker,
+#budgetMonthPicker {
+    max-width: 70px !important;
+    font-size: 12px;
+}
+
+.loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loader {
+    width: 50px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 8px solid;
+    border-color: white transparent;
+    animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(0.5turn);
+    }
+}
+
+.view-docs {
+    background-color: #339af0;
+    border: none !important;
+    color: white;
+    padding: 5px 7px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+    .view-docs:hover {
+        background-color: lightgray;
+        color: #339af0;
+    }
+
+    /* Fix for black border on click */
+    .view-docs:focus,
+    .view-docs:active {
+        outline: none !important;
+        box-shadow: none !important;
+        border: none !important;
+    }

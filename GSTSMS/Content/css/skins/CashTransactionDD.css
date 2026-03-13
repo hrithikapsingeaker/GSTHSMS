@@ -1,0 +1,350 @@
+﻿/* ===================== */
+/* DateTime Picker CSS   */
+/* ===================== */
+
+.daterangepicker .ranges li.active :hover {
+    color: #162c81 !important;
+}
+
+/* ===================== */
+/* Export Buttons        */
+/* ===================== */
+
+.export-buttons.icon-only-btn {
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+}
+
+    .export-buttons.icon-only-btn:hover {
+        background: none !important;
+        box-shadow: none !important;
+    }
+
+.fa-file-excel:before {
+    margin-right: 8px !important;
+    padding: 4px 8px !important;
+    border-radius: 6px !important;
+    background-color: #fff !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+/* ===================== */
+/* DataTable Controls    */
+/* ===================== */
+
+div.dataTables_wrapper div.dataTables_filter input {
+    width: 160px !important;
+}
+
+div.dataTables_length {
+    display: none !important;
+}
+
+/* ===================== */
+/* Table Header Styling  */
+/* ===================== */
+
+.tableheader,
+#cashTable thead,
+.table:not(.table-sm) thead th {
+    background-color: #615677 !important;
+    color: white !important; /* Header Text Color */
+    font-size: 14px !important; /* Header Font Size */
+    height: 30px !important; /* Header Height */
+    font-weight: 600;
+    border: 2px solid lightgray !important;
+    /*    padding: 15px 7px !important;*/
+    vertical-align: middle !important;
+    text-align: center;
+}
+
+/* ===================== */
+/* Table Row Styling     */
+/* ===================== */
+
+#cashTable tbody tr {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    height: 25px !important; /* Row Height */
+}
+
+    #cashTable tbody tr:hover {
+        background-color: #f9f9f9 !important; /* Row Hover */
+    }
+
+#cashTable tbody td {
+    font-size: 13px !important; /* Data Font Size */
+    color: black !important; /* Row Text Color */
+    vertical-align: middle !important;
+    text-align: center;
+    height: 25px;
+}
+
+.cashtdth {
+    padding: 2px !important;
+    vertical-align: middle !important;
+    text-align: center;
+}
+
+/* ===================== */
+/* Pagination & Filter   */
+/* ===================== */
+
+.dataTables_paginate {
+    float: right !important;
+}
+
+/* ===================== */
+/* Tab Groups for Filter */
+/* ===================== */
+
+.equal-tab-group {
+    display: flex;
+    justify-content: flex-start;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    overflow: hidden;
+    max-width: 500px;
+    margin: 0 0 10px 0;
+}
+
+.equal-tab {
+    flex: 1;
+    padding: 8px 16px;
+    margin: 0 5px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    text-align: center;
+    text-decoration: none;
+    color: #495057;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+    .equal-tab:hover,
+    .equal-tab.active {
+        background-color: #615677;
+        color: white;
+        text-decoration: none;
+    }
+
+/* ===================== */
+/* Add Transaction Button */
+/* ===================== */
+
+.addbtn {
+    background-color: #28a745;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    white-space: nowrap;
+    transition: all 0.3s;
+    margin: 10px 0;
+}
+
+    .addbtn:hover {
+        background-color: #218838 !important;
+        color: white !important;
+    }
+
+/* ===================== */
+/* Responsive Design     */
+/* ===================== */
+
+@media (min-width: 768px) {
+    .addbtn {
+        margin-left: auto;
+    }
+}
+
+@media (max-width: 767px) {
+    .addbtn {
+        width: 100%;
+        margin-top: 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate {
+        text-align: center !important;
+        float: none !important;
+    }
+
+    .dataTables_wrapper .dataTables_filter input {
+        width: 100% !important;
+        margin-bottom: 10px;
+    }
+}
+
+@media (max-width: 576px) {
+    #cashTable td,
+    #cashTable th {
+        padding: 6px 4px !important;
+        font-size: 0.8rem;
+        text-align: center;
+    }
+
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* ===================== */
+/* Form/Card Formatting  */
+/* ===================== */
+
+.form-group {
+    margin-bottom: 10px;
+}
+
+.card .card-body {
+    padding-top: 0px;
+}
+
+/* ========================= */
+/* DataTable Button Styling  */
+/* ========================= */
+
+.dt-buttons .btn,
+.dt-buttons button {
+    background: none !important;
+    border: none !important;
+    padding: 4px 10px;
+    margin-right: 0px;
+    box-shadow: none !important;
+}
+
+    .dt-buttons .btn i,
+    .dt-buttons button i {
+        font-size: 25px;
+    }
+
+    .dt-buttons .btn::before,
+    .dt-buttons button::before {
+        display: none;
+    }
+
+/* ========================= */
+/* Action Buttons Styling    */
+/* ========================= */
+
+.action-btns {
+    display: flex;
+    gap: 2px;
+    justify-content: center;
+    align-items: center;
+}
+
+    .action-btns button,
+    .action-btns a {
+        border: none;
+        padding: 3px 3px;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+        width: 24px;
+        height: 24px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+/* Edit Button */
+.btn-gradient-edit {
+    background-color: #9b59b6 !important;
+    color: white !important;
+}
+
+    .btn-gradient-edit:hover {
+        background-color: lightgray !important;
+        color: #9b59b6 !important;
+    }
+
+/* Details Button */
+.btn-gradient-details {
+    background-color: #339af0 !important;
+    color: white !important;
+}
+
+    .btn-gradient-details:hover {
+        background-color: lightgray !important;
+        color: #339af0 !important;
+    }
+
+/* View Button */
+.btnView {
+    background: #615677 !important;
+    color: white;
+}
+
+    .btnView:hover {
+        background: #615677 !important;
+        color: white;
+    }
+
+/* Update Button */
+.btnUpdate {
+    background: #0CAFFF !important;
+    color: white;
+}
+
+    .btnUpdate:hover {
+        background: #4BC4FF !important;
+        color: black;
+    }
+
+/* Refresh Button */
+.btnNext {
+    background-color: #1E90FF !important;
+    color: white !important;
+}
+
+    .btnNext:hover {
+        background-color: #6495ED !important;
+        color: black !important;
+    }
+
+/* Back Button */
+.btnPrevious {
+    background-color: darkgray !important;
+    color: white !important;
+}
+
+    .btnPrevious:hover {
+        background-color: lightgray !important;
+        color: black !important;
+    }
+
+/* Add Staff */
+.btn-success {
+    background: green;
+    border: none;
+    color: white;
+}
+
+    .btn-success:hover {
+        background: #00b67a;
+        color: black;
+    }
+
+/* Date Range Button */
+.daterange-btn {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+    .daterange-btn:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+
+/* View Transaction Button */
+

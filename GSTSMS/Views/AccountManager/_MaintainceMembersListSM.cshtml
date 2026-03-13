@@ -1,0 +1,905 @@
+﻿@model System.Data.DataTable
+
+<div class="table-responsive" style="color:black;">
+
+    <div class="d-flex justify-content-between align-items-center mb-2">
+
+        <!-- ✅ Date Range Button -->
+        <a href="javascript:;" class="btn btn-primary daterange-btn icon-left btn-icon">
+            <i class="fas fa-calendar"></i> <span>Choose Date</span>
+        </a>
+
+        <!-- ✅ Payment Mode Filter Dropdown (ONLY FOR PAID LIST) -->
+        <div id="paymentModeWrapper" style="display:none;">
+            <select id="paymentModeFilter" class="form-control form-control-sm ms-2" style="width:180px;">
+                <option value="">All Payment Modes</option>
+                <option value="UPI">UPI</option>
+                <option value="Cash">Cash</option>
+                <option value="Cheque">Cheque</option>
+            </select>
+        </div>
+
+
+        <!-- ✅ Hidden Fields -->
+        <input type="hidden" id="fromDate" />
+        <input type="hidden" id="toDate" />
+        <input type="hidden" id="memberStatus" />
+
+
+    </div>
+
+
+
+    <table id="dueDataTable"
+           class="table table-sm table-bordered table-striped text-center dataTableExport mb-0"
+           style="width:100%; table-layout:auto;">
+
+        <thead class="bg-light">
+            <tr style="background-color: #615677; color: #fff;">
+                <th>
+                    <div class="d-flex justify-content-center align-items-center" style="height:100%;">
+                        <input type="checkbox" id="selectAllMaintenance" />
+                    </div>
+                </th>
+                <th>Sr.No</th>
+
+                @foreach (System.Data.DataColumn col in Model.Columns)
+                {
+                    <th>@col.ColumnName</th>
+                }
+            </tr>
+        </thead>
+
+        <tbody>
+            @{
+                int rowIndex = 1;
+            }
+
+            @foreach (System.Data.DataRow row in Model.Rows)
+            {
+                <tr data-id="@rowIndex">
+                    <td><input type="checkbox" class="row-checkbox" /></td>
+                    <td></td>
+
+                    @foreach (System.Data.DataColumn col in Model.Columns)
+                    {
+                        <td>
+                            @if (row[col.ColumnName] != DBNull.Value)
+                            {
+                                if (
+                                    col.ColumnName.ToLower().Contains("amount") ||
+                                    col.ColumnName.ToLower().Contains("penalty") ||
+                                    col.ColumnName.ToLower().Contains("pending")
+                                )
+                                {
+                                    @("₹ " + Convert.ToDecimal(row[col.ColumnName]).ToString("N2"))
+                                }
+                                else
+                                {
+                                    @row[col.ColumnName].ToString()
+                                }
+                            }
+                            else
+                            {
+                                @Html.Raw("-")
+                            }
+                        </td>
+                    }
+                </tr>
+
+                rowIndex++;
+            }
+        </tbody>
+
+        <tfoot>
+            <tr>
+                <th></th>   <!-- checkbox -->
+                <th></th>   <!-- Sr.No -->
+
+                @foreach (System.Data.DataColumn col in Model.Columns)
+                {
+                    <th></th>
+                }
+            </tr>
+        </tfoot>
+
+    </table>
+</div>
+
+
+<!-- ✅ REQUIRED CSS -->
+<link href="~/Content/modules/datatables/datatables.min.css" rel="stylesheet" />
+<link href="~/Content/modules/datatables/DataTables-1.10.16/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
+<link href="~/Content/css/AuditReport.css" rel="stylesheet" />
+<link href="~/Content/modules/izitoast/css/iziToast.css" rel="stylesheet" />
+<link href="~/Content/modules/select2/dist/css/select2.min.css" rel="stylesheet" />
+
+<style>
+    /* ✅ Select2 Black Text & Black Border */
+    /* ✅ Select2 Black Theme + Perfect Center Text */
+
+    .select2-container--default .select2-selection--single {
+        border: 1px solid #ccc !important;
+        color: #000 !important;
+        height: 26px !important;
+        /* ✅ Exact Center */
+        display: flex !important;
+        align-items: center !important; /* Vertical Center */
+        justify-content: center !important; /* Horizontal Center */
+    }
+
+    /* ✅ Selected Text */
+    .select2-selection__rendered {
+        color: #000 !important;
+        line-height: normal !important;
+        padding: 0 !important;
+        padding-top: 8px !important; /* ✅ वरून हलकं खाली येईल */
+    }
+
+    /* ✅ Arrow Black */
+    .select2-selection__arrow b {
+        border-color: #000 transparent transparent transparent !important;
+    }
+
+    /* ✅ Dropdown Border */
+    .select2-dropdown {
+        border: 1px solid #000 !important;
+    }
+
+    /* ✅ Dropdown Text */
+    .select2-results__option {
+        color: #000 !important;
+        padding: 2px 8px !important; /* ✅ Reduced height */
+    }
+
+    /* ✅ Clear (×) Icon Hide */
+    .select2-selection__clear {
+        display: none !important;
+    }
+
+    /* ✅ Placeholder Text Black */
+    .select2-container--default
+    .select2-selection--single
+    .select2-selection__placeholder {
+        color: #000 !important;
+    }
+</style>
+
+
+
+
+<!-- ✅ REQUIRED JS -->
+<script src="~/Content/modules/datatables/datatables.min.js"></script>
+<script src="~/Content/modules/datatables/pdfmake-0.1.36/pdfmake.min.js"></script>
+<script src="~/Content/modules/datatables/pdfmake-0.1.36/vfs_fonts.js"></script>
+<script src="~/Content/modules/datatables/Buttons-1.5.1/js/buttons.html5.min.js"></script>
+<script src="~/Content/modules/datatables/Select-1.2.6/js/dataTables.select.min.js"></script>
+<script src="~/Content/modules/izitoast/js/iziToast.min.js"></script>
+<script src="~/Content/modules/moment.min.js"></script>
+
+<script src="~/Content/modules/select2/dist/js/select2.min.js"></script>
+
+
+
+
+
+
+
+
+<!-- ✅ DataTables + Export + Select -->
+<link href="~/Content/modules/datatables/datatables.min.css" rel="stylesheet" />
+<link href="~/Content/modules/datatables/DataTables-1.10.16/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
+<link href="~/Content/css/AuditReport.css" rel="stylesheet" />
+<link href="~/Content/modules/izitoast/css/iziToast.css" rel="stylesheet" />
+<link href="~/Content/modules/izitoast/css/iziToast.min.css" rel="stylesheet" />
+
+<link href="~/Content/modules/fontawesome/css/fontawesome.min.css" rel="stylesheet" />
+<!-- Page Specific JS File -->
+<script src="~/Content/modules/sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/modules/datatables/datatables.min.js"></script>
+<script src="~/Content/modules/datatables/pdfmake-0.1.36/pdfmake.min.js"></script>
+<script src="~/Content/modules/datatables/pdfmake-0.1.36/vfs_fonts.js"></script>
+<script src="~/Content/modules/datatables/Buttons-1.5.1/js/buttons.html5.min.js"></script>
+<script src="~/Content/modules/datatables/Select-1.2.6/js/dataTables.select.min.js"></script>
+<script src="~/Content/modules/izitoast/js/iziToast.js"></script>
+<script src="~/Content/modules/izitoast/js/iziToast.min.js"></script>
+<script src="~/Content/modules/moment.min.js"></script>
+<script src="~/Content/modules/fontawesome/js/fontawesome.min.js"></script>
+
+<script>
+
+    // ✅✅✅ FINAL DATE FILTER FIX (ONLY PENDING)
+    $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+
+        var fromDate = $('#fromDate').val();
+        var toDate = $('#toDate').val();
+        var status = $('#memberStatus').val();
+
+        if (!fromDate && !toDate) return true;
+
+        var dateStr;
+
+        // ✅ ONLY PENDING → Due Date Column Index = 7
+        if (status === "PENDING") {
+            dateStr = data[9];
+        }
+        else {
+            return true;
+        }
+
+        if (!dateStr || dateStr === '-') return true;
+
+        var parts = dateStr.split('-');
+        var rowDate = new Date(parts[2], parts[1] - 1, parts[0]);
+
+        var fromDateObj = fromDate ? new Date(fromDate) : null;
+        var toDateObj = toDate ? new Date(toDate) : null;
+
+        if (fromDateObj && rowDate < fromDateObj) return false;
+
+        if (toDateObj) {
+            var toPlusOne = new Date(toDateObj);
+            toPlusOne.setDate(toPlusOne.getDate() + 1);
+            if (rowDate >= toPlusOne) return false;
+        }
+
+        return true;
+    });
+    // ✅ PAYMENT MODE FILTER (ONLY FOR PAID MEMBERS)
+    $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+
+        var selectedMode = $('#paymentModeFilter').val();
+
+        // ✅ Payment Mode column index (dynamic name आहे म्हणून name वर logic वापरतो)
+        var paymentMode = data.find ? data[data.length - 1] : data[4];
+        // जर issues आले तर मी exact index देतो
+
+        if (!selectedMode) return true;
+
+        return paymentMode === selectedMode;
+    });
+
+
+
+
+
+
+    $(document).ready(function () {
+
+        $('#paymentModeFilter').select2({
+            placeholder: "Select Payment Mode",
+            allowClear: true,
+            width: '178px'
+        });
+
+
+        // ✅ Payment Mode Dropdown Change
+        $('#paymentModeFilter').on('change', function () {
+            $('#dueDataTable').DataTable().draw();
+        });
+
+
+
+
+
+        var selectedRows = {};   // ✅ Global selection store
+
+        var table = $('#dueDataTable').DataTable({
+
+            dom: "<'row mb-2'<'col-md-6'B><'col-md-6'f>>" +
+                "<'row'<'col-12'tr>>" +
+                "<'row mt-2'<'col-md-5'i><'col-md-7'p>>",
+
+            ordering: false,
+            pageLength: 10,
+            responsive: false,
+            autoWidth: true,
+
+            buttons: [
+
+                /* ===========================
+                   ✅ CSV EXPORT (ALL PAGES)
+                =========================== */
+                {
+                    extend: 'csvHtml5',
+                    text: '<img src="/Content/img/icons8-csv-64.png" style="height:32px;" />',
+                    className: 'export-buttons icon-only-btn',
+                    filename: 'Maintenance_List_' + moment().format("DD-MM-YYYY"),
+
+                    // ✅ ONLY SELECTED ROWS EXPORT
+                    exportOptions: {
+                        columns: ':visible:not(:first-child)', // checkbox skip
+                        rows: function (idx, data, node) {
+                            return $(node).find('input.row-checkbox').is(':checked');
+                        }
+                    },
+
+                    customize: function (csv) {
+
+                        let status = $("#maintenanceModalTitle").text();
+                        let fromDate = $('#fromDate').val() || moment().startOf('month').format("DD-MM-YYYY");
+                        let toDate = $('#toDate').val() || moment().endOf('month').format("DD-MM-YYYY");
+
+                        var lines = csv.split('\n').filter(l => l.trim() !== "");
+
+                        // ✅ HEADER + DATA SEPARATION
+                        var header = lines[0];
+                        var dataLines = lines.slice(1);
+
+                        // ✅ ✅ SR NO REBUILD
+                        dataLines = dataLines.map((row, index) => {
+                            let cols = row.split(',');
+                            cols[0] = index + 1;
+                            return cols.join(',');
+                        });
+
+                        // ✅ ✅ TOTAL CALCULATION
+                        var totals = {};
+
+                        dataLines.forEach(row => {
+                            row.split(',').forEach((cell, i) => {
+                                if (cell.includes("₹")) {
+                                    let num = parseFloat(cell.replace("₹", "").replace(/,/g, ""));
+                                    totals[i] = (totals[i] || 0) + (isNaN(num) ? 0 : num);
+                                }
+                            });
+                        });
+
+                        // ✅ ✅ TOTAL ROW FORMAT
+                        var totalRow = [];
+                        header.split(',').forEach((h, i) => {
+                            let lower = h.toLowerCase();
+                            if (lower.includes("member")) {
+                                totalRow.push("TOTAL");
+                            }
+                            else if (totals[i]) {
+                                totalRow.push("₹ " + totals[i].toFixed(2));
+                            }
+                            else {
+                                totalRow.push("");
+                            }
+                        });
+
+                        // ✅ ✅ FINAL CSV BUILD
+                        var finalCsv = [];
+
+                        finalCsv.push("Green Valley Society");
+                        finalCsv.push(status);
+                        finalCsv.push(`Date Range: ${fromDate} to ${toDate}`);
+                        finalCsv.push("");
+                        finalCsv.push(header);
+
+                        dataLines.forEach(r => finalCsv.push(r));
+
+                        finalCsv.push(totalRow.join(','));
+
+                        return finalCsv.join('\n');
+                    },
+
+                    action: function (e, dt, button, config) {
+
+                        var selected = dt.rows({ page: 'all' }).nodes().to$()
+                            .find('input.row-checkbox:checked');
+
+                        if (selected.length === 0) {
+                            iziToast.warning({
+                                title: 'Warning',
+                                message: 'Please select at least one record!',
+                                position: 'topCenter'
+                            });
+                            return;
+                        }
+
+                        $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+                        clearAllSelectionsAfterExport(dt);
+                    }
+                },
+
+                /* ===========================
+                   ✅ EXCEL EXPORT (ALL PAGES)
+                =========================== */
+                {
+                    extend: 'excelHtml5',
+                    text: '<img src="/Content/img/icons8-xls-64.png" style="height:32px;" />',
+                    className: 'export-buttons icon-only-btn',
+                    filename: 'Maintenance_List_' + moment().format("DD-MM-YYYY"),
+
+                    exportOptions: {
+                        columns: ':visible:not(:first-child)', // checkbox skip
+                        modifier: { page: 'all' },
+                        rows: function (idx, data, node) {
+                            return $(node).find('input.row-checkbox').is(':checked');
+                        }
+                    },
+
+                    customizeData: function (data) {
+
+                        let status = $("#maintenanceModalTitle").text();
+                        let fromDate = $('#fromDate').val() || moment().startOf('month').format("YYYY-MM-DD");
+                        let toDate = $('#toDate').val() || moment().endOf('month').format("YYYY-MM-DD");
+
+                        // ✅ 1) ORIGINAL DATATABLE HEADER REMOVE (ONLY ONCE)
+                        var originalHeader = data.header;
+                        data.header = [];
+
+                        // ✅ 2) FINAL COLUMN HEADER (EXACT AS UI)
+                        var properHeader = [];
+                        $('#dueDataTable thead th').each(function (i) {
+                            if (i !== 0) { // checkbox skip
+                                properHeader.push($(this).text().trim());
+                            }
+                        });
+
+                        // ✅ 3) TITLE + DATE (TOP)
+                        data.body.unshift(
+                            ["Green Valley Society"],
+                            [status],
+                            [`Date Range: ${fromDate} to ${toDate}`],
+                            [],                // blank row
+                            properHeader       // ✅ only ONE header row
+                        );
+
+                        // ✅ 4) SR NO FIX (NO BLANK COLUMN)
+                        // ✅ 4) SR NO OVERWRITE (NOT UNSHIFT → DIRECT SET)
+                        let sr = 1;
+                        for (let i = 5; i < data.body.length; i++) {
+                            data.body[i][0] = sr++;   // ✅ overwrite first column only
+                        }
+
+
+                        // ✅ 5) TOTAL CALCULATION (SELECTED ROWS ONLY)
+                        var totals = {};
+
+                        for (let i = 5; i < data.body.length; i++) {
+                            data.body[i].forEach(function (cell, colIndex) {
+                                if (typeof cell === "string" && cell.includes("₹")) {
+                                    let num = parseFloat(cell.replace("₹", "").replace(/,/g, ""));
+                                    totals[colIndex] = (totals[colIndex] || 0) + (isNaN(num) ? 0 : num);
+                                }
+                            });
+                        }
+
+                        // ✅ 6) FINAL TOTAL ROW (CORRECT ALIGNMENT)
+                        // ✅ 6) FINAL TOTAL ROW (PERFECT ALIGNMENT - NO SHIFT)
+                        var totalRow = [];
+
+                        properHeader.forEach(function (h, i) {
+
+                            let lower = h.toLowerCase();
+
+                            if (lower.includes("member")) {
+                                totalRow.push("TOTAL");
+                            }
+                            else if (totals[i]) {   // ✅ ✅ ✅ +1 पूर्ण काढला
+                                totalRow.push("₹ " + totals[i].toFixed(2));
+                            }
+                            else {
+                                totalRow.push("");
+                            }
+                        });
+
+                        data.body.push(totalRow);
+                    },
+
+                    action: function (e, dt, button, config) {
+
+                        var selected = dt.rows({ page: 'all' }).nodes().to$()
+                            .find('input.row-checkbox:checked');
+
+                        if (selected.length === 0) {
+                            iziToast.warning({
+                                title: 'Warning',
+                                message: 'Please select at least one record!',
+                                position: 'topCenter'
+                            });
+                            return;
+                        }
+
+                        $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+                        clearAllSelectionsAfterExport(dt);
+                    }
+                },
+                /* ===========================
+                   ✅ PDF EXPORT (ALL PAGES)
+                =========================== */
+                {
+                    extend: 'pdfHtml5',
+                    text: '<img src="/Content/img/icons8-pdf-64.png" style="height:32px;" />',
+                    className: 'export-buttons icon-only-btn',
+                    orientation: 'landscape',
+                    pageSize: 'A4',
+
+                    filename: function () {
+                        return 'Maintenance_List_' + moment().format("DD-MM-YYYY");
+                    },
+
+                    exportOptions: {
+                        columns: ':visible:not(:first-child)',
+                        modifier: { page: 'all' },
+                        rows: function (idx, data, node) {
+                            return $(node).find('input.row-checkbox').is(':checked');
+                        }
+                    },
+
+                    customize: function (doc) {
+
+                        let status = $("#maintenanceModalTitle").text();
+                        let fromDate = $('#fromDate').val() || moment().startOf('month').format('DD-MM-YYYY');
+                        let toDate = $('#toDate').val() || moment().format('DD-MM-YYYY');
+
+                        // ✅ TITLE
+                        doc.content.unshift({
+                            alignment: 'center',
+                            text: [
+                                { text: 'Green Valley Society\n', fontSize: 18 },
+                                { text: status + '\n', fontSize: 14 },
+                                { text: 'Date Range: ' + fromDate + ' to ' + toDate + '\n\n', fontSize: 11 }
+                            ]
+                        });
+
+                        const tableIndex = doc.content.findIndex(o => o.table);
+                        const table = doc.content[tableIndex].table;
+
+                        // ✅ 1) SR NO ADD
+                        table.body[0].unshift({ text: 'Sr.No' });
+
+                        let sr = 1;
+                        for (let i = 1; i < table.body.length; i++) {
+                            table.body[i].unshift({ text: sr++ });
+                        }
+
+                        // ✅ 2) TOTAL CALCULATION DIRECT FROM PDF TABLE DATA
+                        var totals = {};
+                        var headerRow = table.body[0];
+
+                        for (let r = 1; r < table.body.length; r++) {
+
+                            var row = table.body[r];
+
+                            row.forEach(function (cell, i) {
+
+                                var text = cell.text || "";
+
+                                if (text.toString().includes("₹")) {
+
+                                    var num = parseFloat(text.replace("₹", "").replace(/,/g, ""));
+
+                                    totals[i] = (totals[i] || 0) + (isNaN(num) ? 0 : num);
+                                }
+                            });
+                        }
+
+                        // ✅ 3) BUILD TOTAL ROW
+                        var totalRow = [];
+
+                        headerRow.forEach((h, i) => {
+
+                            var headerText = (h.text || "").toLowerCase();
+
+                            if (headerText.includes("member")) {
+                                totalRow.push({ text: "TOTAL" });
+                            }
+                            else if (totals[i]) {
+                                totalRow.push({ text: "₹ " + totals[i].toFixed(2) });
+                            }
+                            else {
+                                totalRow.push({ text: "" });
+                            }
+                        });
+
+                        // ✅ 4) APPEND TOTAL ROW TO PDF
+                        table.body.push(totalRow);
+                    },
+
+                    action: function (e, dt, button, config) {
+
+                        var selected = dt.rows({ page: 'all' }).nodes().to$()
+                            .find('input.row-checkbox:checked');
+
+                        if (selected.length === 0) {
+                            iziToast.warning({
+                                title: 'Warning',
+                                message: 'Please select at least one record!',
+                                position: 'topCenter'
+                            });
+                            return;
+                        }
+
+                        $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+                        clearAllSelectionsAfterExport(dt);
+                    }
+                },
+
+                /* ===========================
+                   ✅ ✅ ✅ PRINT (ALL PAGES)
+                =========================== */
+                {
+                    extend: 'print',
+                    text: '<img src="/Content/img/icons8-print-100.png" style="height:32px;" />',
+                    className: 'export-buttons icon-only-btn',
+
+                    exportOptions: {
+                        columns: ':visible:not(:first-child)',
+                        modifier: { page: 'all' },
+                        rows: function (idx, data, node) {
+                            return $(node).find('input.row-checkbox').is(':checked');
+                        }
+                    },
+
+                    customize: function (doc) {
+
+                        let status = $("#maintenanceModalTitle").text();
+                        let fromDate = $('#fromDate').val() || moment().startOf('month').format('DD-MM-YYYY');
+                        let toDate = $('#toDate').val() || moment().format('DD-MM-YYYY');
+
+                        // ✅ TITLE
+                        doc.content.unshift({
+                            alignment: 'center',
+                            text: [
+                                { text: 'Green Valley Society\n', fontSize: 18 },
+                                { text: status + '\n', fontSize: 14 },
+                                { text: 'Date Range: ' + fromDate + ' to ' + toDate + '\n\n', fontSize: 11 }
+                            ]
+                        });
+
+                        const tableIndex = doc.content.findIndex(o => o.table);
+                        const table = doc.content[tableIndex].table;
+
+                        // ✅✅✅ 1) SR NO ADD PROPERLY
+                        table.body[0].unshift({ text: 'Sr.No' });
+
+                        let sr = 1;
+                        for (let i = 1; i < table.body.length; i++) {
+                            table.body[i].unshift({ text: sr++ });
+                        }
+
+                        // ✅✅✅ 2) TOTAL ROW CALCULATION FROM SELECTED CHECKBOX ROWS
+                        var dt = $('#dueDataTable').DataTable();
+                        var totals = {};
+
+                        dt.rows({ page: 'all' }).nodes().to$().each(function (row) {
+                            if ($(row).find('input.row-checkbox').is(':checked')) {
+                                $(row).find('td').each(function (i) {
+                                    var text = $(this).text();
+                                    if (text.includes("₹")) {
+                                        var num = parseFloat(text.replace("₹", "").replace(/,/g, ""));
+                                        totals[i + 1] = (totals[i + 1] || 0) + (isNaN(num) ? 0 : num);
+                                        // +1 because SrNo added at start
+                                    }
+                                });
+                            }
+                        });
+
+                        // ✅✅✅ 3) TOTAL ROW BUILD PROPER COLUMN WISE
+                        var headerRow = table.body[0];
+                        var totalRow = [];
+
+                        headerRow.forEach((h, i) => {
+                            var headerText = (h.text || "").toLowerCase();
+
+                            if (headerText.includes("member")) {
+                                totalRow.push({ text: "TOTAL" });
+                            }
+                            else if (totals[i]) {
+                                totalRow.push({ text: "₹ " + totals[i].toFixed(2) });
+                            }
+                            else {
+                                totalRow.push({ text: "" });
+                            }
+                        });
+
+                        // ✅✅✅ 4) APPEND TOTAL ROW AT LAST
+                        table.body.push(totalRow);
+                    },
+
+                    action: function (e, dt, button, config) {
+
+                        var selected = dt.rows({ page: 'all' }).nodes().to$()
+                            .find('input.row-checkbox:checked');
+
+                        if (selected.length === 0) {
+                            iziToast.warning({
+                                title: 'Warning',
+                                message: 'Please select at least one record to Print!',
+                                position: 'topCenter'
+                            });
+                            return;
+                        }
+
+                        $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                        clearAllSelectionsAfterExport(dt);
+                    }
+                },
+
+                {
+                    text: '<img src="/Content/img/icons8-refresh-50.png" style="height:32px; width:32px;" />',
+                    className: 'export-buttons icon-only-btn',
+                    titleAttr: 'Refresh Table',
+
+                    action: function (e, dt, node, config) {
+
+                        // ✅ 1. Hidden Date Reset
+                        $('#fromDate').val('');
+                        $('#toDate').val('');
+
+                        // ✅ 2. Payment Mode Reset
+                        $('#paymentModeFilter').val('').trigger('change');
+
+                        // ✅ 3. Global Search Clear
+                        dt.search('');
+
+                        // ✅ 4. Column Search Clear
+                        dt.columns().search('');
+
+                        // ✅ 5. All Checkboxes Clear (ALL PAGES)
+                        dt.rows({ page: 'all' }).every(function () {
+                            $(this.node()).find('.row-checkbox').prop('checked', false);
+                        });
+
+                        // ✅ 6. Select All Uncheck
+                        $('#selectAllMaintenance').prop('checked', false);
+
+                        // ✅ 7. Selected Store Reset (VERY IMPORTANT)
+                        selectedRows = {};
+
+                        // ✅ 8. Reset to First Page
+                        dt.page('first').draw(false);
+
+
+                    }
+                }
+
+
+
+            ],
+
+
+            columnDefs: [{ orderable: false, targets: 0 }],
+
+            drawCallback: function () {
+
+                var api = this.api();
+
+                // ✅ Sr No Fix
+                api.column(1, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = api.page.info().start + i + 1;
+                });
+
+                // ✅ Checkbox State Restore
+                api.rows({ page: 'current' }).nodes().each(function (row) {
+                    var id = api.row(row).index();
+                    $(row).find('.row-checkbox').prop('checked', selectedRows[id] === true);
+                });
+
+                // ✅ Header checkbox auto sync
+                $('#selectAllMaintenance').prop(
+                    'checked',
+                    Object.keys(selectedRows).length === api.rows().count()
+                );
+            },
+
+
+            footerCallback: function (row, data, start, end, display) {
+
+                var api = this.api();
+
+                api.columns().every(function (colIndex) {
+
+                    var headerText = $(api.column(colIndex).header()).text().toLowerCase();
+
+                    // ✅ MEMBER NAME COLUMN → ONLY "Total" TEXT (NORMAL)
+                    if (headerText.includes("member")) {
+                        $(api.column(colIndex).footer()).html("Total");
+                    }
+
+                    // ✅ AMOUNT / PENALTY / PENDING → ALL FILTERED PAGES TOTAL (NOT PAGE-WISE)
+                    else if (
+                        headerText.includes("amount") ||
+                        headerText.includes("penalty") ||
+                        headerText.includes("pending")
+                    ) {
+
+                        var total = api
+                            .column(colIndex, { filter: 'applied' })  // ✅ ALL FILTERED DATA
+                            .data()
+                            .reduce(function (a, b) {
+
+                                if (!b || b === '-') return a;
+
+                                var num = parseFloat(
+                                    b.toString().replace("₹", "").replace(/,/g, "")
+                                );
+
+                                return a + (isNaN(num) ? 0 : num);
+                            }, 0);
+
+                        $(api.column(colIndex).footer()).html("₹ " + total.toFixed(2));
+                    }
+
+                    // ✅ बाकी सगळे columns blank
+                    else {
+                        $(api.column(colIndex).footer()).html("");
+                    }
+
+                });
+            }
+
+
+
+
+
+
+        });
+
+
+        function getSelectedTotals(dt) {
+
+            var totals = {};
+
+            dt.rows({ page: 'all' }).nodes().to$().each(function (row) {
+
+                if ($(row).find('input.row-checkbox').is(':checked')) {
+
+                    $(row).find('td').each(function (i) {
+
+                        var text = $(this).text().trim();
+
+                        if (text.includes("₹")) {
+
+                            var num = parseFloat(
+                                text.replace("₹", "").replace(/,/g, "")
+                            );
+
+                            // ✅ +1 is MOST IMPORTANT (because Sr.No column is added in export)
+                            totals[i + 1] = (totals[i + 1] || 0) + (isNaN(num) ? 0 : num);
+                        }
+                    });
+                }
+            });
+
+            return totals;   // ✅ Always Sr.No aligned totals
+        }
+
+
+
+        function clearAllSelectionsAfterExport(dt) {
+            // ✅ 1. Clear all row checkboxes (on current page)
+            dt.rows().every(function () {
+                $(this.node()).find('.row-checkbox').prop('checked', false);
+            });
+
+            // ✅ 2. Uncheck "Select All"
+            $('#selectAllMaintenance').prop('checked', false);
+        }
+        // ✅ Delegated event for row checkboxes
+        $('#maintenanceDataTable').on('change', '.row-checkbox', function () {
+            var $row = $(this).closest('tr');
+            var id = $row.data('id');
+            if (this.checked) selectedRows[id] = true;
+            else delete selectedRows[id];
+
+            // Update Select All checkbox
+            var totalVisible = table.rows({ page: 'current' }).nodes().length;
+            var checkedVisible = table.rows({ page: 'current' }).nodes().to$().find('.row-checkbox:checked').length;
+            $('#selectAllMaintenance').prop('checked', totalVisible > 0 && totalVisible === checkedVisible);
+        });
+
+        // ✅ Select All checkbox (✅ ALL PAGES)
+        $('#selectAllMaintenance').on('change', function () {
+            var isChecked = $(this).prop('checked');
+
+            table.rows({ page: 'all' }).every(function () {
+                var $row = $(this.node());
+                var id = this.index();
+
+                $row.find('.row-checkbox').prop('checked', isChecked);
+
+                if (isChecked)
+                    selectedRows[id] = true;
+                else
+                    delete selectedRows[id];
+            });
+        });
+
+    });
+</script>

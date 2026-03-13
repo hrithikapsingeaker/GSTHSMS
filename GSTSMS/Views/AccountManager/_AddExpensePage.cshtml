@@ -1,0 +1,830 @@
+﻿@model GSTSMSLibrary.AccountManager.AccountManager
+
+<div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+
+        <div class="modal-header custom-modal-header">
+            <h5 class="modal-title w-100 text-center">Add Expense</h5>
+            <button type="button" class="btn-close-modal" data-bs-dismiss="modal">
+                <i class="fa fa-times"></i>
+            </button>
+
+            <script src="~/Content/modules/sweetalert/sweetalert.min.js"></script>
+        </div>
+
+        <style>
+
+
+            /* Add this to your existing styles */
+            .modal.fade .modal-dialog {
+                transition: transform 0.3s ease-out;
+                transform: none !important;
+                top: auto !important;
+                margin: auto !important;
+            }
+
+            .modal.show .modal-dialog {
+                transform: none !important;
+            }
+
+            .modal-content {
+                margin: auto !important;
+            }
+
+            .modal-dialog {
+                display: flex;
+                align-items: center; /* vertically center */
+                min-height: 100vh; /* full height for centering */
+            }
+            /* Standardized close button for all modals */
+            .btn-close-modal {
+                position: absolute;
+                top: 50%;
+                right: 15px;
+                transform: translateY(-50%);
+                background: none;
+                border: none !important;
+                background-color: orangered;
+                color: white;
+                font-size: 16px;
+                cursor: pointer;
+                padding: 5px 10px;
+                width: 26px;
+                height: 26px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: background-color 0.2s;
+                z-index: 1000;
+                border-radius: 3px;
+            }
+
+                /* Remove outline and box-shadow on focus */
+                .btn-close-modal:focus,
+                .btn-close-modal:active {
+                    outline: none !important;
+                    box-shadow: none !important;
+                    border: none !important;
+                }
+
+                /* Remove any potential inherited borders */
+                .btn-close-modal:hover {
+                    border: none !important;
+                }
+
+            /* Ensure modal headers have relative positioning */
+            .modal-header {
+                position: relative;
+            }
+
+            .select-gst-section.is-invalid {
+                border: 1px solid red !important;
+                border-radius: 4px;
+            }
+
+            .select-gst-section.is-valid {
+                border: 1px solid #28a745 !important; /* green */
+                border-radius: 4px;
+            }
+
+            /* Add this to your existing styles */
+            /*.modal.fade .modal-dialog {
+                transition: transform 0.3s ease-out;
+                transform: translate(0, -50%) scale(0.9);
+                top: 50%;
+                margin: 0 auto;
+            }
+
+            .modal.show .modal-dialog {
+                transform: translate(0, -50%) scale(1);
+            }
+
+            .modal-content {
+                margin-top: 0;
+            }*/
+
+            .field-validation-error {
+                font-size: 10px;
+                font-weight: normal !important;
+            }
+            /* Modal Header Styling */
+            .modal-header {
+                background-color: #615677 !important;
+                height: 45px;
+                font-size: 18px;
+                font-weight: bold;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                position: relative;
+                padding: 10px 15px;
+                border-top-left-radius: 4px;
+                border-top-right-radius: 4px;
+            }
+
+                .modal-header .modal-title {
+                    color: white;
+                }
+
+            .modal-header {
+                position: relative;
+            }
+
+                .modal-header .close {
+                    position: absolute;
+                    top: 8px;
+                    right: 12px;
+                    color: white;
+                    font-size: 22px;
+                    opacity: 1;
+                    z-index: 9999;
+                }
+
+
+            .modal-lg {
+                max-width: 800px;
+            }
+
+            .modal-body {
+                padding: 15px;
+            }
+
+            /* Form Group & Input Styling */
+            .form-group {
+                margin-bottom: 8px;
+            }
+
+                .form-group > label,
+                .form-group .control-label {
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: black;
+                    letter-spacing: 0.5px;
+                }
+
+            .form-control {
+                padding: 4px 8px;
+                font-size: 0.85rem;
+                font-weight: normal;
+            }
+
+            /* Row Layouts */
+            .form-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+                .form-row .form-group {
+                    flex: 1;
+                    min-width: 45%;
+                }
+
+            .gst-combined-row {
+                display: flex;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+                .gst-combined-row .form-group {
+                    flex: 1;
+                }
+
+            /* Buttons */
+            .text-center {
+                text-align: center;
+                margin-top: -6px;
+            }
+
+            .uniform-btn {
+                height: 35px;
+                width: 100px;
+                font-size: 15px;
+                border: none;
+                border-radius: 4px;
+                margin: 0 5px;
+            }
+
+            /* Close Button Styling */
+            .btn-dangerbn {
+                background-color: red !important;
+                border: none;
+                color: black !important;
+            }
+
+                .btn-dangerbn i {
+                    color: white !important;
+                }
+
+                .btn-dangerbn:hover,
+                .btn-dangerbn:focus,
+                .btn-dangerbn:active {
+                    background-color: red !important;
+                    color: white !important;
+                }
+
+            /* Custom-Sized Button (External Style - ExpenseDD.css) */
+            .custom-size-btn {
+                width: 136px;
+                height: 35px;
+                font-size: 15px;
+                padding: 4px 10px;
+                border-radius: 4px;
+            }
+
+            /* .button {
+                color: black;
+            }*/
+
+            .btn-danger {
+                background-color: red;
+            }
+
+                .btn-danger:hover {
+                    color: black !important;
+                }
+
+            .btn-success {
+                background-color: #0cbd6e !important;
+            }
+
+                .btn-success:hover {
+                    background-color: #0cbd6e !important;
+                    color: black !important;
+                }
+
+            .text-danger {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                font-weight: bold;
+            }
+        </style>
+
+        <div class="modal-body">
+            @using (Html.BeginForm("CreateExpense", "AccountManager", FormMethod.Post, new { enctype = "multipart/form-data", id = "expenseForm" }))
+            {
+                @Html.AntiForgeryToken()
+                <div class="form-horizontal">
+
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ExpenseTypeIdDropdown">Expense Type: <span class="text-danger">*</span></label>
+                            @Html.DropDownListFor(m => m.ExpenseTypeId, ViewBag.ExpenseTypeList as IEnumerable<SelectListItem>, "Select Type", new { @class = "form-control", id = "ExpenseTypeIdDropdown" })
+                            <span class="text-danger field-validation-error" data-valmsg-for="ExpenseTypeId" data-valmsg-replace="true"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="vendorTypeDropdown">Vendor Type: <span class="text-danger">*</span></label>
+                            <select id="vendorTypeDropdown" name="VendorType" class="form-control">
+                                <option value="">Select Vendor Type</option>
+                                <option value="38">Regular</option>
+                                <option value="39">Other</option>
+                            </select>
+                            <span class="text-danger field-validation-error" data-valmsg-for="VendorType" data-valmsg-replace="true"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="vendorDropdown">Vendor Name: <span class="text-danger">*</span></label>
+                            <select id="vendorDropdown" name="PaymentTo" class="form-control">
+                                <option value="">Vendor Name - Business Name - Service Type</option>
+                            </select>
+
+                            <span class="text-danger field-validation-error" data-valmsg-for="PaymentTo" data-valmsg-replace="true"></span>
+                        </div>
+
+
+                        <div class="form-group col-md-6">
+                            <label for="ExpenseName">Expense Name: <span class="text-danger">*</span></label>
+                            @Html.TextBoxFor(m => m.ExpenseName, new { @class = "form-control", id = "ExpenseName", placeholder = "Enter Expense Name", maxlength = "50", oninput = "this.value = this.value.replace(/[^a-zA-Z\\s-]/g, '')" })
+                            <span class="text-danger field-validation-error" data-valmsg-for="ExpenseName" data-valmsg-replace="true"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <!-- GST Types Selection -->
+                        <div class="form-group col-md-8">
+                            <label>GST Types: <span class="text-danger">*</span></label>
+                            <div class="d-flex flex-row flex-wrap border p-2 rounded justify-content-start align-items-start select-gst-section" style="gap: 0.75rem;">
+                                <div style="flex: 1 1 100%; min-width: 200px;">
+                                    <details class="border rounded p-2">
+                                        <summary class="fw-bold mb-2">Available GST Types</summary>
+                                        <!-- Limit to 3 visible items & add scrollbar -->
+                                        <div class="ml-2" style="max-height: calc(1.5em * 3 + 1rem); overflow-y: auto;">
+                                            @if (ViewBag.GSTList != null && (ViewBag.GSTList as List<SelectListItem>).Any())
+                                            {
+                                                foreach (var gst in ViewBag.GSTList as List<SelectListItem>)
+                                                {
+                                                    <div class="form-check">
+                                                        <input type="checkbox"
+                                                               class="form-check-input gstCheckbox"
+                                                               name="SelectedGSTTypeIds"
+                                                               value="@gst.Value"
+                                                               id="gst_@gst.Value"
+                                                               @(gst.Selected ? "checked" : "") />
+                                                        <label class="form-check-label" for="gst_@gst.Value">
+                                                            @gst.Text
+                                                        </label>
+                                                    </div>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <p class="text-danger m-0">No GST Types found.</p>
+                                            }
+                                        </div>
+                                    </details>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Add GST Type Button -->
+                        <div class="form-group col-md-4 d-flex align-items-start">
+                            <div>
+                                <label>&nbsp;</label><br />
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="openGSTModalBtn">
+                                    <i class="fa fa-plus"></i> Register New GST
+                                </button>
+                                <div id="gstModalContainer"></div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="form-row d-flex justify-content-between" style="gap: 20px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="Amount">Amount: <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">₹</span>
+                                </div>
+                                @Html.TextBox("Amount", "", new
+
+                                {
+                                    @class = "form-control",
+                                    id = "Amount",
+                                    placeholder = "Enter Amount",
+                                    maxlength = "9",
+                                    oninput = "this.value = this.value.replace(/[^0-9.]/g, '')"
+                                })
+                            </div>
+                            <span class="text-danger field-validation-error" data-valmsg-for="Amount" data-valmsg-replace="true"></span>
+                        </div>
+
+                        <div class="form-group" style="flex: 1;">
+                            <label for="WingId">Wing Name: <span class="text-danger">*</span></label>
+                            @Html.DropDownListFor(m => m.WingId, ViewBag.WingList as IEnumerable<SelectListItem>, "Select Wing", new { @class = "form-control" })
+                            <span class="text-danger field-validation-error" data-valmsg-for="WingId" data-valmsg-replace="true"></span>
+                        </div>
+                    </div>
+
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="Description">Description:</label>
+                            @Html.TextBoxFor(m => m.Description, new { @class = "form-control", maxlength = "250", placeholder = "Enter Description" })
+                            <span class="text-danger field-validation-error" data-valmsg-for="Description" data-valmsg-replace="true"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="PostedFile">Attachment : <span class="text-danger">*</span></label>
+                        <div style="display: flex; border: 1px solid #ced4da; border-radius: 4px; overflow: hidden;">
+                            <div style="flex: 1; padding: 6px 12px; background-color: #fff; color: #6c757d;">
+                                Choose files
+                            </div>
+
+                            <label for="PostedFile" style="margin: 0; padding: 6px 12px; background-color: #f1f1f1; cursor: pointer; border-left: 1px solid #ced4da;">
+                                Browse
+                            </label>
+                        </div>
+
+
+                        <input type="file" name="PostedFile" id="PostedFile" multiple style="display: none;" />
+
+
+                        <span class="text-danger" data-valmsg-for="PostedFile"></span>
+
+
+                        <div id="filePreviewList" class="mt-2 d-flex flex-wrap gap-2"></div>
+                    </div>
+
+                    <div id="filePreviewList" class="mt-2"></div>
+
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-success uniform-btn button" id="expenseModal">Save</button>
+                        <button type="reset" class="btn uniform-btn button btn-danger">Clear</button>
+                    </div>
+                </div>
+
+
+
+
+
+
+
+
+            }
+        </div>
+    </div>
+</div>
+
+<!-- IziToast CSS -->
+<link rel="stylesheet" href="~/Content/modules/izitoast/css/iziToast.min.css">
+
+<!-- IziToast JS -->
+<script src="~/Content/modules/izitoast/js/iziToast.min.js"></script>
+
+<script>
+
+
+    function closeVendorModal() {
+        $('#AddExpenseModal').modal('hide');
+    }
+
+
+    $(document).ready(function () {
+        let maxSelection = 2;
+        let uploadedFiles = [];
+
+        // ✅ Clear button click - reset file input & preview
+        $(document).on("click", ".btn-danger[type='reset']", function () {
+            uploadedFiles = [];
+            $("#PostedFile").val("");
+            $("#filePreviewList").empty();
+            $(".form-control, select, .select-gst-section").removeClass("is-invalid is-valid");
+            $(".field-validation-error").text("");
+        });
+
+
+
+        $("#vendorTypeDropdown").change(function () {
+
+            $("#vendorDropdown").empty()
+                .append('<option value="">Loading...</option>');
+
+            $.ajax({
+                url: "/AccountManager/GetVendorListAsync",
+                type: "GET",
+                success: function (data) {
+
+                    $("#vendorDropdown").empty()
+                        .append('<option value="">Vendor Name - Business Name - Service Type</option>');
+
+                    $.each(data, function (i, item) {
+                        $("#vendorDropdown").append(
+                            `<option value="${item.Value}">${item.Text}</option>`
+                        );
+                    });
+                }
+            });
+
+        });
+
+
+
+
+
+
+        // ✅ File Upload Handling
+        document.getElementById("PostedFile").addEventListener("change", function () {
+            let newFiles = Array.from(this.files);
+            let remainingSlots = 3 - uploadedFiles.length;
+
+            if (remainingSlots <= 0) {
+                this.value = "";
+                return;
+            }
+
+            if (newFiles.length > remainingSlots) {
+                newFiles = newFiles.slice(0, remainingSlots);
+            }
+
+            newFiles = newFiles.filter(newFile =>
+                !uploadedFiles.some(existing =>
+                    existing.name === newFile.name && existing.size === newFile.size)
+            );
+
+            uploadedFiles = uploadedFiles.concat(newFiles);
+            const dt = new DataTransfer();
+            uploadedFiles.forEach(file => dt.items.add(file));
+            this.files = dt.files;
+
+            if (uploadedFiles.length >= 3) {            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                const browseLabel = $("label[for='PostedFile']");
+                browseLabel.css({
+                    "cursor": "not-allowed",
+                    "backgroundColor": "#e0e0e0",
+                    "pointerEvents": "none"
+                });
+            }
+
+
+            renderFilePreview();
+        });
+
+        function renderFilePreview() {
+            const previewContainer = document.getElementById("filePreviewList");
+            previewContainer.innerHTML = "";
+
+            uploadedFiles.forEach((file, index) => {
+                const url = URL.createObjectURL(file);
+                const div = document.createElement("div");
+                div.className = "file-item d-block mb-1";
+                div.innerHTML = `
+                    <a href="${url}" target="_blank">${file.name}</a>
+                    <span class="remove-file text-danger ml-2" style="cursor:pointer;" onclick="removeFile(${index})">×</span>
+                `;
+                previewContainer.appendChild(div);
+            });
+        }
+
+        window.removeFile = function (index) {                    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            uploadedFiles.splice(index, 1);
+            const dt = new DataTransfer();
+            uploadedFiles.forEach(file => dt.items.add(file));
+            const input = document.getElementById("PostedFile");
+            input.files = dt.files;
+
+            // ✅ इथे disabled करू नको
+            const browseLabel = $("label[for='PostedFile']");
+            browseLabel.css({
+                "cursor": "pointer",
+                "backgroundColor": "#f1f1f1",
+                "pointerEvents": "auto"
+            });
+
+            renderFilePreview();
+        };
+
+        // ✅ GST modal open
+        $('#openGSTModalBtn').click(function () {
+            $.ajax({
+                url: '@Url.Action("OpenGSTModal", "AccountManager")',
+                type: 'GET',
+                success: function (data) {
+                    $('#gstModalContainer').html(data);
+                    $("#addGSTModal").modal({
+                        backdrop: 'static',
+                        keyboard: false
+                    }).modal('show');
+                },
+                error: function () {
+                    iziToast.error({
+                        title: 'Error',
+                        message: 'Failed to load GST modal.',
+                        position: 'topCenter'
+                    });
+                }
+            });
+        });
+
+        // ✅ Vendor dropdown by vendor type
+        $('#vendorTypeDropdown').change(function () {
+            var vendorType = $(this).val();
+
+            if (vendorType === "38" || vendorType === "39") {
+                $.ajax({
+                    url: '/AccountManager/GetVendorsByType',
+                    type: 'POST',
+                    data: { vendorType: vendorType },
+                    success: function (vendors) {
+                        var $dropdown = $('#vendorDropdown');
+                        $dropdown.empty().append('<option value=""> Vendor Name-Business Name</option>');
+                        $.each(vendors, function (i, vendor) {
+                            $dropdown.append('<option value="' + vendor.Value + '">' + vendor.Text + '</option>');
+                        });
+                    },
+                    error: function () {
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Failed to load vendors.',
+                            position: 'topCenter'
+                        });
+                    }
+                });
+            } else {
+                $('#vendorDropdown').empty().append('<option value="">Select Vendor-Business Name</option>');
+                $('#PaymentTo').val('');
+            }
+        });
+
+        // ✅ Assign vendor code to PaymentTo
+        $('#vendorDropdown').change(function () {
+            var selectedVendorCode = $(this).val();
+            $('#PaymentTo').val(selectedVendorCode);
+        });
+
+        // ✅ GST Selection Validation
+        function validateFieldGST() {
+            const selected = $('input[name="SelectedGSTTypeIds"]:checked').length;
+            const container = $('.select-gst-section');
+            const errorSpan = $('span[data-valmsg-for="SelectedGSTTypeIds"]');
+
+            if (selected === 0) {
+                container.addClass('is-invalid').removeClass('is-valid');
+                errorSpan.text('Please select at least one GST type.');
+
+                setTimeout(() => {
+                    errorSpan.text('');
+                }, 2000);
+
+                return false;
+            } else {
+                container.removeClass('is-invalid').addClass('is-valid');
+                errorSpan.text('');
+                return true;
+            }
+        }
+
+        // ✅ GST Selection Max 2 + Label update + Live Validation
+        $(document).on('change', 'input[name="SelectedGSTTypeIds"]', function () {
+            var selected = $('input[name="SelectedGSTTypeIds"]:checked');
+
+            // Max selection enforcement
+            if (selected.length > maxSelection) {
+                this.checked = false;
+                iziToast.warning({
+                    title: 'Limit',
+                    message: 'Only 2 GST Types can be selected.',
+                    position: 'topCenter',
+                    timeout: 3000
+                });
+                return;
+            }
+
+            // Update GST type labels
+            selected.each(function (index) {
+                var label = $('label[for="' + $(this).attr('id') + '"]');
+                if (index === 0) {
+                    label.text(label.text().split(' - ')[0] + " - CGSTID");
+                } else if (index === 1) {
+                    label.text(label.text().split(' - ')[0] + " - SGSTID");
+                }
+            });
+
+            $('input[name="SelectedGSTTypeIds"]').not(':checked').each(function () {
+                var label = $('label[for="' + $(this).attr('id') + '"]');
+                label.text(label.text().split(' - ')[0]);
+            });
+
+            // Trigger validation
+            validateFieldGST();
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // ✅ Generic Field Validation
+        function validateField(selector, msgSelector, message) {
+            const el = $(selector);
+            const errorSpan = $(msgSelector);
+
+            if (!el.val().trim()) {
+                el.addClass('is-invalid').removeClass('is-valid');
+                errorSpan.text(message);
+
+                setTimeout(() => {
+                    errorSpan.text('');
+                }, 2000);
+
+                return false;
+            } else {
+                el.removeClass('is-invalid').addClass('is-valid');
+                errorSpan.text('');
+                return true;
+            }
+        }
+
+        // ✅ Apply Live Validation to Fields
+        function applyLiveValidation(selector, msgSelector, message) {
+            $(selector).on('input change blur', function() {
+                const value = $(this).val().trim();
+                const errorSpan = $(msgSelector);
+
+                if (!value) {
+                    $(this).addClass('is-invalid').removeClass('is-valid');
+                    errorSpan.text(message);
+                } else {
+                    $(this).removeClass('is-invalid').addClass('is-valid');
+                    errorSpan.text('');
+                }
+            });
+        }
+
+
+        // ✅ Apply Live Validation to Fields (Updated for Amount)
+        function applyLiveValidation(selector, msgSelector, message) {
+            $(selector).on('input change blur', function () {
+                const value = $(this).val().trim();
+                const errorSpan = $(msgSelector);
+
+                if (!value) {
+                    $(this).addClass('is-invalid').removeClass('is-valid');
+                    errorSpan.text(message);
+                    return;
+                }
+
+                if (selector === "#Amount") {
+                    let num = parseFloat(value);
+                    if (isNaN(num) || num < 1) {
+                        $(this).addClass('is-invalid').removeClass('is-valid');
+                        errorSpan.text("Amount must be at least ₹1.");
+                        return;
+                    } else {
+                        $(this).removeClass('is-invalid').addClass('is-valid');
+                        errorSpan.text('');
+                        return;
+                    }
+                }
+
+                // Default validation for other fields
+                $(this).removeClass('is-invalid').addClass('is-valid');
+                errorSpan.text('');
+            });
+        }
+
+
+        // ✅ Apply all live validations
+        applyLiveValidation("#ExpenseTypeIdDropdown", "span[data-valmsg-for='ExpenseTypeId']", "Please select expense type.");
+        applyLiveValidation("#vendorTypeDropdown", "span[data-valmsg-for='VendorType']", "Please select vendor type.");
+        applyLiveValidation("#vendorDropdown", "span[data-valmsg-for='PaymentTo']", "Please select vendor.");
+        applyLiveValidation("#ExpenseName", "span[data-valmsg-for='ExpenseName']", "Please enter expense name.");
+        applyLiveValidation("#Amount", "span[data-valmsg-for='Amount']", "Please enter amount.");
+        applyLiveValidation("#WingId", "span[data-valmsg-for='WingId']", "Please select wing.");
+        applyLiveValidation("#PostedFile", "span[data-valmsg-for='PostedFile']", "Please attach a file.");
+
+        // ✅ Form Submission
+        $('#expenseForm').on('submit', function (e) {
+            e.preventDefault();
+
+            $(".field-validation-error").text("");
+            $(".form-control, select, .select-gst-section").removeClass("is-invalid is-valid");
+
+            let isValid = true;
+
+            // Validate all fields
+            isValid &= validateField("#ExpenseTypeIdDropdown", "span[data-valmsg-for='ExpenseTypeId']", "Please select expense type.");
+            isValid &= validateField("#vendorTypeDropdown", "span[data-valmsg-for='VendorType']", "Please select vendor type.");
+            isValid &= validateField("#vendorDropdown", "span[data-valmsg-for='PaymentTo']", "Please select vendor.");
+            isValid &= validateField("#ExpenseName", "span[data-valmsg-for='ExpenseName']", "Please enter expense name.");
+            isValid &= validateFieldGST(); // GST validation
+            isValid &= validateField("#Amount", "span[data-valmsg-for='Amount']", "Please enter amount.");
+            isValid &= validateField("#WingId", "span[data-valmsg-for='WingId']", "Please select wing.");
+            isValid &= validateField("#PostedFile", "span[data-valmsg-for='PostedFile']", "Please attach a file.");
+
+            if (!isValid) {
+
+                return;
+            }
+
+            var formData = new FormData(this);
+            $.ajax({
+                url: '/AccountManager/CreateExpense',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function () {
+                    swal({
+                        icon: 'success',
+                        title: 'Expense Saved!',
+                        text: 'The expense has been saved successfully.',
+                        buttons: false,
+                        timer: 2000
+                    }).then(() => {
+                        $('#AddExpenseModal').modal('hide');
+                        location.reload();
+                    });
+                },
+                error: function (xhr) {
+                    let errorMsg = 'Something went wrong while saving the expense.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+                    swal({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: errorMsg,
+                    });
+                }
+            });
+        });
+    });
+</script>

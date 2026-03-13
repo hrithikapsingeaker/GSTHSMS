@@ -1,0 +1,1918 @@
+﻿@model IEnumerable<GSTSMSLibrary.AccountManager.AccountManager>
+
+@{
+    ViewBag.Title = "Notice List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // ✔ Safe conversions so View never breaks
+
+    var allNotices = ViewBag.AllNotices as List<GSTSMSLibrary.AccountManager.AccountManager>
+                     ?? new List<GSTSMSLibrary.AccountManager.AccountManager>();
+
+    var accountantNotices = ViewBag.AccountantNotices as List<GSTSMSLibrary.AccountManager.AccountManager>
+                            ?? new List<GSTSMSLibrary.AccountManager.AccountManager>();
+
+    var expiredNotices = ViewBag.ExpiredNotices as List<GSTSMSLibrary.AccountManager.AccountManager>
+                         ?? new List<GSTSMSLibrary.AccountManager.AccountManager>();
+}
+
+
+
+<style>
+
+    .ranges li.active {
+        background-color: #6777ef !important;
+        border: 1px solid #6777ef;
+        color: #fff;
+    }
+
+    .ranges li:hover {
+        background-color: #6777ef !important; /* Slightly darker blue */
+    }
+
+    .main-content {
+        padding-left: 130px;
+        padding-right: 30px;
+        padding-top: 1px;
+        width: 100%;
+        position: relative;
+    }
+
+    #allNoticesTable tbody td,
+    #accountantNoticesTable tbody td,
+    #expiredNoticesTable tbody td {
+        height: 25px !important;
+        line-height: 25px !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    /*.btn-view-custom {
+                    background-color: #339af0;
+                    color: white;
+                    border: 1px solid lightgray !important;
+                    width: 25px;
+                    height: 23px;
+                    font-size: 14px;
+                    border-radius: 4px;
+                    transition: all 0.3s ease;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 0;*/ /* Ensures exact sizing */
+    /*cursor: pointer;*/ /* optional: hover feel */
+    /*}*/
+
+    .btn-view-custom {
+        background-color: #339af0;
+        color: white;
+        border: 1px solid lightgray !important;
+        width: 25px;
+        height: 25px;
+        font-size: 14px;
+        border-radius: 4px;
+        transition: background-color 0.3s ease, color 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        cursor: pointer;
+        overflow: hidden;
+        line-height: 1;
+    }
+
+        /* ✅ Ensure hover keeps icon visible */
+        .btn-view-custom:hover {
+            background-color: lightgray;
+            color: #339af0;
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+
+
+
+
+
+
+        /* ✅ NEW: Handle active/focus state to prevent icon flicker */
+        .btn-view-custom:focus,
+        .btn-view-custom:active {
+            color: #339af0;
+            background-color: lightgray;
+            outline: none;
+            box-shadow: none;
+        }
+
+
+    /* .btn-view-custom:hover {
+                        background-color: lightgray;
+                        color: #339af0;
+                        outline: none !important;
+                        box-shadow: none !important;
+                    }
+            */
+
+
+    /* White Spinning Loader */
+    .loader-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    .loader {
+        width: 50px;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        border: 8px solid;
+        border-color: white transparent; /* White spinner with transparent middle */
+        animation: spin 1s infinite linear;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(0.5turn);
+        }
+    }
+
+    /* Add to your existing style section */
+    .btn-spin {
+        transition: transform 0.5s ease;
+    }
+
+    .spin {
+        animation: spin 0.5s linear 1;
+    }
+
+    @@keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    @@keyframes rotate {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .rotate-refresh {
+        animation: rotate 0.6s linear;
+    }
+</style>
+<!-- ✅ Style Dependencies -->
+<link href="/Content/css/noticeRM.css" rel="stylesheet" />
+<link href="~/Content/modules/fontawesome/css/all.min.css" rel="stylesheet" />
+<link href="~/Content/modules/datatables/DataTables-1.10.16/css/dataTables.bootstrap4.css" rel="stylesheet" />
+<link href="~/Content/modules/izitoast/css/iziToast.min.css" rel="stylesheet" />
+<link href="~/Content/modules/bootstrap-daterangepicker/daterangepicker.css" rel="stylesheet" />
+
+
+
+<div class="main-content">
+
+    @*    Loader overlay
+    *@    <div class="loader-overlay" id="listLoader">
+        <div class="loader"></div>
+    </div>
+
+    <div id="noticeContainer">
+        <div class="card" style=" margin-top: -66px; ">
+            <div class="form-group">
+                <h4 class="custom-heading" style="font-size:26px;">Notice List</h4>
+            </div>
+
+
+            @* Tabs *@
+            @* Tabs *@
+            @*<ul class="nav nav-tabs mb-3" style="margin-top:40px;" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-toggle="tab" href="#all"
+                           style="width: 382px; text-align: center; margin-right: 3px; margin-left:26px;">
+                            All Notices
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-toggle="tab" href="#accountant"
+                           style="width: 382px; text-align: center; margin-right: 4px;">
+                            Accountant Created
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-toggle="tab" href="#expired"
+                           style="width: 382px; text-align: center;">
+                            Expired Notices
+                        </a>
+                    </li>
+                </ul>*@
+            <ul class="nav nav-tabs mb-3" style="margin-top:40px;" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="all-tab" data-bs-toggle="tab" href="#all" role="tab"
+                       style="width: 382px; text-align: center; margin-right: 3px; margin-left:26px;">
+                        All Notices
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="accountant-tab" data-bs-toggle="tab" href="#accountant" role="tab"
+                       style="width: 382px; text-align: center; margin-right: 4px;">
+                        Accountant Created
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="expired-tab" data-bs-toggle="tab" href="#expired" role="tab"
+                       style="width: 382px; text-align: center;">
+                        Expired Notices
+                    </a>
+                </li>
+            </ul>
+
+            <div class="card-body">
+                <div class="form-group mb-3">
+                    <a href="javascript:;" class="btn btn-primary daterange-btn icon-left btn-icon" style="margin-bottom:-4px;">
+                        <i class="fas fa-calendar"></i> <span>Select Date</span>
+                    </a>
+                    <input type="hidden" id="fromDate1" />
+                    <input type="hidden" id="toDate1" />
+                    <div class="button-container">
+                        <button id="btnAddNotice" class="btn-sm">
+                            <i class="fas fa-plus-circle"></i> Add Notice
+                        </button>
+                    </div>
+                </div>
+
+
+                <!-- ✅ Tab Content Wrapper -->
+                <div class="tab-content">
+
+                    <!-- All Notices Tab -->
+                    <div class="tab-pane fade show active" id="all" role="tabpanel">
+                        <table class="table table-bordered" id="allNoticesTable">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" id="selectAll"></th>
+                                    <th>Sr.No</th>
+                                    <th>Title</th>
+                                    <th>Description</th>
+                                    <th>Notice Created By</th>
+                                    <th>Created Date</th>
+                                    <th>Publish Date</th>
+                                    <th>End Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in allNotices)
+                                {
+                                    var isAccountantNotice = item.SendByRole == "Accountant";
+                                    //var isBeforePublishDate = item.PublishDate.HasValue &&
+                                    //                          DateTime.Now.Date < item.PublishDate.Value.Date;
+                                    var isBeforePublishDate = DateTime.Now.Date < item.PublishDate.Date;
+
+
+                                    var showActiveEdit = isAccountantNotice && isBeforePublishDate;
+                                    var showViewIcon = isAccountantNotice && !isBeforePublishDate;
+                                    var showDisabledEdit = !isAccountantNotice;
+
+                                    <tr>
+                                        <td><input type="checkbox" class="row-checkbox" /></td>
+                                        <td></td>
+                                        <td title="@item.NoticeTitle">@item.NoticeTitle</td>
+                                        <td title="@item.Description">@item.Description</td>
+                                        <td title="@item.SendByRole">@item.SendByRole</td>
+
+                                        @*<td>@(item.CreatedDate?.ToString("dd-MM-yyyy"))</td>
+                                            <td>@(item.PublishDate?.ToString("dd-MM-yyyy"))</td>
+                                            <td>@(item.EndDate?.ToString("dd-MM-yyyy"))</td>*@
+                                        <td title="@(item.CreatedDate == DateTime.MinValue ? "-" : item.CreatedDate.ToString("dd-MM-yyyy"))">
+                                            @(item.CreatedDate == DateTime.MinValue ? "-" : item.CreatedDate.ToString("dd-MM-yyyy"))
+                                        </td>
+
+                                        <td title="@(item.PublishDate == DateTime.MinValue ? "-" : item.PublishDate.ToString("dd-MM-yyyy"))">
+                                            @(item.PublishDate == DateTime.MinValue ? "-" : item.PublishDate.ToString("dd-MM-yyyy"))
+                                        </td>
+
+                                        <td title="@(item.EndDate == DateTime.MinValue ? "-" : item.EndDate.ToString("dd-MM-yyyy"))">
+                                            @(item.EndDate == DateTime.MinValue ? "-" : item.EndDate.ToString("dd-MM-yyyy"))
+                                        </td>
+
+
+                                        <td>
+                                            @if (showActiveEdit)
+                                            {
+                                                <!-- EDIT BUTTON (Active before PublishDate) -->
+                                                <button class="btn btn-sm custom-edit-btn editNoticeBtn"
+                                                        data-id="@item.NoticeAnnouncementCode"
+                                                        title="Edit"
+                                                        style="padding:2px 6px;">
+                                                    <i class="fa fa-edit"></i>
+                                                </button>
+
+                                                <!-- DELETE (ACTIVE BEFORE PUBLISH DATE) -->
+                                                <button class="btn btn-sm btn-danger deleteNoticeBtn"
+                                                        data-id="@item.NoticeAnnouncementCode"
+                                                        title="Delete"
+                                                        style="padding:2px 6px; margin-left:4px;">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <!-- VIEW BUTTON -->
+                                                <a href="javascript:;"
+                                                   class="btn btn-sm btn-view-custom viewNoticeBtn"
+                                                   data-id="@item.NoticeAnnouncementCode"
+                                                   title="View">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+
+                                                <!-- DELETE ICON (DISABLED AFTER PUBLISH DATE) -->
+                                                <button class="btn btn-sm btn-secondary"
+                                                        disabled
+                                                        title="Delete not allowed after publish date"
+                                                        style="padding:2px 6px; margin-left:4px; cursor:not-allowed;">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            }
+
+                                            <input type="hidden" name="Document" value="@item.Document" />
+                                        </td>
+
+
+
+
+                                    </tr>
+                                }
+                            </tbody>
+
+                        </table>
+                    </div>
+
+                    <!-- Accountant Notices Tab -->
+                    <div class="tab-pane fade" id="accountant" role="tabpanel">
+
+                        <table class="table table-bordered" id="accountantNoticesTable">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" id="selectAll" /></th>
+                                    <th>Sr.No</th>
+                                    <th>Title</th>
+                                    <th>Description</th>
+                                    <th>Created Date</th>
+                                    <th>Publish Date</th>
+                                    <th>End Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in accountantNotices.Where(x =>
+(x.SendByRole ?? "")
+.Trim()
+.ToLower()
+.Contains("accountant")
+))
+
+
+                                {
+                                    var isBeforePublishDate = DateTime.Now.Date < item.PublishDate.Date;
+
+                                    <tr>
+                                        <td><input type="checkbox" class="row-checkbox" /></td>
+                                        <td></td>
+                                        <td title="@item.NoticeTitle">@item.NoticeTitle</td>
+                                        <td title="@item.Description">@item.Description</td>
+
+                                        <td title="@(item.CreatedDate == DateTime.MinValue ? "-" : item.CreatedDate.ToString("dd-MM-yyyy"))">
+                                            @(item.CreatedDate == DateTime.MinValue ? "-" : item.CreatedDate.ToString("dd-MM-yyyy"))
+                                        </td>
+
+                                        <td title="@(item.PublishDate == DateTime.MinValue ? "-" : item.PublishDate.ToString("dd-MM-yyyy"))">
+                                            @(item.PublishDate == DateTime.MinValue ? "-" : item.PublishDate.ToString("dd-MM-yyyy"))
+                                        </td>
+
+                                        <td title="@(item.EndDate == DateTime.MinValue ? "-" : item.EndDate.ToString("dd-MM-yyyy"))">
+                                            @(item.EndDate == DateTime.MinValue ? "-" : item.EndDate.ToString("dd-MM-yyyy"))
+                                        </td>
+
+                                        <td>
+                                            @if (isBeforePublishDate)
+                                            {
+                                                <button class="btn btn-sm custom-edit-btn editNoticeBtn"
+                                                        data-id="@item.NoticeAnnouncementCode"
+                                                        title="Edit"
+                                                        style="padding:2px 6px;">
+                                                    <i class="fa fa-edit"></i>
+                                                </button>
+
+                                                <button class="btn btn-sm btn-danger deleteNoticeBtn"
+                                                        data-id="@item.NoticeAnnouncementCode"
+                                                        title="Delete"
+                                                        style="padding:2px 6px; margin-left:4px;">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <a href="javascript:;"
+                                                   class="btn btn-sm btn-view-custom viewNoticeBtn"
+                                                   data-id="@item.NoticeAnnouncementCode"
+                                                   title="View">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+
+                                                <button class="btn btn-sm btn-secondary"
+                                                        disabled
+                                                        title="Delete not allowed after publish date"
+                                                        style="padding:2px 6px; margin-left:4px; cursor:not-allowed;">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            }
+
+                                            <input type="hidden" name="Document" value="@item.Document" />
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+
+                        </table>
+                    </div>
+                    <!-- Expired Notices -->
+                    <div class="tab-pane fade" id="expired" role="tabpanel">
+                        <table class="table table-bordered" id="expiredNoticesTable">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" id="selectAll" /></th>
+                                    <th>Sr.No</th>
+                                    <th>Title</th>
+                                    <th>Description</th>
+                                    <th>Notice Created By</th>
+                                    @*<th>Created Date</th>*@
+                                    <th>PublishDate</th>
+                                    <th>End Date</th>
+                                    @*<th>Actions</th>*@
+                                </tr>
+
+                            </thead>
+                            <tbody>
+                                @foreach (var item in expiredNotices)
+                                {
+                                    <tr>
+                                        <td><input type="checkbox" class="row-checkbox" /></td>
+                                        <td></td>
+                                        <td title="@item.NoticeTitle">@item.NoticeTitle</td>
+                                        <td title="@item.Description">@item.Description</td>
+                                        <td title="@item.SendByRole">@item.SendByRole</td>
+                                        @*<td>@(item.CreatedDate?.ToString("dd-MM-yyyy"))</td>*@
+                                        @*<td>@(item.PublishDate?.ToString("dd-MM-yyyy"))</td>
+                                            <td>@(item.EndDate?.ToString("dd-MM-yyyy"))</td>*@
+
+
+
+                                        <td title="@(item.PublishDate == DateTime.MinValue ? "-" : item.PublishDate.ToString("dd-MM-yyyy"))">
+                                            @(item.PublishDate == DateTime.MinValue ? "-" : item.PublishDate.ToString("dd-MM-yyyy"))
+                                        </td>
+
+                                        <td title="@(item.EndDate == DateTime.MinValue ? "-" : item.EndDate.ToString("dd-MM-yyyy"))">
+                                            @(item.EndDate == DateTime.MinValue ? "-" : item.EndDate.ToString("dd-MM-yyyy"))
+                                        </td>
+
+                                        @*<td>
+                                                <button class="btn btn-sm custom-edit-btn editNoticeBtn" disabled style="opacity:0.3; cursor:not-allowed; padding:2px 6px;" title="This notice has expired.">
+                                                    <i class="fa fa-edit"></i>
+                                                </button>
+                                            </td>*@
+                                    </tr>
+                                }
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 📥 Modal for Add Notice -->
+<!-- ✅ Clean Modal Without Animation -->
+<div class="modal" id="noticeModal" tabindex="-1" aria-labelledby="noticeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="noticeModalLabel">Add Notice</h5>
+                <button type="button" class="btn btn-danger btn-smp" data-bs-dismiss="modal" aria-label="Close" style="margin-right:-14px !important">×</button>
+            </div>
+            <div class="modal-body" id="addNoticeFormContainer"></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- 📥 Modal for Edit Notice -->
+<div class="modal" id="editNoticeModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered edit-notice-dialog">
+        <!-- Added custom class -->
+        <div class="modal-content" id="editNoticeContent"></div>
+    </div>
+</div>
+
+
+
+<!-- 📥 Modal for View Notice -->
+
+<div class="modal" id="viewNoticeModal" tabindex="-1" aria-labelledby="viewModalLabel" aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered view-notice-dialog">
+
+        <div class="modal-content" id="viewNoticeContent"></div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 📥 Modal for Add Notice -->
+<!-- ✅ Clean Modal Without Animation -->
+<div class="modal" id="noticeModal" tabindex="-1" aria-labelledby="noticeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="noticeModalLabel">Add Notice</h5>
+                <button type="button" class="btn btn-danger btn-smp" data-bs-dismiss="modal" aria-label="Close" style="margin-right:-14px !important">×</button>
+            </div>
+            <div class="modal-body" id="addNoticeFormContainer"></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- 📥 Modal for Edit Notice -->
+<div class="modal" id="editNoticeModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered edit-notice-dialog">
+        <!-- Added custom class -->
+        <div class="modal-content" id="editNoticeContent"></div>
+    </div>
+</div>
+
+
+
+<!-- 📥 Modal for View Notice -->
+
+<div class="modal" id="viewNoticeModal" tabindex="-1" aria-labelledby="viewModalLabel" aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered view-notice-dialog">
+
+        <div class="modal-content" id="viewNoticeContent"></div>
+
+    </div>
+
+</div>
+
+
+
+
+
+@section Scripts {
+    <!-- ✅ JS Dependencies -->
+
+    <script src="~/Content/modules/moment.min.js"></script>
+    <script src="~/Content/modules/bootstrap-daterangepicker/daterangepicker.js"></script>
+    <script src="~/Content/modules/sweetalert/sweetalert.min.js"></script>
+    <script src="~/Content/modules/datatables/datatables.min.js"></script>
+    <script src="~/Content/modules/izitoast/js/iziToast.js"></script>
+    <script src="~/Content/modules/izitoast/js/iziToast.min.js"></script>
+    <script src="~/Content/modules/moment.min.js"></script>
+
+    <script>
+
+
+
+
+            $(document).ready(function () {
+                // 🗓 Initialize Date Range Picker
+                function initializeDateRangePicker() {
+                    const format = 'DD-MM-YYYY';
+                    $('.daterange-btn').daterangepicker({
+                        locale: { format: format },
+                        startDate: moment().startOf('month'),
+                        endDate: moment(),
+                        ranges: {
+                            'Today': [moment(), moment()],
+                            'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                            'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                            'This Month': [moment().startOf('month'), moment().endOf('month')],
+                            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                        }
+                    }, function (start, end) {
+                        $('#fromDate1').val(start.format(format));
+                        $('#toDate1').val(end.format(format));
+                        $('.daterange-btn span').html(start.format(format) + ' - ' + end.format(format));
+                        allNoticesTable.draw();
+                        accountantNoticesTable.draw();
+                        expiredNoticesTable.draw();
+                    });
+
+                    $('#fromDate1').val(moment().startOf('month').format(format));
+                    $('#toDate1').val(moment().format(format));
+                    $('.daterange-btn span').html(moment().startOf('month').format(format) + ' - ' + moment().format(format));
+                }
+            initializeDateRangePicker();
+
+                // 🔍 Custom Date Filter (for all 3 tabs)
+                $.fn.dataTable.ext.search.push(function (settings, data) {
+                    const format = 'DD-MM-YYYY';
+
+                    const minVal = $('#fromDate1').val();
+                    const maxVal = $('#toDate1').val();
+
+                    if (!minVal && !maxVal) return true;
+
+                    const tableId = settings.nTable.getAttribute('id');
+
+                    let dateStr = '';
+
+                    // ✅ All Notices + Expired Notices → Created Date / Publish Date column = index 5
+                    if (tableId === "allNoticesTable" || tableId === "expiredNoticesTable") {
+                        dateStr = data[5] || "";
+                    }
+                    // ✅ Accountant Created → Created Date column = index 4
+                    else if (tableId === "accountantNoticesTable") {
+                        dateStr = data[4] || "";
+                    }
+                    else {
+                        return true; // बाकी table वर filter लागू करू नका
+                    }
+
+                    const rowDate = moment(dateStr, format, true);
+                    if (!rowDate.isValid()) return true;
+
+                    let min = null, max = null;
+                    if (minVal) min = moment(minVal, format, true);
+                    if (maxVal) max = moment(maxVal, format, true);
+
+                    if (min && rowDate.isBefore(min, 'day')) return false;
+                    if (max && rowDate.isAfter(max, 'day')) return false;
+
+                    return true;
+                });
+
+
+            // 📦 Helper Functions
+            function hasSelectedRows(table) {
+                const selected = table.rows().nodes().to$().find('input.row-checkbox:checked').length;
+            if (selected === 0) {
+                iziToast.warning({
+                    title: 'Warning',
+                    message: 'Please select at least one notice to export',
+                    position: 'topCenter'
+                });
+            return false;
+                }
+            return true;
+            }
+
+                function getSelectedRows(dt) {
+                    var selected = [];
+
+                    dt.rows({ search: 'applied' }).every(function () {
+                        var $row = $(this.node());
+                        if ($row.find('input.row-checkbox').prop('checked')) {
+                            selected.push(this.data());
+                        }
+                    });
+
+                    return selected;
+                }
+
+                function getExportButtons(table, title) {
+                    return [
+                        {
+                            extend: 'csvHtml5',
+                            text: '<img src="/Content/img/icons8-csv-64.png" alt="CSV" style="height:32px;" title="Export CSV" />',
+                            className: 'export-buttons icon-only-btn',
+
+                            // ---------- File Name ----------
+                            filename: () => {
+                                const activeTab = $('.nav-tabs .nav-link.active');
+                                let label = 'Notice_List';
+
+                                if (activeTab.length) {
+                                    const href = activeTab.attr('href');
+                                    if (href === '#all') label = 'All_Notices_List';
+                                    else if (href === '#accountant') label = 'Accountant_Created_Notices_List';
+                                    else if (href === '#expired') label = 'Expired_Notices_List';
+                                }
+
+                                return `${label}_${moment().format('YYYYMMDD_HHmmss')}`;
+                            },
+
+                            // ---------- काय-काय column जायचे ते ----------
+                            exportOptions: {
+                                // फक्त selected rows
+                                rows: (idx, data, node) => $(node).find('input.row-checkbox').is(':checked'),
+
+                                // कोणते columns export करायचे
+                                columns: function (idx, data, node) {
+                                    const table = $(node).closest('table');
+                                    const isExpiredTable = table.attr('id') === 'expiredNoticesTable';
+                                    const colCount = table.find('thead th').length;
+
+                                    if (isExpiredTable) {
+                                        // Expired टेबलसाठी – फक्त checkbox (0) exclude, बाकी सर्व (Notice Created By नाही)
+                                        return idx !== 0;
+                                    }
+
+                                    // All / Accountant टेबलसाठी:
+                                    //  - Checkbox (index 0) exclude
+                                    //  - शेवटचा column (Actions) exclude
+                                    return idx !== 0 && idx !== (colCount - 1);
+                                },
+
+                                format: {
+                                    body: function (data, row, column, node) {
+                                        // HTML tags वगैरे असतील तर इथे clean करू शकतेस
+                                        return data;
+                                    }
+                                }
+                            },
+
+                            // ---------- Header + Sr.No + Custom CSV ----------
+                            customize: function (csv) {
+                                // Date-Time format
+                                const now = new Date();
+                                const day = now.getDate().toString().padStart(2, '0');
+                                const month = (now.getMonth() + 1).toString().padStart(2, '0');
+                                const year = now.getFullYear();
+                                let hours = now.getHours();
+                                const minutes = now.getMinutes().toString().padStart(2, '0');
+                                const ampm = hours >= 12 ? 'PM' : 'AM';
+                                hours = hours % 12 || 12;
+                                hours = hours.toString().padStart(2, '0');
+                                const formattedDate = `${day}-${month}-${year} ${hours}:${minutes}${ampm}`;
+
+                                const bom = '\uFEFF';
+                                const pad = ' '.repeat(20);
+
+                                // Active tab वरून title
+                                const activeTab = $('.nav-tabs .nav-link.active');
+                                let title = 'Notice List';
+
+                                if (activeTab.length) {
+                                    const href = activeTab.attr('href');
+                                    if (href === '#all') title = 'All Notice List';
+                                    else if (href === '#accountant') title = 'Accountant Created Notice List';
+                                    else if (href === '#expired') title = 'Expired Notice List';
+                                }
+
+                                const headerTitle = `${pad}GreenValley Society - ${title}`;
+                                const headerDate = `${pad}Generated on: ${formattedDate}`;
+
+                                // Active table
+                                const table = $('.tab-pane.active table').DataTable();
+                                const isExpired = table.table().node().id === 'expiredNoticesTable';
+
+                                // CSV rows split
+                                let rows = csv.split('\n').filter(r => r.trim() !== '');
+
+                                if (isExpired) {
+                                    // ---------- Expired Notices साठी: header आणि data manually तयार कर ----------
+                                    // मान्य करून layout:
+                                    // 0: Checkbox, 1: Sr.No, 2: Title, 3: Description, 4: Publish Date, 5: End Date, 6: Actions
+                                    rows = [];
+
+                                    // Custom header (Sr.No पासून)
+                                    rows.push('Sr.No,Title,Description,Publish Date,End Date');
+
+                                    // Data rows
+                                    table.rows({ filter: 'applied' }).every(function (rowIdx) {
+                                        const rowNode = this.node();
+
+                                        const rowData = [
+                                            rows.length, // Sr.No (1 पासून सुरू)
+                                            $(rowNode).find('td:eq(2)').text().trim(), // Title
+                                            $(rowNode).find('td:eq(3)').text().trim(), // Description
+                                            $(rowNode).find('td:eq(4)').text().trim(), // Publish Date
+                                            $(rowNode).find('td:eq(5)').text().trim()  // End Date
+                                        ];
+
+                                        rows.push(rowData.join(','));
+                                    });
+                                } else {
+                                    // ---------- All & Accountant साठी: CSV आधी DataTables ने generate केलेले + Sr.No reset ----------
+                                    rows = rows.map((row, index) => {
+                                        if (index === 0) return row; // existing header as it is (All मध्ये Notice Created By सुद्धा येईल)
+                                        const rowData = row.split(',');
+                                        rowData[0] = index; // Sr.No = line क्रमांक (1 पासून)
+                                        return rowData.join(',');
+                                    });
+                                }
+
+                                // Final CSV with BOM + header lines
+                                return bom + `${headerTitle}\n${headerDate}\n\n${rows.join('\n')}`;
+                            },
+
+                            action: function (e, dt, button, config) {
+                                if (!hasSelectedRows(dt)) return;
+                                $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+
+                                swal({
+                                    icon: 'success',
+                                    title: 'CSV Exported',
+                                    text: 'Your CSV file has been downloaded successfully!',
+                                    timer: 2000,
+                                    button: false
+                                });
+
+                                clearAllSelectionsAfterExport(dt);
+
+                                setTimeout(function () {
+                                    location.reload();
+                                }, 800);
+                            }
+                        },
+
+
+
+                        {
+                            extend: 'excelHtml5',
+                            text: '<img src="/Content/img/icons8-xls-64.png" style="height:32px;" title="Export Excel" />',
+                            className: 'export-buttons icon-only-btn',
+
+                            // ---------- File Name ----------
+                            filename: () => {
+                                const activeTab = $('.nav-tabs .nav-link.active');
+                                let label = 'Notice_List';
+
+                                if (activeTab.length) {
+                                    const href = activeTab.attr('href');
+                                    if (href === '#all') label = 'All_Notices_List';
+                                    else if (href === '#accountant') label = 'Accountant_Created_Notices_List';
+                                    else if (href === '#expired') label = 'Expired_Notices_List';
+                                }
+
+                                return `${label}_${moment().format('YYYYMMDD_HHmmss')}`;
+                            },
+
+                            // ---------- Excel Title ----------
+                            title: function () {
+                                const activeTab = $('.nav-tabs .nav-link.active');
+                                let title = 'Notice List';
+
+                                if (activeTab.length) {
+                                    const href = activeTab.attr('href');
+                                    if (href === '#all') title = 'All Notice List';
+                                    else if (href === '#accountant') title = 'Accountant Created Notice List';
+                                    else if (href === '#expired') title = 'Expired Notice List';
+                                }
+
+                                return `GreenValley Society - ${title}`;
+                            },
+
+                            // ---------- Top Message (Date-Time) ----------
+                            messageTop: function () {
+                                return ['Generated on: ' + moment().format('DD-MM-YYYY hh:mmA')].join('\n');
+                            },
+
+                            // ---------- काय rows/columns जायचे ते ----------
+                            exportOptions: {
+                                // फक्त selected rows
+                                rows: (idx, data, node) => $(node).find('input.row-checkbox').is(':checked'),
+
+                                // कोणते columns export करायचे
+                                columns: function (idx, data, node) {
+                                    const table = $(node).closest('table');
+                                    const isExpiredTable = table.attr('id') === 'expiredNoticesTable';
+                                    const colCount = table.find('thead th').length;
+
+                                    if (isExpiredTable) {
+                                        // Expired टेबलसाठी – फक्त checkbox (index 0) exclude
+                                        return idx !== 0;
+                                    }
+
+                                    // All / Accountant टेबलसाठी:
+                                    //  - Checkbox (index 0) exclude
+                                    //  - शेवटचा column (Actions) exclude
+                                    return idx !== 0 && idx !== (colCount - 1);
+                                },
+
+                                format: {
+                                    body: function (data, row, column, node) {
+                                        // First Excel column = Sr.No
+                                        if (column === 0) return row + 1;
+                                        return data;
+                                    }
+                                }
+                            },
+
+                            // ---------- Excel XML Customize (Alignment + Wrap) ----------
+                            customize: function (xlsx) {
+                                const sheet = xlsx.xl.worksheets['sheet1.xml'];
+                                const styles = xlsx.xl['styles.xml'];
+
+                                const cellXfs = styles.getElementsByTagName('cellXfs')[0];
+                                const parser = new DOMParser();
+
+                                // Description column साठी wrapText style
+                                const wrapTextStyle = `
+<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1">
+    <alignment wrapText="1" vertical="top" horizontal="left"/>
+</xf>
+`;
+                                const wrapStyleNode = parser.parseFromString(wrapTextStyle, 'application/xml').documentElement;
+                                const wrapStyleId = cellXfs.childNodes.length;
+                                cellXfs.appendChild(wrapStyleNode);
+
+                                // बाकी सर्व cells साठी center alignment style
+                                const centerAlignment = `
+<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1">
+    <alignment horizontal="center" vertical="center"/>
+</xf>
+`;
+                                const centerStyleNode = parser.parseFromString(centerAlignment, 'application/xml').documentElement;
+                                const centerStyleId = cellXfs.childNodes.length;
+                                cellXfs.appendChild(centerStyleNode);
+
+                                // सर्व rows
+                                const rows = sheet.getElementsByTagName('row');
+
+                                for (let i = 0; i < rows.length; i++) {
+                                    const cells = rows[i].getElementsByTagName('c');
+
+                                    for (let j = 0; j < cells.length; j++) {
+                                        if (i === 2) {
+                                            // Excel row 3 (0-based index 2) = header row -> center align
+                                            cells[j].setAttribute('s', centerStyleId);
+                                        } else {
+                                            if (j === 2) {
+                                                // 3rd column (Description) -> wrap text
+                                                cells[j].setAttribute('s', wrapStyleId);
+                                            } else {
+                                                // बाकी data cells -> center align
+                                                cells[j].setAttribute('s', centerStyleId);
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+
+                            // ---------- Action (selected check + SweetAlert + clear selection) ----------
+                            action: function (e, dt, button, config) {
+                                if (!hasSelectedRows(dt)) return;
+
+                                $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+
+                                swal({
+                                    icon: 'success',
+                                    title: 'Excel Exported',
+                                    text: 'Your Excel file has been downloaded successfully!',
+                                    timer: 2000,
+                                    button: false
+                                });
+
+                                clearAllSelectionsAfterExport(dt);
+
+                                setTimeout(function () {
+                                    location.reload();
+                                }, 800);
+                            }
+                        },
+
+
+
+
+
+                        {
+                            extend: 'pdfHtml5',
+                            text: '<img src="/Content/img/icons8-pdf-64.png" alt="PDF" style="height:32px;" title="Export PDF" />',
+                            className: 'export-buttons icon-only-btn',
+                            orientation: 'landscape',
+                            pageSize: 'A4',
+
+                            filename: () => {
+                                // Active tab नुसार file name
+                                const activeTab = $('.nav-tabs .nav-link.active');
+                                let label = 'Notice_List';
+
+                                if (activeTab.length) {
+                                    const href = activeTab.attr('href');
+                                    if (href === '#all') label = 'All_Notices_List';
+                                    else if (href === '#accountant') label = 'Accountant_Created_Notices_List';
+                                    else if (href === '#expired') label = 'Expired_Notices_List';
+                                }
+
+                                return `${label}_${moment().format('YYYYMMDD_HHmmss')}`;
+                            },
+
+                            exportOptions: {
+                                // फक्त selected rows
+                                rows: function (idx, data, node) {
+                                    return $(node).find('input.row-checkbox').prop('checked');
+                                },
+                                // कोणते columns जायचे ते
+                                columns: function (idx, data, node) {
+                                    const table = $(node).closest('table');
+                                    const isExpiredTable = table.attr('id') === 'expiredNoticesTable';
+                                    const colCount = table.find('thead th').length;
+
+                                    if (isExpiredTable) {
+                                        // Expired टेबल: फक्त checkbox exclude (बाकी सर्व, End Date सहित, ठेवायचे)
+                                        return idx !== 0;
+                                    }
+
+                                    // All + Accountant टेबल:
+                                    //  - Checkbox (index 0) exclude
+                                    //  - शेवटचा column (Actions) exclude (dynamic)
+                                    return idx !== 0 && idx !== (colCount - 1);
+                                },
+                                format: {
+                                    body: function (data, row, column, node) {
+                                        // जर cell मध्ये .export-label असेल तर तो text वापर
+                                        return $(node).find(".export-label").text().trim() || $(node).text().trim();
+                                    }
+                                }
+                            },
+
+                            customize: function (doc) {
+                                // Active tab नुसार title
+                                const activeTab = $('.nav-tabs .nav-link.active');
+                                let titleText = 'Notice List';
+
+                                if (activeTab.length) {
+                                    const href = activeTab.attr('href');
+                                    if (href === '#all') titleText = 'All Notice List';
+                                    else if (href === '#accountant') titleText = 'Accountant Created Notice List';
+                                    else if (href === '#expired') titleText = 'Expired Notice List';
+                                }
+
+                                // Default title remove कर
+                                doc.content = doc.content.filter(item => {
+                                    return !(typeof item.text === 'string' && item.text.trim().includes('Notice List'));
+                                });
+
+                                // Custom title + Generated date
+                                doc.content.splice(0, 0,
+                                    {
+                                        text: 'GreenValley Society - ' + titleText,
+                                        fontSize: 18,
+                                        bold: true,
+                                        alignment: 'center',
+                                        margin: [0, 0, 0, 4]
+                                    },
+                                    {
+                                        text: 'Generated on: ' + moment().format('DD-MM-YYYY hh:mm A'),
+                                        fontSize: 9,
+                                        alignment: 'center',
+                                        italics: true,
+                                        margin: [0, 0, 0, 10]
+                                    }
+                                );
+
+                                // Main table शोध
+                                const tableIndex = doc.content.findIndex(c => c.table);
+                                const table = doc.content[tableIndex];
+                                const body = table.table.body;
+
+                                // Sr.No आणि alignment
+                                for (let i = 1; i < body.length; i++) {
+                                    // पहिला column = Sr.No
+                                    body[i][0].text = i.toString();
+                                    body[i][0].alignment = 'center';
+                                }
+
+                                // सर्व cells ला alignment + font
+                                for (let i = 0; i < body.length; i++) {
+                                    for (let j = 0; j < body[i].length; j++) {
+                                        body[i][j].alignment = 'center';
+                                        body[i][j].fontSize = 9;
+                                    }
+                                }
+
+                                // Column widths (auto)
+                                const widths = new Array(body[0].length).fill('auto');
+
+                                // Table layout
+                                const layout = {
+                                    hLineWidth: () => 0.5,
+                                    vLineWidth: () => 0.5,
+                                    hLineColor: () => '#aaa',
+                                    vLineColor: () => '#aaa',
+                                    paddingLeft: () => 4,
+                                    paddingRight: () => 4,
+                                    paddingTop: () => 1,
+                                    paddingBottom: () => 1
+                                };
+
+                                // Header style
+                                doc.styles.tableHeader = {
+                                    bold: true,
+                                    fontSize: 11,
+                                    color: 'white',
+                                    fillColor: '#615677',
+                                    alignment: 'center',
+                                    margin: [0, 2, 0, 2]
+                                };
+
+                                // Table re-assign with margins
+                                doc.content[tableIndex] = {
+                                    margin: [120, 0, 100, 0], // left, top, right, bottom
+                                    table: {
+                                        widths: widths,
+                                        body: body
+                                    },
+                                    layout: layout,
+                                    alignment: 'center'
+                                };
+
+                                // Default cell style
+                                doc.defaultStyle = {
+                                    alignment: 'center'
+                                };
+
+                                // Page margins
+                                doc.pageMargins = [20, 40, 20, 40];
+                            },
+
+                            action: function (e, dt, button, config) {
+                                const selected = getSelectedRows(dt);
+                                if (selected.length === 0) {
+                                    iziToast.warning({
+                                        title: 'Warning',
+                                        message: 'Please select at least one row to export.',
+                                        position: 'topCenter'
+                                    });
+                                    return;
+                                }
+
+                                $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+
+                                swal({
+                                    icon: 'success',
+                                    title: 'PDF Exported',
+                                    text: 'Your PDF file has been downloaded successfully!',
+                                    timer: 2000,
+                                    button: false
+                                });
+
+                                clearAllSelectionsAfterExport(dt);
+
+                                setTimeout(function () {
+                                    location.reload();
+                                }, 800);
+                            }
+                        },
+
+
+                        {
+                            extend: 'print',
+                            text: '<img src="/Content/img/icons8-print-100.png" height="30" width="30"/>',
+                            className: 'export-buttons icon-only-btn',
+                            title: '',
+                            exportOptions: {
+                                columns: function (idx, data, node) {
+                                    const table = $(node).closest('table');
+                                    const isExpiredTable = table.attr('id') === 'expiredNoticesTable';
+                                    const colCount = table.find('thead th').length;
+
+                                    if (isExpiredTable) {
+                                        // Expired टेबलसाठी – फक्त checkbox (0) exclude, बाकी (End Date इ.) print मध्ये येतील
+                                        return idx !== 0;
+                                    }
+
+                                    // All / Accountant टेबलसाठी:
+                                    //  - checkbox (index 0) exclude
+                                    //  - शेवटचा column (Actions) exclude (dynamic)
+                                    return idx !== 0 && idx !== (colCount - 1);
+                                },
+                                rows: function (idx, data, node) {
+                                    return $(node).find('input.row-checkbox').prop('checked');
+                                },
+                                format: {
+                                    body: function (data, row, column, node) {
+                                        if (column === 0) {
+                                            // Sr.No numbering
+                                            return row + 1;
+                                        }
+                                        return $(node).find(".export-label").text().trim() || $(node).text().trim();
+                                    }
+                                }
+                            },
+
+                            customize: function (win) {
+                                const activeTab = $('.nav-tabs .nav-link.active');
+                                let titleText = 'Notice List';
+
+                                if (activeTab.length) {
+                                    const href = activeTab.attr('href');
+                                    if (href === '#all') titleText = 'All Notice List';
+                                    else if (href === '#accountant') titleText = 'Accountant Created Notice List';
+                                    else if (href === '#expired') titleText = 'Expired Notice List';
+                                }
+
+                                $(win.document.body)
+                                    .css('font-size', '10pt')
+                                    .prepend(`
+                <div style="text-align:center; margin:0 0 10px 0;">
+                    <h2>GREEN VALLEY SOCIETY : ${titleText}</h2>
+                    <p>Generated on: ${moment().format('DD-MM-YYYY hh:mm A')}</p>
+                </div>
+                <style>
+                    table.print-table tbody td {
+                        border: 1px solid #000000 !important;
+                    }
+                    table.print-table thead th {
+                        border: 1px solid #000000 !important;
+                        color: #000000 !important;
+                        background-color: transparent !important;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                        text-align: center;
+                    }
+                </style>
+            `);
+
+                                $(win.document.body).find('table')
+                                    .addClass('compact print-table')
+                                    .css({
+                                        fontSize: 'inherit',
+                                        textAlign: 'center',
+                                        margin: '0 auto',
+                                        borderCollapse: 'collapse',
+                                        width: '100%'
+                                    });
+
+                                $(win.document.body).find('th, td').css({ padding: '5px' });
+                            },
+
+                            action: function (e, dt, button, config) {
+                                const selectedRows = dt.rows(function (idx, data, node) {
+                                    return $(node).find('input.row-checkbox').prop('checked');
+                                }, { search: 'applied', page: 'all' });
+
+                                const selected = selectedRows.count();
+
+                                if (selected === 0) {
+                                    iziToast.warning({
+                                        title: 'No Rows Selected',
+                                        message: 'Please select at least one row to export.',
+                                        position: 'topCenter'
+                                    });
+                                    return;
+                                }
+
+                                $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+
+                                clearAllSelectionsAfterExport(dt);
+
+                                setTimeout(function () {
+                                    location.reload();
+                                }, 800);
+                            }
+                        },
+
+
+
+                        {
+                            text: '<img src="/Content/img/icons8-refresh-50.png" alt="Refresh" style="height:28px;" title="Refresh Table" />',
+                            className: 'export-buttons icon-only-btn',
+                            action: function (e, dt, node, config) {
+                                // ✅ Spin the refresh icon
+                                const refreshIcon = $(node).find('img');
+                                refreshIcon.addClass('rotate-refresh');
+                                setTimeout(() => refreshIcon.removeClass('rotate-refresh'), 600);
+
+                                // Clear all filters and searches
+                                dt.columns().search('');
+                                dt.search('');
+
+                                // Reset checkboxes
+                                dt.rows().every(function () {
+                                    $(this.node()).find('.row-checkbox').prop('checked', false);
+                                });
+                                $('#selectAll, #selectAllGlobal').prop('checked', false);
+
+                                // ✅ Reset date range filter (VISIBLE + FUNCTIONAL)
+                                const format = 'DD-MM-YYYY';
+                                const start = moment().startOf('month');
+                                const end = moment();
+                                $('#fromDate1').val(start.format(format));
+                                $('#toDate1').val(end.format(format));
+                                $('.daterange-btn span').html(start.format(format) + ' - ' + end.format(format));
+
+                                // ✅ Update the actual date range in the picker instance
+                                const picker = $('.daterange-btn').data('daterangepicker');
+                                if (picker) {
+                                    picker.setStartDate(start);
+                                    picker.setEndDate(end);
+                                }
+
+                                // ✅ Move to first page
+                                dt.page('first');
+
+                                // Reload or redraw table
+                                if (dt.init().serverSide) {
+                                    dt.ajax.reload(null, false); // false = keep paging, but already set to first page
+                                } else {
+                                    dt.draw(false); // false = don't reset filtering/sorting
+                                }
+                            }
+                        }
+                    ]
+                }
+                const commonConfig = {
+                    dom: "<'row mb-2'<'col-md-6'B><'col-md-6'f>>" +
+                        "<'row'<'col-sm-12'tr>>" +
+                        "<'row mt-2'<'col-sm-5'i><'col-sm-7'p>>",
+                    paging: true,
+                    searching: true,
+                    info: true,
+                    responsive: true,
+                    ordering: false,
+                    pageLength: 10,
+                    columnDefs: [
+                        {
+                            orderable: false,
+                            targets: [0, 6],
+                            className: 'dt-center'
+                        },
+                        {
+                            type: 'date-eu',
+                            targets: [4, 5],
+                            className: 'dt-center'
+                        },
+                        {
+                            targets: '_all',
+                            className: 'dt-center'
+                        }
+                    ],
+                    drawCallback: function (settings) {
+                        const api = this.api();
+                        api.column(1, { page: 'current' }).nodes().each(function (cell, i) {
+                            const pageInfo = api.page.info();
+                            const index = pageInfo.start + i + 1;
+                            $(cell).html(index);
+                        });
+                    },
+                    language: {
+                        infoFiltered: "",
+                        emptyTable: "No notices found",
+                        zeroRecords: "No matching notices found"
+                    },
+                    initComplete: function () {
+                        this.api().columns().header().to$().addClass('text-center');
+                    }
+                };
+
+                function clearAllSelectionsAfterExport(dt) {
+                    // ✅ 1. Clear all row checkboxes (on current page)
+                    dt.rows().every(function () {
+                        $(this.node()).find('.row-checkbox').prop('checked', false);
+                    });
+
+                    // ✅ 2. Uncheck "Select All"
+                    $('#selectAll').prop('checked', false);
+                }
+
+            // 📝 Table Initialization
+            const allNoticesTable = $('#allNoticesTable').DataTable({
+                ...commonConfig,
+                buttons: getExportButtons(null, 'GreenValley_Notices')
+            });
+
+            const accountantNoticesTable = $('#accountantNoticesTable').DataTable({
+                ...commonConfig,
+                buttons: getExportButtons(null, 'Accountant_Notices')
+            });
+
+            const expiredNoticesTable = $('#expiredNoticesTable').DataTable({
+                ...commonConfig,
+                columnDefs: [
+            {
+                orderable: false,
+            targets: [0],
+            className: 'dt-center'
+                    },
+            {
+                type: 'date-eu',
+            targets: [4, 5],
+            className: 'dt-center'
+                    },
+            {
+                targets: '_all',
+            className: 'dt-center'
+                    }
+            ],
+            buttons: getExportButtons(null, 'Expired_Notices')
+            });
+
+            // Add CSS to center-align all table content
+            $('<style>')
+                .prop('type', 'text/css')
+                .html(`
+                .dataTable td, .dataTable th {
+                    text - align: center !important;
+                vertical-align: middle !important;
+                    }
+                #allNoticesTable td, #accountantNoticesTable td, #expiredNoticesTable td {
+                    text - align: center !important;
+                    }
+                `)
+                .appendTo('head');
+
+                // 🧾 Tab Switching Redraw
+                $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                const tabId = $(e.target).attr("href");
+                if (tabId === '#all') {
+                    allNoticesTable.columns.adjust().draw();
+                } else if (tabId === '#accountant') {
+                    accountantNoticesTable.columns.adjust().draw();
+                } else if (tabId === '#expired') {
+                    expiredNoticesTable.columns.adjust().draw();
+                }
+            });
+
+                // 📥 Select All Checkbox Logic
+                $('table').each(function () {
+                const tableId = $(this).attr('id');
+                const table = $(`#${tableId}`).DataTable();
+
+                $(`#${tableId} thead #selectAll`).on('change', function () {
+                    const isChecked = $(this).is(':checked');
+                table.rows().every(function () {
+                    $(this.node()).find('.row-checkbox').prop('checked', isChecked);
+                    });
+                });
+
+                $(`#${tableId}`).on('change', '.row-checkbox', function () {
+                    const total = table.rows().nodes().to$().find('.row-checkbox').length;
+                const checked = table.rows().nodes().to$().find('.row-checkbox:checked').length;
+                $(`#${tableId} thead #selectAll`).prop('checked', total === checked);
+                });
+            });
+
+                $('#selectAllGlobal').on('change', function () {
+                const isChecked = $(this).is(':checked');
+                const activeTabId = $('.tab-pane.active').attr('id');
+                let table;
+                if (activeTabId === 'all') table = allNoticesTable;
+                else if (activeTabId === 'accountant') table = accountantNoticesTable;
+                else if (activeTabId === 'expired') table = expiredNoticesTable;
+
+                if (table) {
+                    table.rows().every(function () {
+                        $(this.node()).find('.row-checkbox').prop('checked', isChecked);
+                    });
+                }
+            });
+
+            // 🟢 Initial Draw
+            setTimeout(() => {
+                    allNoticesTable.draw();
+                accountantNoticesTable.draw();
+                expiredNoticesTable.draw();
+            }, 400);
+            });
+
+       $(document).on("click", ".deleteNoticeBtn", function () {
+    var id = $(this).data("id");   // NoticeAnnouncementCode
+
+    Swal.fire({
+        title: "Are you sure?",
+        text: "This action cannot be undone!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it!",
+        cancelButtonText: "Cancel"
+    }).then((result) => {
+        if (result.isConfirmed) {
+
+            $.ajax({
+                url: '@Url.Action("DeleteNotice", "AccountManager")',   // ✅ controller + action
+                type: 'POST',
+                data: { id: id },                                       // ✅ controller param नाव match
+                success: function (response) {
+                    if (response && response.success) {
+                        Swal.fire({
+                            title: "Deleted!",
+                            text: "Notice deleted successfully.",
+                            icon: "success",
+                            showConfirmButton: false,
+                            timer: 2000
+                        });
+
+                        setTimeout(function () {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        Swal.fire({
+                            title: "Error",
+                            text: response.message || "Unable to delete notice.",
+                            icon: "error"
+                        });
+                    }
+                },
+                error: function (xhr) {
+                    console.log(xhr.status, xhr.responseText);
+                    Swal.fire({
+                        title: "Error",
+                        text: "An error occurred while deleting.",
+                        icon: "error"
+                    });
+                }
+            });
+
+        }
+    });
+});
+
+
+
+
+
+
+            ////////////////////////////////////////////////rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr///////////////////////////////////////////////////////
+
+            // 🔘 Load Add Notice Modal
+                                 $('#btnAddNotice').click(function () {
+                $.ajax({
+                    url: '@Url.Action("AddNotice", "AccountManager")',
+                    type: 'GET',
+                    success: function (result) {
+                        $('#addNoticeFormContainer').html(result);
+
+                        const noticeModal = new bootstrap.Modal(document.getElementById('noticeModal'), {
+                            backdrop: 'static',
+                            keyboard: false
+                        });
+                        noticeModal.show();
+
+                        // ✅ Reset file list when modal is shown
+                        $('#noticeModal').on('shown.bs.modal', function () {
+                            selectedFiles = [];
+                            const previewContainer = document.getElementById("filePreviewList");
+                            if (previewContainer) {
+                                renderFilePreview(previewContainer);
+                            }
+                        });
+
+                        // ✅ Clean modal on close
+                        $('#noticeModal').on('hidden.bs.modal', function () {
+                            $('#addNoticeFormContainer').html('');
+                            selectedFiles = [];
+                        });
+                    },
+                    error: function () {
+                        alert("Failed to load Add Notice form.");
+                    }
+                });
+            });
+
+
+
+
+
+            // 🔘 Load Edit Notice Modal
+        $('#allNoticesTable').on('click', '.editNoticeBtn', function () {
+                var noticeCode = $(this).data('id');
+                $.ajax({
+                    url: '@Url.Action("EditNotice", "AccountManager")',
+                    data: { noticeCode: noticeCode },
+                    success: function (html) {
+                        $('#editNoticeContent').html(html);
+                        // ✅ Disable close on backdrop or Esc key
+                        const modal = new bootstrap.Modal(document.getElementById('editNoticeModal'), {
+                            backdrop: 'static',
+                            keyboard: false
+                        });                        modal.show();
+                    },
+                    error: function () {
+                        alert("Failed to load edit form.");
+                    }
+                });
+        });
+
+
+            // 🔘 Load Edit Notice Modal
+        $('#accountantNoticesTable').on('click', '.editNoticeBtn', function () {
+        var noticeCode = $(this).data('id');
+        $.ajax({
+            url: '@Url.Action("EditNotice", "AccountManager")',
+            data: { noticeCode: noticeCode },
+            success: function (html) {
+                $('#editNoticeContent').html(html);
+                // ✅ Disable close on backdrop or Esc key
+                const modal = new bootstrap.Modal(document.getElementById('editNoticeModal'), {
+                    backdrop: 'static',
+                    keyboard: false
+                });                        modal.show();
+            },
+            error: function () {
+                alert("Failed to load edit form.");
+            }
+        });
+});
+
+
+        // 🔘 Load Edit Notice Modal
+        $('#expiredNoticesTable').on('click', '.editNoticeBtn', function () {
+        var noticeCode = $(this).data('id');
+        $.ajax({
+            url: '@Url.Action("EditNotice", "AccountManager")',
+            data: { noticeCode: noticeCode },
+            success: function (html) {
+                $('#editNoticeContent').html(html);
+                // ✅ Disable close on backdrop or Esc key
+                const modal = new bootstrap.Modal(document.getElementById('editNoticeModal'), {
+                    backdrop: 'static',
+                    keyboard: false
+                });                        modal.show();
+            },
+            error: function () {
+                alert("Failed to load edit form.");
+            }
+        });
+    });
+
+    // 🔘 Load View Notice Modal
+$('table').on('click', '.viewNoticeBtn', function() {
+    var noticeCode = $(this).data('id');
+    $.ajax({
+        url: '@Url.Action("ViewNotice", "AccountManager")',
+        data: { noticeCode: noticeCode },
+        success: function(html) {
+            $('#viewNoticeContent').html(html);
+            const modal = new bootstrap.Modal(document.getElementById('viewNoticeModal'), {
+                backdrop: 'static',
+                keyboard: false
+            });
+            modal.show();
+        },
+        error: function() {
+            iziToast.error({
+                title: 'Error',
+                message: 'Failed to load notice details',
+                position: 'topCenter'
+            });
+        }
+    });
+});
+
+
+        // Show loader when page is loading
+        $(window).on('load', function () {
+            $('#listLoader').fadeOut(300);
+        });
+
+
+        $(document).ready(function () {
+            $('#allNoticesTable, #accountantNoticesTable, #expiredNoticesTable').on('draw.dt', function () {
+                $('#listLoader').fadeOut(300);
+            });
+        });
+
+    </script>
+    <style>
+
+        /* Add to your existing styles */
+        .btn-info {
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+            color: white;
+        }
+
+            .btn-info:hover {
+                background-color: #138496;
+                border-color: #117a8b;
+            }
+
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 14px;
+            line-height: 21px;
+            border-radius: 3.2px;
+        }
+
+
+        /*this css for the add notice cross buttton */
+        .btn-smp {
+            padding: 4px 8px;
+            font-size: 14px;
+            line-height: 14px;
+            border-radius: 3.2px;
+        }
+
+
+        .modal-header {
+            background-color: #615677 !important;
+            justify-content: center !important;
+            align-items: center;
+            padding-top: 10px;
+            padding-bottom: 8px; /* reduced bottom spacing */
+            height: 45px; /* added fixed height */
+        }
+
+            .modal-header .modal-title {
+                color: #fff !important;
+                text-align: center;
+                width: 100%;
+                font-size: 18px !important; /* changed to 18px */
+                margin-bottom: 0; /* remove extra bottom margin */
+            }
+
+        .modal-content {
+            border-radius: 4px !important; /* added border radius for the entire modal */
+        }
+
+        .modal-body {
+            padding-bottom: 5px !important; /* reduce bottom spacing */
+        }
+
+
+
+
+        /* Modal container adjustments */
+        .modal-content {
+            max-height: 90vh; /* Limit modal height */
+            overflow: hidden; /* Hide overflow by default */
+        }
+
+        .modal-body {
+            overflow-y: auto;
+            max-height: calc(130vh - 180px);
+            padding: 15px;
+            /*overflow-x: hidden;*/ /* Prevent horizontal scroll */
+        }
+
+        /* Member dropdown specific styles */
+        .select-member-section {
+            overflow-y: hidden; /* Hide scroll by default */
+            transition: max-height 0.3s ease;
+        }
+
+            /* When details are open */
+            .select-member-section details[open] {
+                overflow-y: auto; /* Show scroll only when dropdown is open */
+                max-height: 200px; /* Limit height of open dropdown */
+            }
+
+        /* Remove any global scrollbar */
+        body.modal-open {
+            overflow: hidden;
+            padding-right: 0 !important;
+        }
+
+        /* Custom scrollbar styling */
+        .select-member-section::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .select-member-section::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .select-member-section::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+            .select-member-section::-webkit-scrollbar-thumb:hover {
+                background: #555;
+            }
+
+
+
+
+
+
+
+
+        /* -----------------savita---------------------------*/
+
+        #noticeContainer {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+            width: 103%;
+        }
+
+
+
+        .form-group {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+
+        .custom-heading {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+    </style>
+
+}
+<!-- Include these if not already present in your layout -->
+<link href="https://cdn.jsdelivr.net/npm/izitoast/dist/css/iziToast.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
+
+<script>
+
+    // Add this to your existing JavaScript
+    document.querySelectorAll('details').forEach(details => {
+        details.addEventListener('toggle', function () {
+            // Close other dropdowns when one opens
+            if (this.open) {
+                document.querySelectorAll('details').forEach(other => {
+                    if (other !== this) other.open = false;
+                });
+            }
+
+            // Adjust scroll behavior
+            const memberSection = document.querySelector('.select-member-section');
+            if (this.open) {
+                memberSection.style.overflowY = 'auto';
+            } else {
+                // Only disable overflow if no dropdowns are open
+                const anyOpen = [...document.querySelectorAll('details')].some(d => d.open);
+                if (!anyOpen) {
+                    memberSection.style.overflowY = 'hidden';
+                }
+            }
+        });
+    });
+
+
+    @if (TempData["Message"] != null)
+    {
+
+        <text>
+        Swal.fire({
+            icon: 'success',
+            title: 'Notice Saved',
+            text: '@TempData["Message"]',
+            /*confirmButtonText: 'OK'*/
+            showConfirmButton: false,
+            timer: 3000
+        });
+        </text>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <text>
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: '@TempData["Error"]',
+            showConfirmButton: false,
+            timer: 3000
+        });
+        </text>
+    }
+</script>

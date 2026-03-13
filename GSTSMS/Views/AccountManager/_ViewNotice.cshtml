@@ -1,0 +1,81 @@
+﻿
+
+@model GSTSMSLibrary.AccountManager.AccountManager
+
+
+<link href="~/Content/css/noticeRM.css" rel="stylesheet" />
+
+
+<style>
+    .btn.btn-sm {
+        padding: 2px 7px;
+        font-size: 18px;
+    }
+</style>
+
+<div class="modal-header">
+    <h5 class="modal-title">View Notice</h5>
+    <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal" aria-label="Close" style="margin-right:-14px">×</button>
+</div>
+
+<div class="modal-body">
+    <!-- Notice Title -->
+    <div class="mb-3">
+        <label class="form-label" style="color: black;">Notice Title : </label>
+        <div class="form-control-plaintext border-bottom pb-2 fetched-data" style="font-size: 14px; color: #808080;">
+            @Model.NoticeTitle
+        </div>
+    </div>
+
+    <!-- Description -->
+    <div class="mb-3">
+        <label class="form-label" style="color: black;">Description : </label>
+        <div class="form-control-plaintext border-bottom pb-2 fetched-data" style="font-size: 14px; color: #808080;">
+            @Html.Raw(Model.Description)
+        </div>
+    </div>
+
+    <!-- Dates Row -->
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label" style="color: black;">Publish Date : </label>
+            <div class="form-control-plaintext border-bottom pb-2 fetched-data" style="font-size: 14px; color: #808080;">
+                @(Model.PublishDate.ToString("dd-MMMM-yyyy"))
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label" style="color: black;">End Date :</label>
+            <div class="form-control-plaintext border-bottom pb-2 fetched-data" style="font-size: 14px; color: #808080;">
+                @(Model.EndDate.ToString("dd-MMMM-yyyy"))
+            </div>
+        </div>
+    </div>
+
+    <!-- Attachments -->
+    <div class="mb-3">
+        <label class="form-label" style="color: black;">Attachment :</label>
+        @if (Model.AttachmentList != null && Model.AttachmentList.Any())
+        {
+            <div class="d-flex flex-wrap gap-2 mt-2">
+                @foreach (var file in Model.AttachmentList)
+                {
+                    if (!string.IsNullOrWhiteSpace(file))
+                    {
+                        <div class="file-preview">
+                            <a href="@Url.Content("~/Uploads/Notices/" + file)" target="_blank">
+                                <i class="fas fa-file-alt text-primary"></i>
+                                <span title="@file">@file</span>
+                            </a>
+                        </div>
+                    }
+                }
+            </div>
+        }
+        else
+        {
+            <div class="form-control-plaintext border-bottom pb-2 text-muted">
+                No attachments
+            </div>
+        }
+    </div>
+</div>

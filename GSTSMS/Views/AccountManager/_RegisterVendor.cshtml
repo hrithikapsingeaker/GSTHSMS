@@ -1,0 +1,649 @@
+﻿@model GSTSMSLibrary.AccountManager.AccountManager
+
+<div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+        <div class="modal-header custom-modal-header">
+            <h5 class="modal-title w-100 text-center">Vendor Registration</h5>
+            <button type="button" class="btn btn-dangerb btn-sm " style="transform: none !important; transition: none !important; " onclick="closeVendorModal()">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+
+        <style>
+
+
+
+
+            .file-name {
+                display: inline-block;
+                max-width: 250px; /* ⬅ limit width (tula form UI nusar adjust karaychay) */
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                vertical-align: middle;
+            }
+
+
+            /* Add this to your existing styles */
+            .modal.fade .modal-dialog {
+                transition: transform 0.3s ease-out;
+                transform: none !important;
+                top: auto !important;
+                margin: auto !important;
+            }
+
+            .modal.show .modal-dialog {
+                transform: none !important;
+            }
+
+            .modal-content {
+                margin: auto !important;
+            }
+
+            .modal-dialog {
+                display: flex;
+                align-items: center; /* vertically center */
+                min-height: 100vh; /* full height for centering */
+            }
+
+            .text-danger {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                /*                font-weight: bold;
+            */ font-size: 10px !important;
+            }
+            /* --- MODAL STYLING BASED ON EXCEL SPEC --- */
+            .modal-content {
+                border-radius: 4px;
+            }
+
+            .modal-header {
+                height: 45px;
+                background-color: #615677 !important;
+                border-top-left-radius: 4px;
+                border-top-right-radius: 4px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 0 15px;
+            }
+
+            .modal-title {
+                font-size: 18px;
+                /*                font-weight: bold;
+            */ color: white;
+                line-height: 45px;
+                margin: 0 auto;
+                margin-top: 0px !important;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+            }
+
+            /* .modal-body {
+                overflow: unset !important;
+                max-height: none !important;
+                padding: 10px 15px;
+            }*/
+
+            .modal-lg {
+                max-width: 750px;
+            }
+
+            /* --- FORM ELEMENTS --- */
+            label {
+                font-size: 16px !important;
+                margin-bottom: 2px;
+                color: black !important;
+            }
+
+
+            .form-control {
+                padding: 6px 10px;
+                font-size: 16px;
+                font-weight: normal;
+                height: 34px;
+            }
+
+            .form-group {
+                margin-bottom: 8px;
+                color: black;
+            }
+
+            /* --- VALIDATION --- */
+            .is-invalid {
+                border: 1px solid red !important;
+            }
+
+            .is-valid {
+                border: 1px solid green !important;
+            }
+
+            .text-danger {
+                font-size: 0.75rem;
+            }
+
+            /* --- BUTTON STYLES --- */
+            /*.custom-btn,
+            .btn-danger {
+                height: 35px;
+                width: 100px;
+                font-size: 15px;
+                border-radius: 4px;
+            }
+
+            btn-danger:hover {
+                color: white;
+            }*/
+
+
+
+            .btn-dangerb {
+                background-color: red !important;
+                border: none;
+                color: black;
+            }
+
+                .btn-dangerb i {
+                    color: white !important;
+                }
+
+            /* .btn-dangerb:hover,
+                            .btn-dangerb:focus,
+                            .btn-dangerb:active {
+                                background-color: red !important;
+                                color: white !important;
+                            }*/
+
+            /* --- BUTTON POSITION (centered) --- */
+            .text-center {
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+                margin-top: 10px;
+            }
+
+                .text-center button {
+                    padding: 5px 16px;
+                    font-size: 15px;
+                    border-radius: 6px;
+                }
+
+            /* --- FILE PREVIEW AREA (OPTIONAL) --- */
+            #filePreviewList {
+                margin-top: 0.5rem;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+
+            /*#vendorModal .btn-success {
+                background-color: #28a745;
+                color: #fff;
+            }*/
+
+            #vendorModal .btn-success:hover {
+                color: black !important;
+            }
+
+            #vendorModal .btn-danger {
+                background-color: #dc3545;
+                color: #fff;
+            }
+
+                #vendorModal .btn-danger:hover {
+                    color: black;
+                }
+
+            #vendorModal .btn-success,
+            #vendorModal .btn-danger {
+                min-width: 110px;
+                font-size: 16px;
+                padding: 0.5rem 2.0rem;
+                border-radius: 4px;
+                font-weight: 500;
+                border: none;
+                transition: background-color 0.2s ease;
+                display: flex;
+                justify-content: center; /* ✅ Center text horizontally */
+                align-items: center; /* ✅ Center text vertically */
+                color: white;
+                text-align: center; /* ✅ Fallback for non-flex layout */
+            }
+        </style>
+
+
+
+
+        <div class="modal-body">
+            @using (Html.BeginForm("RegisterVendor", "AccountManager", FormMethod.Post, new { enctype = "multipart/form-data", id = "registerVendorForm" }))
+            {
+                @Html.AntiForgeryToken()
+
+
+
+
+
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="ServiceSubTypeId">Service Type: <span class="text-danger">*</span></label>
+                        @Html.DropDownListFor(m => m.ServiceSubTypeId, new SelectList(ViewBag.ServiceSubTypes, "SubTypeId", "SubTypeName"), "-- Select Service --", new { @class = "form-control", id = "ServiceSubTypeId" })
+                        <span class="text-danger" id="serviceError" style="display:none;">Select service.</span>
+                    </div>
+
+                    <div class="form-group col-md-6">
+                        <label for="VendorName">Business Name: <span class="text-danger">*</span></label>
+                        @Html.TextBoxFor(m => m.BusinessName, new { @class = "form-control", placeholder = "Enter Business Name", maxlength = "50", id = "BusinessName" })
+                        <span class="text-danger" id="BusinessNameError" style="display:none;">Please enter valid name.</span>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="VendorName">Vendor Name: <span class="text-danger">*</span></label>
+                        @Html.TextBoxFor(m => m.VendorName, new { @class = "form-control", placeholder = "Enter Vendor Name", maxlength = "50", id = "VendorName" })
+                        <span class="text-danger" id="vendorNameError" style="display:none;">Please enter valid name.</span>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="Email">Email: <span class="text-danger">*</span></label>
+                        @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "Enter Email", maxlength = "50", id = "Email" })
+                        <span class="text-danger" id="emailError" style="display:none;">Please enter valid email.</span>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="PhoneNumber">Phone Number: <span class="text-danger">*</span></label>
+                        @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control", id = "PhoneNumber", placeholder = "Enter Phone Number", maxlength = "10" })
+                        <span class="text-danger" id="phoneError" style="display:none;">Enter valid phone.</span>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="AlternatePhoneNumber">Alternate Phone Number:</label>
+                        @Html.TextBoxFor(m => m.AlternatePhoneNumber, new { @class = "form-control", id = "AlternatePhoneNumber", placeholder = "Enter Alternate Phone Number", maxlength = "10" })
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="Address">Address: <span class="text-danger">*</span></label>
+                        @Html.TextBoxFor(m => m.Address, new { @class = "form-control", placeholder = "Enter Address ", maxlength = "150", id = "Address" })
+                        <span class="text-danger" id="addressError" style="display:none;">Please enter address.</span>
+                    </div>
+
+
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-4">
+                        <label for="IFSCCode">IFSC Code: <span class="text-danger">*</span></label>
+                        @Html.TextBoxFor(m => m.IFSCCode, new { @class = "form-control", placeholder = "Enter IFSC CODE", id = "IFSCCode", maxlength = "11" })
+                        <span class="text-danger" id="ifscError" style="display:none;">Enter valid IFSC.</span>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label>Bank Name:</label>
+                        <input type="text" id="bankName" class="form-control" readonly />
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label>Branch Name:</label>
+                        <input type="text" id="branchName" class="form-control" readonly />
+                    </div>
+                </div>
+
+
+
+
+
+
+
+
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="AccountNo">Account Number: <span class="text-danger">*</span></label>
+                        @Html.TextBoxFor(m => m.AccountNo, new { @class = "form-control", placeholder = "Enter Account NO", id = "AccountNo", maxlength = "18" })
+                        <span class="text-danger" id="accountNoError" style="display:none;">11–18 digit only.</span>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="UPIId">UPI ID: <span class="text-danger">*</span></label>
+                        @Html.TextBoxFor(m => m.UPIId, new { @class = "form-control", placeholder = "Enter UPI Id", id = "UPIId", maxlength = "50" })
+                        <span class="text-danger" id="upiError" style="display:none;">Invalid UPI.</span>
+                    </div>
+                </div>
+
+
+
+                <div class="form-row">
+                    <!-- Document 1 -->
+                    <div class="form-group col-md-6">
+                        <label>Document 1 (Aadhar ): <span class="text-danger">*</span></label>
+                        <div style="display: flex; border: 1px solid #ced4da; border-radius: 4px; overflow: hidden;">
+                            <div id="doc1FileName" style="flex: 1; padding: 6px 12px; background-color: #fff; color: #6c757d;">
+                                Choose files
+                            </div>
+                            <label for="Document1File" style="margin: 0; padding: 6px 12px; background-color: #f1f1f1; cursor: pointer; border-left: 1px solid #ced4da;">
+                                Browse
+                            </label>
+                        </div>
+                        <input type="file" name="Document1File" id="Document1File" class="form-control" style="display: none;" accept=".pdf,image/*" />
+                        <div id="doc1Preview" style="margin-top: 5px;"></div>
+                    </div>
+
+                    <!-- Document 2 -->
+                    <div class="form-group col-md-6">
+                        <label>Document 2 (PAN): <span class="text-danger">*</span></label>
+                        <div style="display: flex; border: 1px solid #ced4da; border-radius: 4px; overflow: hidden;">
+                            <div id="doc2FileName" style="flex: 1; padding: 6px 12px; background-color: #fff; color: #6c757d;">
+                                Choose files
+                            </div>
+                            <label for="Document2File" style="margin: 0; padding: 6px 12px; background-color: #f1f1f1; cursor: pointer; border-left: 1px solid #ced4da;">
+                                Browse
+                            </label>
+                        </div>
+                        <input type="file" name="Document2File" id="Document2File" class="form-control" style="display: none;" accept=".pdf,image/*" />
+                        <div id="doc2Preview" style="margin-top: 5px;"></div>
+                    </div>
+                </div>
+
+
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-success custom-btn button">Register</button>
+                    <button type="button" class="btn btn-danger button" onclick="clearVendorForm()">Clear</button>
+                </div>
+            }
+        </div>
+
+    </div>
+</div>
+
+
+
+
+
+
+<script>
+
+
+    // ✅ Force lowercase in Email field (typing & paste)
+    $("#Email").on("input paste", function () {
+        let cursorPos = this.selectionStart;   // keep cursor position
+        this.value = this.value.toLowerCase();
+        this.setSelectionRange(cursorPos, cursorPos);
+    });
+
+
+
+    document.getElementById("BusinessName").addEventListener("input", function () {
+        // Allow only letters, spaces, dots, commas, apostrophes, and hyphens
+        const regex = /^[A-Za-z\s.,'-]*$/;
+
+        if (!regex.test(this.value)) {
+            document.getElementById("BusinessNameError").style.display = "block";
+            this.value = this.value.replace(/[^A-Za-z\s.,'-]/g, ''); // remove invalid chars
+        } else {
+            document.getElementById("BusinessNameError").style.display = "none";
+        }
+    });
+
+    function closeVendorModal() {
+        $('#vendorModal').modal('hide');
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    function clearVendorForm() {
+        document.getElementById("registerVendorForm").reset();
+        $(".form-control").removeClass("is-valid is-invalid");
+        $(".text-danger[id]").hide(); // ✅ Only hide error messages
+
+        // ✅ Also clear file names & previews
+        clearFile('Document1File', 'doc1FileName', 'doc1Preview');
+        clearFile('Document2File', 'doc2FileName', 'doc2Preview');
+    }
+
+    $(document).ready(function () {
+        // Clear button logic
+        $(".btn-secondary").click(function () {
+            $('#registerVendorForm')[0].reset();
+            $(".form-control").removeClass("is-valid is-invalid");
+            $(".text-danger[id]").hide(); // ✅ Keep stars visible
+
+
+            // ✅ Also clear file inputs & previews
+            clearFile('Document1File', 'doc1FileName', 'doc1Preview');
+            clearFile('Document2File', 'doc2FileName', 'doc2Preview');
+        });
+    });
+
+
+
+    function setupFileInput(fileInputId, fileNameId, previewId) {
+        const fileInput = document.getElementById(fileInputId);
+        const fileNameDisplay = document.getElementById(fileNameId);
+        const previewContainer = document.getElementById(previewId);
+
+        fileInput.addEventListener("change", function () {
+            const file = this.files[0];
+            if (file) {
+                let fileName = file.name;
+
+                // Create clear button
+                const clearBtn = `<span style="cursor:pointer; color: red; margin-left: 5px;" 
+                                onclick="clearFile('${fileInputId}', '${fileNameId}', '${previewId}')">x</span>`;
+
+                // ✅ If PDF → clickable truncated link
+                if (file.type === "application/pdf") {
+                    const pdfURL = URL.createObjectURL(file);
+                    previewContainer.innerHTML = `
+                    <a href="${pdfURL}" target="_blank" 
+                       class="file-name" 
+                       title="${fileName}">${fileName}</a>
+                    ${clearBtn}
+                `;
+                }
+                // ✅ If image → thumbnail
+                else if (file.type.startsWith("image/")) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        previewContainer.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview" 
+                             style="max-height:80px; margin-top:5px; border:1px solid #ccc; padding:2px; border-radius:4px;">
+                        ${clearBtn}
+                    `;
+                    };
+                    reader.readAsDataURL(file);
+                }
+                // ✅ Other files → truncated name
+                else {
+                    previewContainer.innerHTML = `
+                    <span class="file-name" title="${fileName}">${fileName}</span>
+                    ${clearBtn}
+                `;
+                }
+            } else {
+                fileNameDisplay.textContent = "Choose files";
+                previewContainer.innerHTML = "";
+            }
+        });
+    }
+
+    function clearFile(fileInputId, fileNameId, previewId) {
+        const fileInput = document.getElementById(fileInputId);
+        const fileNameDisplay = document.getElementById(fileNameId);
+        const previewContainer = document.getElementById(previewId);
+
+        if (fileInput) fileInput.value = "";
+        if (fileNameDisplay) fileNameDisplay.textContent = "Choose files";
+        if (previewContainer) previewContainer.innerHTML = "";
+    }
+
+    // Setup for both inputs
+    setupFileInput("Document1File", "doc1FileName", "doc1Preview");
+    setupFileInput("Document2File", "doc2FileName", "doc2Preview");
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+    $(document).ready(function () {
+        const upiRegex = /^[a-zA-Z0-9.\-_]{2,30}\u0040[a-zA-Z]{2,20}$/;
+
+        const emailRegex = /^[^\s\u0040]+[\u0040][^\s\u0040]+\.[^\s\u0040]+$/;
+
+        const ifscRegex = /^[A-Za-z]{4}0[A-Z0-9]{6}$/;
+
+
+
+        // 👉 Prevent non-numeric input in phone number field
+        $("#PhoneNumber").on("input", function () {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        // 👉 Prevent digits in vendor name field
+        $("#VendorName").on("input", function () {
+            this.value = this.value.replace(/[^a-zA-Z\s]/g, '');
+        });
+
+
+        // 👉 Only numeric input in Account Number
+        $("#AccountNo").on("input", function () {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        // 👉 Prevent characters in Alternate Phone Number (only digits allowed)
+        $("#AlternatePhoneNumber").on("input", function () {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+
+
+        function validateFieldRealtime(selector, errorSelector, validatorFn, errorMsg) {
+            $(selector).on('input blur change', function () {
+                const val = $(this).val().trim();
+                if (!validatorFn(val)) {
+                    $(this).removeClass('is-valid').addClass('is-invalid');
+                    $(errorSelector).text(errorMsg).show();
+
+                    setTimeout(() => {
+                        $(errorSelector).fadeOut();
+                    }, 3000);
+                } else {
+                    $(this).removeClass('is-invalid').addClass('is-valid');
+                    $(errorSelector).hide();
+                }
+            });
+        }
+
+        // Apply live validation
+        validateFieldRealtime('#BusinessName', '#BusinessNameError', val => val !== '' && /^[a-zA-Z0-9\s]+$/.test(val), 'Please enter valid business name.');
+
+        validateFieldRealtime('#VendorName', '#vendorNameError', val => val !== '' && /^[a-zA-Z\s]+$/.test(val), 'Please enter valid vendor name.');
+        validateFieldRealtime('#Email', '#emailError', val => emailRegex.test(val), 'Please enter valid email.');
+        validateFieldRealtime('#PhoneNumber', '#phoneError', val => val.length === 10 && !isNaN(val), 'Please enter 10-digit phone number.');
+        validateFieldRealtime('#Address', '#addressError', val => val !== '', 'Please enter address.');
+        validateFieldRealtime('#IFSCCode', '#ifscError', val => ifscRegex.test(val), 'Enter valid 11-digit IFSC.');
+        validateFieldRealtime('#AccountNo', '#accountNoError', val => val.length >= 11 && val.length <= 18 && !isNaN(val), 'Enter valid account number.');
+        validateFieldRealtime('#UPIId', '#upiError',
+            val => upiRegex.test(val) && val.length >= 6 && val.length <= 50,
+            'Enter valid UPI (6–50 characters).'
+        );
+        validateFieldRealtime('#ServiceSubTypeId', '#serviceError', val => val !== '0' && val !== '', 'Please select service.');
+        validateFieldRealtime('#Document1File', '#doc1Error', val => val !== '', 'Please upload Document 1.');
+        validateFieldRealtime('#Document2File', '#doc2Error', val => val !== '', 'Please upload Document 2.');
+
+
+
+
+
+        $('#registerVendorForm').submit(function (e) {
+            e.preventDefault();
+            let isValid = true;
+
+            function checkAndValidate(selector, errorSelector, validatorFn, errorMsg) {
+                const val = $(selector).val().trim();
+                if (!validatorFn(val)) {
+                    $(selector).addClass('is-invalid').removeClass('is-valid');
+                    $(errorSelector).text(errorMsg).show();
+                    setTimeout(() => {
+                        $(errorSelector).fadeOut();
+                    }, 3000);
+                    isValid = false;
+                } else {
+                    $(selector).removeClass('is-invalid').addClass('is-valid');
+                    $(errorSelector).hide();
+                }
+            }
+            checkAndValidate('#BusinessName', '#BusinessNameError', val => val !== '' && /^[a-zA-Z0-9\s]+$/.test(val), 'Please enter valid business name.');
+
+            checkAndValidate('#VendorName', '#vendorNameError', val => val !== '' && /^[a-zA-Z\s]+$/.test(val), 'Please enter valid vendor name.');
+            checkAndValidate('#Email', '#emailError', val => emailRegex.test(val), 'Please enter valid email.');
+            checkAndValidate('#PhoneNumber', '#phoneError', val => val.length === 10 && !isNaN(val), 'Please enter 10-digit phone number.');
+            checkAndValidate('#Address', '#addressError', val => val !== '', 'Please enter address.');
+            checkAndValidate('#IFSCCode', '#ifscError', val => ifscRegex.test(val), 'Enter valid IFSC.');
+            checkAndValidate('#AccountNo', '#accountNoError', val => val.length >= 11 && val.length <= 18 && !isNaN(val), 'Enter valid account number.');
+            checkAndValidate('#UPIId', '#upiError',
+                val => upiRegex.test(val) && val.length >= 6 && val.length <= 50,
+                'Enter valid UPI (6–50 characters).'
+            );
+            checkAndValidate('#ServiceSubTypeId', '#serviceError', val => val !== '0' && val !== '', 'Please select service.');
+            checkAndValidate('#Document1File', '#doc1Error', val => val !== '', 'Please upload Document 1.');
+            checkAndValidate('#Document2File', '#doc2Error', val => val !== '', 'Please upload Document 2.');
+
+
+            checkAndValidate('#Document1File', '#doc1Error', val => {
+                const allowedExtensions = ['pdf', 'jpg', 'jpeg', 'png'];
+                const ext = val.split('.').pop().toLowerCase();
+                return allowedExtensions.includes(ext);
+            }, 'Only PDF, JPG, PNG allowed.');
+
+
+            if (!isValid) return;
+
+            // ✅ Submit via AJAX
+            const formData = new FormData(this);
+            $.ajax({
+                url: this.action,
+                type: this.method,
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (res) {
+                    if (res.success) {
+                        swal({
+                            icon: 'success',
+                            title: 'Vendor Registered!',
+                            text: 'Vendor registered successfully.',
+                            buttons: false,
+
+                            timer: 2000
+                        }).then(() => {
+                            $('#vendorModal').modal('hide');
+                            location.reload();
+                        });
+                    } else {
+                        swal('Error', 'Something went wrong while saving.', 'error');
+                    }
+                },
+                error: function () {
+                    swal('Error', 'Server error occurred.', 'error');
+                }
+            });
+        });
+
+        // IFSC live fetch
+        $('#IFSCCode').on('change blur', function () {
+            const ifsc = $(this).val().trim().toUpperCase();
+            if (ifsc.length === 11) {
+                $.ajax({
+                    url: "https://ifsc.razorpay.com/" + ifsc,
+                    method: "GET",
+                    dataType: "json",
+                    success: function (response) {
+                        $('#bankName').val(response.BANK || "Not Found");
+                        $('#branchName').val(response.BRANCH || "Not Found");
+                    },
+                    error: function () {
+                        $('#bankName').val("Invalid IFSC");
+                        $('#branchName').val("Invalid IFSC");
+                    }
+                });
+            }
+        });
+    });</script>

@@ -1,0 +1,439 @@
+﻿
+
+/* Table Header Style */
+#expenseTable thead th {
+    background-color: #087070; /* तुम्ही हव्या त्या रंगात बदलू शकता */
+    color: white; /* Text-color-Header */
+    font-size: 14px; /* Font-size -Header */
+    height: 30px; /* Header height */
+    text-align: center; /* All text center */
+    vertical-align: middle;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+/* Table Row Data Style */
+#expenseTable tbody td {
+    color: black; /* Text-color-row */
+    font-size: 13px; /* Font-size-data-td */
+    height: 25px; /* Row height td */
+    text-align: center; /* All text center */
+    vertical-align: middle;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+/* Optional - table borders */
+#expenseTable {
+    border-collapse: collapse;
+}
+
+    #expenseTable th,
+    #expenseTable td {
+        /*        border: 1px solid #ccc;
+*/
+    }
+
+
+
+
+
+
+
+
+
+
+/* Add this to your styles */
+
+/*.btn.btn-sm {
+    padding: 3px 10px !important;
+    font-size: 13px !important;
+    padding-bottom: 3px !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+}*/
+
+.dataTables_filter {
+    float: right !important;
+    text-align: right !important;
+    margin-top: -5px !important; /* Adjust as needed */
+    padding-top: 10px !important; /* वरून space देतो */
+}
+
+    .dataTables_filter input {
+        margin-left: 10px !important;
+        display: inline-block !important;
+        width: auto !important;
+    }
+
+
+
+.btn-pay-green {
+    background-color: #28a745;
+    color: #fff;
+    padding: 2px 10px !important;
+    font-size: 12px !important;
+    height: 23px !important;
+    line-height: 16px !important;
+    border-radius: 4px !important;
+    border: none !important;
+    width: 40px !important;
+    text-align: center !important;
+}
+
+    .btn-pay-green:hover {
+        background-color: #218838;
+    }
+
+
+
+
+
+
+
+
+#cashTable_paginate .paginate_button.previous,
+#cashTable_paginate .paginate_button.next {
+    font-weight: bold !important;
+    min-width: 80px !important;
+}
+/* Center the pagination controls */
+div.dataTables_wrapper div.dataTables_paginate {
+    display: flex;
+    justify-content: right;
+    margin-top: 1rem;
+}
+
+
+/* Title div cha height kami karayla */
+.section-header.d-flex.justify-content-between.align-items-center.mb-4.px-3 {
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 10px !important;
+}
+
+
+
+
+.btn-pay-green {
+    background-color: #28a745 !important; /* Bootstrap success green */
+    color: white !important;
+    border: none;
+}
+
+    .btn-pay-green:hover {
+        background-color: #218838 !important;
+        color: white !important;
+    }
+
+
+
+
+
+
+
+
+
+
+/* Disable page scrolling completely */
+html, body {
+    height: 100%;
+    overflow-y: hidden; /* ❌ hides vertical scroll */
+    overflow-x: hidden; /* ❌ hides horizontal scroll */
+    position: relative;
+}
+
+
+.section-body {
+    max-height: 100vh; /* prevent overflow */
+    overflow: hidden; /* fully restrict scroll inside main area */
+}
+
+
+/* Prevent internal scrolling in the table container */
+.table-responsive {
+    overflow: hidden !important;
+}
+
+/* Prevent internal scrolling on the table itself */
+#expenseTable {
+    overflow: hidden !important;
+    width: 100% !important;
+    table-layout: fixed;
+}
+
+
+
+*#expenseTable {
+    width: 100% !important;
+    table-layout: fixed !important;
+    word-wrap: break-word !important;
+}
+
+#expenseTable th, #expenseTable td {
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+
+
+
+#filterRow select.form-control {
+    height: 40px; /* 👈 Dropdown height */
+    font-size: 13px; /* 👈 Font size thodi kami */
+    padding: 2px 6px; /* 👈 Inside spacing */
+    width: 100%; /* 👈 Full width inside col-md-3 */
+    margin-top: 10px;
+}
+
+#filterRow label {
+    font-size: 13px; /* 👈 Label font kami */
+    margin-bottom: 2px; /* 👈 Label spacing */
+    font-weight: 500 !important;
+}
+
+/* Optional: reduce spacing between filters */
+#filterRow .col-md-3 {
+    padding-left: 5px;
+    padding-right: 5px;
+    margin-bottom: 2rem !important;
+}
+
+
+/*/* Expense Table Styles */
+
+
+/* Table Header */
+#expenseTable thead.headertable th {
+    background-color: #615677 !important;
+    color: white;
+    font-size: 14px !important;
+    height: 30px !important;
+    line-height: 30px !important;
+    padding: 2px 4px !important;
+    text-align: center;
+    vertical-align: middle !important;
+}
+
+/* Table Body Rows */
+/*#expenseTable tbody td {
+    font-size: 12px;
+    height: 25px !important;
+    line-height: 25px !important;
+    padding: 2px 4px !important;
+    text-align: center;
+    vertical-align: middle !important;
+}*/
+
+/* Row Hover Effect */
+#expenseTable tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+/* Center Checkbox and Action */
+#expenseTable tbody td input[type="checkbox"],
+#expenseTable thead th input[type="checkbox"],
+#expenseTable td .fa,
+#expenseTable td button {
+    display: inline-block;
+    text-align: center;
+}
+
+
+.section {
+    margin-top: -80px;
+}
+
+.section-header {
+    margin-top: 0 !important;
+    margin-bottom: 20px !important;
+    padding: 10px 15px;
+    background-color: transparent !important; /* removes white background */
+    box-shadow: none !important; /* if any shadow */
+    border: none !important;
+}
+
+
+/*.button {
+    min-width: 110px;
+    font-size: 14px;
+    padding: 0.5rem 1.3rem;
+    border-radius: 4px;
+    font-weight: 500;
+    border: none;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    color: black;
+}
+*/
+
+
+/* ✅ Adjust section margin to pull everything up */
+.section {
+    margin-top: -100px;
+    padding-top: 0 !important;
+}
+
+/* ✅ Center the title (All Expenses) */
+.section-header h1 {
+    font-size: 22px;
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-left: 150px;
+}
+
+/* ✅ Reduce spacing between title and buttons */
+/*.section-header .btnlist {
+    margin-top: -130px !important;
+    gap: 8px;
+    margin-bottom: -368px !important;
+    height: 35px;
+}*/
+
+/* ✅ Reduce vertical spacing around filters */
+.form-row.mb-3,
+.row.align-items-center.mb-3 {
+    margin-top: -20px !important;
+    margin-bottom: 5px !important;
+}
+
+#filterRow {
+    margin-top: -06px !important; /* 👈 Adjust as needed */
+}
+
+
+
+/* ✅ Adjust export button row to pull up */
+.row.align-items-center.mb-3 {
+    margin-top: -36px !important;
+}
+
+/* ✅ Reduce unnecessary white space above table */
+.table-responsive {
+    margin-top: -10px;
+}
+
+
+
+/* Table Body Rows - Set height to 15px */
+#expenseTable tbody td {
+    color: black;
+    font-size: 13px;
+    height: 25px !important;
+    line-height: 25px !important;
+    padding-top: 0 !important;
+    padding: 0rem !important;
+    padding-bottom: 0 !important;
+    text-align: center;
+    vertical-align: middle !important;
+}
+
+
+
+.dataTables_wrapper .dataTables_paginate {
+    margin-top: -10px !important; /* Adjust value as needed */
+}
+
+/* Register Vendor Button */
+#btnRegisterVendor {
+    background-color: #007bff !important;
+    color: white !important;
+}
+
+    #btnRegisterVendor:hover {
+        color: #00b67a;
+    }
+/* Add Expense Button */
+#btnAddExpense {
+    background-color: green !important;
+    border-color: #74C476 !important;
+    color: white !important;
+}
+
+    #btnAddExpense:hover {
+        color: #00b67a;
+    }
+
+#btnRegisterVendor,
+#btnAddExpense {
+    border-radius: 2px !important;
+}
+
+
+
+
+
+/* 🔽 Remove background and border from export buttons */
+button.export-buttons.icon-only-btn {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 5px;
+}
+
+    /* 🔽 Optional: Remove hover background */
+    button.export-buttons.icon-only-btn:hover {
+        background-color: transparent !important;
+        box-shadow: none !important;
+    }
+
+
+
+
+/* ✅ Apply white border to all columns in the expense table */
+#expenseTable th,
+#expenseTable td {
+    /*    border: 1px solid white !important;
+*/
+}
+
+
+
+/* ✅ Reduce space between export buttons and table */
+div.dt-buttons {
+    padding: 0 !important;
+    display: flex;
+    gap: 10px;
+}
+
+/* Optional: Align export buttons to the left */
+div.dt-buttons {
+    justify-content: flex-start;
+}
+/* ✅ Hover effect for the entire row */
+#expenseTable tbody tr:hover {
+    background-color: #f9f9f9 !important;
+    cursor: pointer; /* Show pointer cursor */
+    transition: background-color 0.3s ease;
+}
+
+a[title="View"] {
+    background-color: #339af0;
+    border: 1px solid lightgray;
+    color: white !important;
+    padding: 4px 9px;
+    border-radius: 4px;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+    a[title="View"] i {
+        font-family: "Font Awesome 5 Free"; /* Optional, in case icons render improperly */
+        font-weight: 900;
+        color: white;
+        margin-right: 4px;
+    }
+
+    a[title="View"]:hover {
+        background-color: lightgrey;
+        color: #339af0 !important;
+    }
+
+        a[title="View"]:hover i {
+            color: #339af0;
+        }

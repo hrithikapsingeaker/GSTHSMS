@@ -1,0 +1,186 @@
+﻿
+body {
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    background-color: #f4f4f4;
+}
+
+.profile-cardbody{
+    margin-top:-100px;
+}
+.profile-card {
+    max-width: 800px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+
+/* Apply this to the scrollable container */
+.scroll-hidden {
+    overflow-y: auto; /* make scroll work */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+
+    /* Hide scrollbar for Chrome, Safari, Opera */
+    .scroll-hidden::-webkit-scrollbar {
+        display: none;
+    }
+
+
+/* Cover Image */
+.cover-image {
+    height: 200px;
+    background-image: url('../img/vlad-busuioc-xypxcqh8tt8-unsplash[1].jpg');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: relative;
+}
+
+/* Profile Picture */
+.profile-pic {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid #fff;
+    position: absolute;
+    bottom: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #eee;
+    overflow: hidden;
+}
+
+    .profile-pic img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+/* Avatar Menu */
+.avatar-menu {
+    text-align: center;
+    margin-top: 70px;
+}
+
+    .avatar-menu button,
+    .avatar-menu label {
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 8px 12px;
+        margin: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .avatar-menu button:hover,
+        .avatar-menu label:hover {
+            background: #f0f0f0;
+        }
+
+/* Form Section */
+.form-section {
+    padding: 20px;
+}
+
+.form-group {
+    display: flex;
+    align-items: center;
+    background-color: #f8f9fa;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 0 12px;
+    margin-bottom: 20px;
+    height: 48px;
+}
+
+.input-icon {
+    flex: 0 0 auto;
+    color: #6c757d;
+    font-size: 18px;
+    margin-right: 10px;
+}
+
+.form-control {
+    flex: 1 1 auto;
+    border: none;
+    background: transparent;
+    font-size: 15px;
+    padding: 0;
+    outline: none;
+}
+
+.toggle-password {
+    flex: 0 0 auto;
+    color: #6c757d;
+    font-size: 18px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.btn-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.btn-primary-custom {
+    flex: 1;
+    background-color: #264653;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: 0.3s;
+}
+
+.btn-secondary-custom {
+    flex: 1;
+    background-color: #565264;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: 0.3s;
+}
+
+.btn-primary-custom:hover {
+    background-color: #1d363d;
+}
+
+.btn-secondary-custom:hover {
+    background-color: #403f4c;
+}
+
+.stylish-line {
+    height: 4px;
+    width: 100%;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #264653, #565264);
+    margin: 20px 0;
+    margin-bottom: 50px;
+    -webkit-mask-image: linear-gradient(to right, transparent, black 40%, black 60%, transparent);
+    -webkit-mask-repeat: no-repeat;
+    mask-image: linear-gradient(to right, transparent, black 40%, black 60%, transparent);
+}
+
+

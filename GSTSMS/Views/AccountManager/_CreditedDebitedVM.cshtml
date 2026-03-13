@@ -1,0 +1,747 @@
+﻿@model IEnumerable<Dictionary<string, object>>
+
+
+
+
+
+
+
+<style>
+
+    .page-item.active .page-link {
+        color: #fff;
+        background-color: #615677;
+        border-color: #615677;
+    }
+
+    .page-link:hover {
+        color: #fff;
+        background-color: #615677;
+        border-color: #615677;
+    }
+</style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="~/Content/modules/bootstrap-daterangepicker/daterangepicker.css" />
+<link href="~/Content/modules/izitoast/css/iziToast.min.css" rel="stylesheet" />
+<link href="~/Content/modules/datatables/datatables.min.css" rel="stylesheet" />
+
+<!-- Date Range Picker and Export Buttons Container -->
+<div class="row mb-3 align-items-end">
+    <div class="col-md-3 datetime">
+        <a href="javascript:;" class="btn btn-primary daterange-btn icon-left btn-icon">
+            <i class="fas fa-calendar"></i> <span>Choose Date</span>
+        </a>
+        <input type="hidden" id="fromDate" />
+        <input type="hidden" id="toDate" />
+    </div>
+    <div class="col-md-9 d-flex justify-content-end">
+        <!-- Export Buttons Container -->
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-light export-buttons icon-only-btn" id="csvExport" title="Export CSV">
+                <img src="/Content/img/icons8-csv-64.png" alt="CSV" style="height:32px;" />
+            </button>
+            <button type="button" class="btn btn-light export-buttons icon-only-btn" id="excelExport" title="Export Excel">
+                <img src="/Content/img/icons8-xls-64.png" alt="Excel" style="height:32px;" />
+            </button>
+            <button type="button" class="btn btn-light export-buttons icon-only-btn" id="pdfExport" title="Export PDF">
+                <img src="/Content/img/icons8-pdf-64.png" alt="PDF" style="height:32px;" />
+            </button>
+            <button type="button" class="btn btn-light export-buttons icon-only-btn" id="printExport" title="Print">
+                <img src="/Content/img/icons8-print-100.png" alt="Print" style="height:32px;" />
+            </button>
+            <button type="button" class="btn btn-light export-buttons icon-only-btn" id="refreshBtn" title="Refresh Table">
+                <img src="/Content/img/icons8-refresh-50.png" alt="Refresh" style="height:28px;" />
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-striped align-middle mb-0" id="transactionsTable" style="width: 100%;">
+        <thead style="background-color: #615677; text-align: center;">
+            <tr>
+                <th style="color: white; font-size: 15px; font-weight: bold; width: 50px;">
+                    <input type="checkbox" id="selectAll" />
+                </th>
+                <th style="color: white; font-size: 15px; font-weight: bold;">Sr. No</th>
+                <th style="color: white; font-size: 15px; font-weight: bold;">PaymentBy</th>
+                <th style="color: white; font-size: 15px; font-weight: bold;">PaidTo</th>
+                <th style="color: white; font-size: 15px; font-weight: bold;">Amount(₹)</th>
+                <th style="color: white; font-size: 15px; font-weight: bold;">Payment Purpose</th>
+                <th style="color: white; font-size: 15px; font-weight: bold;">Paid Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                int sr = 1;
+                foreach (var t in Model)
+                {
+                    // Create a unique identifier for each row
+                    string transactionId = t.ContainsKey("TransactionId") ? t["TransactionId"].ToString() : Guid.NewGuid().ToString();
+                    string rowId = "row-" + transactionId;
+
+                    <tr data-rowid="@transactionId" id="@rowId">
+                        <td>
+                            <input type="checkbox" class="row-checkbox" data-rowid="@transactionId" />
+                        </td>
+                        <td>@sr</td>
+                        <td>@(t.ContainsKey("PaymentBy") ? t["PaymentBy"] : "N/A")</td>
+                        <td>@(t.ContainsKey("PaidTo") ? t["PaidTo"] : "N/A")</td>
+                        <td>@(t.ContainsKey("Amount") ? string.Format("₹ {0:N2}", t["Amount"]) : "N/A")</td>
+                        <td>@(t.ContainsKey("PaymentPurpose") ? t["PaymentPurpose"] : "N/A")</td>
+                        <td>@(t.ContainsKey("PaidDate") ? Convert.ToDateTime(t["PaidDate"]).ToString("dd-MM-yyyy") : "N/A")</td>
+                    </tr>
+                    sr++;
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="text-center">No transactions found</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+        let selectedRows = {}; // Track selected rows by their ID
+        const format = 'DD-MM-YYYY';
+        let enableDateFilter = false;
+        let dataTable = null;
+
+        // Function to get checkbox state
+        function getCheckboxState() {
+            $('.row-checkbox').each(function () {
+                var rowId = $(this).data('rowid');
+                selectedRows[rowId] = $(this).prop('checked');
+            });
+        }
+
+        // Initialize DataTable
+        function initializeDataTable() {
+            dataTable = $('#transactionsTable').DataTable({
+                dom: "<'row'<'col-md-6'B><'col-md-6'f>>" +
+                    "<'row'<'col-12'tr>>" +
+                    "<'row'<'col-md-5'i><'col-md-7'p>>",
+
+                order: [[1, 'asc']],
+                pageLength: 10,
+                paging: true,
+
+                responsive: false,
+                scrollX: false,
+
+                ordering: false,
+
+                columnDefs: [
+                    {
+                        orderable: false,
+                        targets: 0,
+                        className: "dt-center"
+                    },
+                    {
+                        className: "dt-center",
+                        targets: "_all"
+                    }
+                ],
+
+                drawCallback: function (settings) {
+                    var api = this.api();
+                    var startIndex = api.page.info().start;
+
+                    api.column(1, { page: 'current' }).nodes().each(function (cell, i) {
+                        cell.innerHTML = startIndex + i + 1;
+                    });
+                },
+
+
+                buttons: [
+                    {
+                        extend: 'csvHtml5',
+                        text: '<img src="/Content/img/icons8-csv-64.png" style="height:32px;" title="Export CSV" />',
+                        titleAttr: 'Export CSV',
+                        className: 'export-buttons icon-only-btn',
+                        filename: function () {
+                            return 'Transactions_' + moment().format("DD-MM-YYYY");
+                        },
+                        exportOptions: {
+                            columns: ':visible:not(:first-child)',
+                            rows: function (idx, data, node) {
+                                var rowId = $(node).data('rowid');
+                                return selectedRows[rowId] === true;
+                            },
+                            format: {
+                                body: function (data, row, column, node) {
+                                    if (column === 4) { // Amount column
+                                        return data.replace('₹ ', '').replace(/,/g, '');
+                                    }
+                                    return data;
+                                }
+                            }
+                        },
+                        customize: function (csv) {
+                            const title = 'Green Valley Society - Transactions Report';
+                            const generatedOn = 'Generated on: ' + moment().format("DD-MM-YYYY hh:mm A");
+
+                            let dateRangeText = '';
+                            if ($('#fromDate').val() && $('#toDate').val()) {
+                                dateRangeText = 'Date Range: ' + $('#fromDate').val() + ' to ' + $('#toDate').val();
+                                return `"${title}"\n"${dateRangeText}"\n"${generatedOn}"\n\n` + csv;
+                            }
+
+                            return `"${title}"\n"${generatedOn}"\n\n` + csv;
+                        },
+                        action: function (e, dt, button, config) {
+                            // Check if any row is selected
+                            var selectedCount = Object.keys(selectedRows).filter(id => selectedRows[id]).length;
+                            if (selectedCount === 0) {
+                                iziToast.warning({
+                                    title: 'Warning',
+                                    message: 'Please select at least one row to export CSV.',
+                                    position: 'topCenter'
+                                });
+                                return false;
+                            }
+
+                            // Proceed with export
+                            $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+
+                            setTimeout(() => {
+                                swal({
+                                    icon: 'success',
+                                    title: 'CSV Exported',
+                                    text: 'Your CSV file has been downloaded successfully!',
+                                    timer: 2000,
+                                    buttons: false
+                                });
+                            }, 500);
+                        }
+                    },
+                    {
+                        extend: 'excelHtml5',
+                        text: '<img src="/Content/img/icons8-xls-64.png" style="height:32px;" title="Export Excel" />',
+                        titleAttr: 'Export Excel',
+                        className: 'export-buttons icon-only-btn',
+                        filename: function () {
+                            return 'Transactions_' + moment().format("DD-MM-YYYY");
+                        },
+                        exportOptions: {
+                            columns: ':visible:not(:first-child)',
+                            rows: function (idx, data, node) {
+                                var rowId = $(node).data('rowid');
+                                return selectedRows[rowId] === true;
+                            },
+                            format: {
+                                body: function (data, row, column, node) {
+                                    if (column === 4) { // Amount column
+                                        return data.replace('₹ ', '').replace(/,/g, '');
+                                    }
+                                    return data;
+                                }
+                            }
+                        },
+                        customize: function (xlsx) {
+                            var sheet = xlsx.xl.worksheets['sheet1.xml'];
+
+                            // Add title and info
+                            $('c[r="A1"] t', sheet).text('Green Valley Society - Transactions Report');
+                            $('c[r="A2"] t', sheet).text('Generated on: ' + moment().format("DD-MM-YYYY hh:mm A"));
+
+                            if ($('#fromDate').val() && $('#toDate').val()) {
+                                $('c[r="A3"] t', sheet).text('Date Range: ' + $('#fromDate').val() + ' to ' + $('#toDate').val());
+                            }
+                        },
+                        action: function (e, dt, button, config) {
+                            var selectedCount = Object.keys(selectedRows).filter(id => selectedRows[id]).length;
+                            if (selectedCount === 0) {
+                                iziToast.warning({
+                                    title: 'Warning',
+                                    message: 'Please select at least one row to export Excel.',
+                                    position: 'topCenter'
+                                });
+                                return false;
+                            }
+
+                            $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+
+                            setTimeout(() => {
+                                swal({
+                                    icon: 'success',
+                                    title: 'Excel Exported',
+                                    text: 'Your Excel file has been downloaded successfully!',
+                                    timer: 2000,
+                                    buttons: false
+                                });
+                            }, 500);
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        text: '<img src="/Content/img/icons8-pdf-64.png" style="height:32px;" title="Export PDF" />',
+                        titleAttr: 'Export PDF',
+                        className: 'export-buttons icon-only-btn',
+                        orientation: 'landscape',
+                        pageSize: 'A4',
+                        filename: function () {
+                            return 'Transactions_' + moment().format("DD-MM-YYYY");
+                        },
+                        exportOptions: {
+                            columns: ':visible:not(:first-child)',
+                            rows: function (idx, data, node) {
+                                var rowId = $(node).data('rowid');
+                                return selectedRows[rowId] === true;
+                            },
+                            format: {
+                                body: function (data, row, column, node) {
+                                    if (column === 4) { // Amount column
+                                        return data.replace('₹ ', '').replace(/,/g, '');
+                                    }
+                                    return data;
+                                }
+                            }
+                        },
+                        customize: function (doc) {
+                            const now = moment().format("DD-MM-YYYY hh:mm A");
+                            let dateRangeText = '';
+
+                            if ($('#fromDate').val() && $('#toDate').val()) {
+                                dateRangeText = 'Date Range: ' + $('#fromDate').val() + ' to ' + $('#toDate').val();
+                            }
+
+                            const title = 'Green Valley Society - Transactions Report';
+
+                            // Add title and info
+                            doc.content.splice(0, 0, {
+                                alignment: 'center',
+                                margin: [0, 0, 0, 10],
+                                text: [
+                                    { text: title + '\n', fontSize: 18, bold: true },
+                                    dateRangeText ? { text: dateRangeText + '\n', fontSize: 12 } : '',
+                                    { text: 'Generated on: ' + now + '\n\n', fontSize: 11, italics: true }
+                                ].filter(item => item !== '')
+                            });
+
+                            doc.defaultStyle = {
+                                fontSize: 10,
+                                alignment: 'center'
+                            };
+                            doc.styles.tableHeader = {
+                                fontSize: 11,
+                                bold: true,
+                                alignment: 'center',
+                                fillColor: '#615677',
+                                color: '#ffffff'
+                            };
+                            doc.pageMargins = [20, 60, 20, 40];
+                        },
+                        action: function (e, dt, button, config) {
+                            var selectedCount = Object.keys(selectedRows).filter(id => selectedRows[id]).length;
+                            if (selectedCount === 0) {
+                                iziToast.warning({
+                                    title: 'Warning',
+                                    message: 'Please select at least one row to export PDF.',
+                                    position: 'topCenter'
+                                });
+                                return false;
+                            }
+
+                            $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+
+                            setTimeout(() => {
+                                swal({
+                                    icon: 'success',
+                                    title: 'PDF Exported',
+                                    text: 'Your PDF file has been downloaded successfully!',
+                                    timer: 2000,
+                                    buttons: false
+                                });
+                            }, 500);
+                        }
+                    },
+                    {
+                        extend: 'print',
+                        text: '<img src="/Content/img/icons8-print-100.png" style="height:32px;" title="Print" />',
+                        titleAttr: 'Print',
+                        className: 'export-buttons icon-only-btn',
+                        exportOptions: {
+                            columns: ':visible:not(:first-child)',
+                            rows: function (idx, data, node) {
+                                var rowId = $(node).data('rowid');
+                                return selectedRows[rowId] === true;
+                            },
+                            format: {
+                                body: function (data, row, column, node) {
+                                    if (column === 4) { // Amount column
+                                        return data.replace('₹ ', '').replace(/,/g, '');
+                                    }
+                                    return data;
+                                }
+                            }
+                        },
+                        customize: function (win) {
+                            const title = 'Green Valley Society - Transactions Report';
+                            const generatedOn = 'Generated on: ' + moment().format("DD-MM-YYYY hh:mm A");
+                            let dateRangeText = '';
+
+                            if ($('#fromDate').val() && $('#toDate').val()) {
+                                dateRangeText = 'Date Range: ' + $('#fromDate').val() + ' to ' + $('#toDate').val();
+                            }
+
+                            $(win.document.body).prepend(`
+                                <h3 style="text-align:center;">${title}</h3>
+                                ${dateRangeText ? `<p style="text-align:center;">${dateRangeText}</p>` : ''}
+                                <p style="text-align:center;">${generatedOn}</p><br>
+                            `);
+
+                            $(win.document.body).find('table').css({
+                                'width': '100%',
+                                'border-collapse': 'collapse'
+                            }).find('th, td').css({
+                                'border': '1px solid #aaa',
+                                'padding': '4px',
+                                'text-align': 'center'
+                            });
+                        },
+                        action: function (e, dt, button, config) {
+                            var selectedCount = Object.keys(selectedRows).filter(id => selectedRows[id]).length;
+                            if (selectedCount === 0) {
+                                iziToast.warning({
+                                    title: 'Warning',
+                                    message: 'Please select at least one row to print.',
+                                    position: 'topCenter'
+                                });
+                                return false;
+                            }
+
+                            $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                        }
+                    },
+                    {
+                        text: '<img src="/Content/img/icons8-refresh-50.png" style="height:28px;" title="Refresh Table" />',
+                        titleAttr: 'Refresh Table',
+                        className: 'export-buttons icon-only-btn',
+                        action: function (e, dt, node, config) {
+                            var $img = $(node).find('img');
+                            $img.addClass('spin');
+
+                            // Clear all filters and selections
+                            dt.search('').columns().search('').draw();
+
+                            // Clear date range
+                            $('.daterange-btn span').html('Choose Date');
+                            $('#fromDate').val('');
+                            $('#toDate').val('');
+                            enableDateFilter = false;
+
+                            // Clear checkboxes
+                            $('.row-checkbox').prop('checked', false);
+                            $('#selectAll').prop('checked', false);
+                            selectedRows = {};
+
+                            // Remove date filter
+                            $.fn.dataTable.ext.search = [];
+                            dt.draw();
+
+                            setTimeout(function () {
+                                $img.removeClass('spin');
+                                iziToast.success({
+                                    title: 'Success',
+                                    message: 'Table refreshed successfully',
+                                    position: 'topCenter'
+                                });
+                            }, 500);
+                        }
+                    }
+                ]
+            });
+
+            // Add custom search function for date filtering
+            $.fn.dataTable.ext.search.push(
+                function (settings, data, dataIndex) {
+                    if (!enableDateFilter || !$('#fromDate').val() || !$('#toDate').val()) {
+                        return true;
+                    }
+
+                    var fromDate = moment($('#fromDate').val(), format);
+                    var toDate = moment($('#toDate').val(), format);
+
+                    // Get date from column (assuming column 6 is the date column)
+                    var dateStr = data[6];
+
+                    if (!dateStr || dateStr === 'N/A') {
+                        return false;
+                    }
+
+                    try {
+                        var rowDate = moment(dateStr, format);
+                        return rowDate.isValid() &&
+                            rowDate.isSameOrAfter(fromDate) &&
+                            rowDate.isSameOrBefore(toDate);
+                    } catch (e) {
+                        console.error('Error parsing date:', e);
+                        return false;
+                    }
+                }
+            );
+        }
+
+        // Initialize DataTable
+        initializeDataTable();
+
+        // Initialize date range picker
+        function initializeDateRangePicker() {
+            $('.daterange-btn').daterangepicker({
+                locale: {
+                    format: format,
+                    cancelLabel: 'Clear',
+                    applyLabel: 'Apply',
+                    customRangeLabel: 'Custom Range'
+                },
+                autoUpdateInput: false,
+                opens: "right",
+                drops: "down",
+                showDropdowns: true,
+                linkedCalendars: false,
+                ranges: {
+                    'Today': [moment(), moment()],
+                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                    'This Month': [moment().startOf('month'), moment().endOf('month')],
+                    'Last Month': [moment().subtract(1, 'month').startOf('month'),
+                    moment().subtract(1, 'month').endOf('month')]
+                },
+                alwaysShowCalendars: true
+            });
+
+            // Apply button functionality
+            $('.daterange-btn').on('apply.daterangepicker', function (ev, picker) {
+                $(this).find('span').html(picker.startDate.format(format) + ' - ' + picker.endDate.format(format));
+                $('#fromDate').val(picker.startDate.format(format));
+                $('#toDate').val(picker.endDate.format(format));
+                enableDateFilter = true;
+                dataTable.draw();
+            });
+
+            // Clear button functionality
+            $('.daterange-btn').on('cancel.daterangepicker', function (ev, picker) {
+                $(this).find('span').html('Choose Date');
+                $('#fromDate').val('');
+                $('#toDate').val('');
+                enableDateFilter = false;
+                dataTable.draw();
+            });
+        }
+
+        initializeDateRangePicker();
+
+        // Row checkbox change
+        $(document).on('change', '.row-checkbox', function () {
+            var $row = $(this).closest('tr');
+            var rowId = $row.data('rowid');
+
+            selectedRows[rowId] = $(this).prop('checked');
+
+            // Update Select All checkbox
+            var allChecked = $('.row-checkbox').length > 0 &&
+                $('.row-checkbox').length === $('.row-checkbox:checked').length;
+            $('#selectAll').prop('checked', allChecked);
+        });
+
+        // Select All checkbox
+        $('#selectAll').on('change', function () {
+            var isChecked = $(this).prop('checked');
+
+            $('.row-checkbox').each(function () {
+                var $row = $(this).closest('tr');
+                var rowId = $row.data('rowid');
+                $(this).prop('checked', isChecked);
+                selectedRows[rowId] = isChecked;
+            });
+        });
+
+        // Manual export button handlers
+        $('#csvExport').on('click', function () {
+            dataTable.button('.buttons-csv').trigger();
+        });
+
+        $('#excelExport').on('click', function () {
+            dataTable.button('.buttons-excel').trigger();
+        });
+
+        $('#pdfExport').on('click', function () {
+            dataTable.button('.buttons-pdf').trigger();
+        });
+
+        $('#printExport').on('click', function () {
+            dataTable.button('.buttons-print').trigger();
+        });
+
+        // Refresh button handler
+        $('#refreshBtn').on('click', function () {
+            dataTable.button(':contains("Refresh Table")').trigger();
+        });
+
+        // Add CSS styles
+        const style = document.createElement('style');
+        style.textContent = `
+            .spin {
+                animation: spin 0.5s linear 1;
+            }
+
+            @@keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+
+            .export-buttons.icon-only-btn {
+                background: none !important;
+                border: none !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+                margin: 0 5px;
+                cursor: pointer;
+            }
+
+            .export-buttons.icon-only-btn:hover {
+                opacity: 0.8;
+            }
+
+            .dataTables_wrapper {
+                margin-top: 20px;
+            }
+
+            .dataTables_length,
+            .dataTables_filter {
+                margin-bottom: 10px;
+            }
+
+            .dt-center {
+                text-align: center !important;
+            }
+
+            table.dataTable thead th,
+            table.dataTable thead td {
+                padding: 10px 5px;
+            }
+
+            table.dataTable tbody th,
+            table.dataTable tbody td {
+                padding: 5px;
+            }
+
+            .table-responsive {
+                overflow-x: auto;
+            }
+
+            /* Pagination styling */
+            .pagination {
+                display: flex;
+                padding-left: 0;
+                list-style: none;
+                border-radius: .25rem;
+            }
+
+            .page-item:first-child .page-link {
+                margin-left: 0;
+                border-top-left-radius: .25rem;
+                border-bottom-left-radius: .25rem;
+            }
+
+            .page-item:last-child .page-link {
+                border-top-right-radius: .25rem;
+                border-bottom-right-radius: .25rem;
+            }
+
+            .page-item.active .page-link {
+                z-index: 3;
+                color: #fff;
+                background-color: #615677;
+                border-color: #615677;
+            }
+
+            .page-link {
+                position: relative;
+                display: block;
+                padding: .5rem .75rem;
+                margin-left: -1px;
+                line-height: 1.25;
+                color: #615677;
+                background-color: #fff;
+                border: 1px solid #dee2e6;
+            }
+
+            .page-link:hover {
+                z-index: 2;
+                color: #fff;
+                text-decoration: none;
+                background-color: #615677;
+                border-color: #615677;
+            }
+
+            .dataTables_paginate .pagination {
+                justify-content: flex-end;
+            }
+
+            .dataTables_info {
+                padding-top: 10px;
+                color: #6c757d;
+            }
+
+            /* Search box styling */
+            .dataTables_filter input {
+                margin-left: 10px;
+                border: 1px solid #dee2e6;
+                border-radius: .25rem;
+                padding: .375rem .75rem;
+                width: 200px;
+            }
+
+            /* Show entries dropdown */
+            .dataTables_length select {
+                margin: 0 10px;
+                border: 1px solid #dee2e6;
+                border-radius: .25rem;
+                padding: .375rem .75rem;
+            }
+
+            /* DataTable buttons container */
+            .dt-buttons {
+                display: inline-block;
+                margin-bottom: 10px;
+            }
+
+            /* Ensure buttons are properly spaced */
+            .dt-buttons .btn {
+                margin-right: 5px;
+            }
+
+            /* Make sure export buttons in header work */
+            .btn-group .export-buttons {
+                margin: 0 2px;
+            }
+
+             Table row hover effect
+            #transactionsTable tbody tr:hover {
+                background-color: #f1f3f5;
+            }
+        `;
+        document.head.appendChild(style);
+    });
+</script>

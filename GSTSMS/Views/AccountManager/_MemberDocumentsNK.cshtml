@@ -1,0 +1,44 @@
+﻿@model IEnumerable<GSTSMSLibrary.AccountManager.AccountManager>
+
+<div class="modal-body">
+    @if (!Model.Any())
+    {
+        <div class="alert alert-warning text-center">No documents found for this member.</div>
+    }
+    else
+    {
+        <div class="row justify-content-center">
+            @foreach (var doc in Model)
+            {
+                <div class="col-md-6 mb-3 text-center">
+                    <div class="card shadow-sm h-100">
+                        <img src="@Url.Content(doc.Document)"
+                             class="card-img-top img-fluid mx-auto"
+                             alt="Document"
+                             style="max-height:200px; object-fit:contain; width: auto;"
+                             onerror="this.onerror=null; this.src='@Url.Content("~/Content/img/placeholder-document.png")'" />
+
+                        <!--<div class="card-body p-2 d-flex flex-column">-->
+                        @*<small class="text-muted">
+                                DocId: @doc.DocumentId | Date: @(doc.DocumentDate?.ToString("dd-MM-yyyy") ?? "N/A")
+                            </small>*@
+                        @*<div class="mt-2 mt-auto">
+                                <a href="@Url.Content(doc.Document)" download class="btn btn-sm btn-outline-primary">
+                                    <i class="fa fa-download"></i> Download
+                                </a>
+                            </div>*@
+                        <!--</div>-->
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+<style>
+    .card-img-top {
+        width: 100% !important;
+        height: auto;
+        max-height: 300px; /* adjust */
+        object-fit: contain;
+    }
+</style>

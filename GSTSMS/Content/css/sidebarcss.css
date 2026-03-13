@@ -1,0 +1,342 @@
+﻿/* == Sidebar Base Structure == */
+.sidebar-menu li.active > a,
+.sidebar-menu .nav-link.active-submenu {
+    background: #ffffff !important; /* White background */
+    color: #000 !important; /* Black text */
+    font-weight: bold;
+}
+
+
+.main-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 243px;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 1000;
+    background: transparent !important;
+    transition: left 0.3s, background 0.3s;
+}
+    /* Hide scrollbars */
+    .main-sidebar::-webkit-scrollbar {
+        display: none;
+    }
+
+.main-sidebar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+    /* === Sidebar Background Image & Overlay === */
+    .main-sidebar::before,
+    .main-sidebar::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 243px;
+        height: 100%;
+        pointer-events: none;
+        z-index: -2;
+        transition: opacity 0.3s;
+    }
+
+    .main-sidebar::before {
+        background-image: url('../../content/img/backgroundimg/sidebar1.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        opacity: 1;
+    }
+
+    .main-sidebar::after {
+        background: rgba(20,20,30,0.7);
+        z-index: -1;
+    }
+
+/* === Sidebar Menu Styling === */
+.sidebar-menu {
+    margin: 0;
+    padding: 20px 0 0 0;
+    list-style-type: none;
+}
+
+    /* Section Titles */
+    .sidebar-menu .sidebar-section-title,
+    .sidebar-menu .section-title,
+    .sidebar-titles {
+        color: #FFF;
+        font-size: 1.08rem;
+        font-weight: 700;
+        padding: 18px 20px 7px 16px;
+        letter-spacing: 1.6px;
+        opacity: 0.9;
+        background: none !important;
+        border: none !important;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+    }
+    /* Menu items & links */
+    .sidebar-menu .nav-link {
+        background: transparent !important;
+        color: #f2f2f2 !important;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.48);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        border-radius: 8px;
+        padding: 22px 22px 18px 18px;
+        font-size: 16px;
+        cursor: pointer;
+        outline: none;
+        transition: background 0.16s, color 0.16s;
+    }
+
+
+
+    .sidebar-menu > li {
+        margin-bottom: 15px; /* was 10px */
+    }
+
+
+
+    .sidebar-menu .nav-link i,
+    .main-sidebar .nav-link i {
+        min-width: 28px;
+        text-align: center;
+        margin-right: 11px;
+        font-size: 19px;
+        opacity: 0.93;
+    }
+    /* Active/highlighted items */
+    .sidebar-menu .nav-link:hover,
+    .sidebar-menu .nav-link:focus {
+        background: rgba(255,255,255,0.12) !important;
+        color: #FFF !important;
+    }
+
+    .sidebar-menu .dropdown.active > .nav-link,
+    .sidebar-menu .dropdown-menu .nav-link.active-submenu {
+        background: #fff !important;
+        color: #161616 !important;
+        font-weight: 700;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    /* === Dropdown Styles === */
+    .sidebar-menu .dropdown-menu {
+        background: rgba(38,43,58,0.97) !important;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.14) !important;
+        border: none !important;
+        padding: 7px 0 !important;
+        border-radius: 8px;
+        margin-top: 6px;
+        z-index: 1;
+        min-width: 200px;
+    }
+
+body.sidebar-mini .sidebar-menu .nav-link {
+    padding-top: 14px;
+    padding-bottom: 14px;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+
+
+
+
+.sidebar-menu .dropdown-menu .nav-link {
+    padding: 9px 25px 9px 41px;
+    margin: 0px;
+    border-radius: 6px;
+    font-size: 15px;
+    text-shadow: 0 1px 2.5px rgba(0,0,0,0.29);
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+    .sidebar-menu .dropdown-menu .nav-link:hover,
+    .sidebar-menu .dropdown-menu .nav-link:focus {
+        background: rgba(255,255,255,0.12) !important;
+        color: #fff !important;
+    }
+
+    .sidebar-menu .dropdown-menu .nav-link.active-submenu {
+        background: #fff !important;
+        color: #1a1a1a !important;
+        font-weight: 700 !important;
+        box-shadow: 0 2px 9px rgba(0,0,0,0.10) !important;
+    }
+
+/* === Shrink/Mini Sidebar Mode === */
+body.sidebar-mini .main-sidebar {
+    width: 60px !important;
+    min-width: 60px !important;
+    background: #000 !important;
+}
+
+    body.sidebar-mini .main-sidebar::before,
+    body.sidebar-mini .main-sidebar::after {
+        opacity: 0 !important;
+    }
+
+    body.sidebar-mini .main-sidebar .nav-link span {
+        display: none;
+    }
+
+    body.sidebar-mini .main-sidebar .nav-link i {
+        font-size: 19px;
+        margin-right: 0;
+        text-align: center;
+        width: 100%;
+    }
+
+body.sidebar-mini .expanded-brand {
+    display: none !important;
+}
+
+body.sidebar-mini .collapsed-brand {
+    display: block !important;
+    text-align: center;
+    font-size: 16px;
+    color: #fff;
+    padding-top: 16px;
+}
+
+
+    body.sidebar-mini .collapsed-brand a {
+        color: #fff !important;
+    }
+
+
+
+/* Tooltip for mini icons in mini mode */
+body.sidebar-mini .main-sidebar .nav-link {
+    position: relative;
+}
+
+    body.sidebar-mini .main-sidebar .nav-link:hover::after {
+        content: attr(data-title);
+        position: absolute;
+        left: 105%;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: #333;
+        color: #fff;
+        padding: 4px 10px;
+        white-space: nowrap;
+        border-radius: 5px;
+        margin-left: 6px;
+        font-size: 13px;
+        z-index: 999;
+    }
+
+/* === Responsive/Mobile Sidebar === */
+@media (max-width: 768px) {
+    .main-sidebar {
+        left: -260px;
+        background: #000 !important; /* collapsed = black */
+    }
+
+        .main-sidebar:not(.open)::before,
+        .main-sidebar:not(.open)::after {
+            opacity: 0 !important; /* Hide background image + overlay */
+        }
+
+        .main-sidebar.open {
+            left: 0;
+            background: #000 !important; /* open = black */
+        }
+
+            .main-sidebar.open::before,
+            .main-sidebar.open::after {
+                opacity: 0 !important; /* Never show BG image in mobile */
+            }
+
+    .sidebar-toggle-btn {
+        display: block;
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        z-index: 1100;
+        font-size: 24px;
+        background: transparent;
+        color: #fff;
+        border: none;
+    }
+
+    .content-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.65);
+        z-index: 1040;
+    }
+
+        .content-overlay.show {
+            display: block;
+        }
+}
+
+
+
+
+@media (max-width: 1024px) {
+    /* Make sidebar mini on small screens */
+    .main-sidebar {
+        width: 60px !important;
+        min-width: 60px !important;
+        background: #000 !important;
+        left: 0;
+    }
+
+        .main-sidebar::before,
+        .main-sidebar::after {
+            opacity: 0 !important; /* Hide background image + overlay */
+        }
+
+        .main-sidebar .nav-link span {
+            display: none !important;
+        }
+
+        .main-sidebar .nav-link i {
+            font-size: 19px !important;
+            margin-right: 0 !important;
+            text-align: center !important;
+            width: 100% !important;
+        }
+
+    .expanded-brand {
+        display: none !important;
+    }
+
+    .collapsed-brand {
+        display: block !important;
+        text-align: center;
+        font-size: 16px;
+        color: #fff;
+        padding-top: 16px;
+    }
+
+        .collapsed-brand a {
+            color: #fff !important;
+        }
+    /* Remove toggle/overlay if not needed */
+    .sidebar-toggle-btn,
+    .content-overlay {
+        display: none !important;
+    }
+}
+
+
+
+/* Submenu width */
+.submenu {
+    width: 233px;
+}

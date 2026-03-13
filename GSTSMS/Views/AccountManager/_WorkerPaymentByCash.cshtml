@@ -1,0 +1,194 @@
+﻿@model System.Data.DataRow
+
+@* CSS / Scripts *@
+<link href="~/Content/css/WorkerPaymentAD.css" rel="stylesheet" />
+<script src="~/Content/modules/izitoast/js/iziToast.min.js"></script>
+<script src="~/Content/modules/sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/modules/datatables/Buttons-1.5.1/js/buttons.bootstrap4.min.js"></script>
+
+<style>
+    /* Modal full content visible - no scrollbar */
+    #CashpaymentModal .modal-dialog {
+        max-width: 700px;
+        margin: auto;
+    }
+
+    #CashpaymentModal .modal-content {
+        height: auto !important;
+        max-height: none !important;
+    }
+
+    #CashpaymentModal .modal-body {
+        overflow-y: visible !important;
+    }
+</style>
+
+@{
+    // Format contact number with +91
+    var contactNumber = Model["Contact"]?.ToString();
+    var formattedContact = !string.IsNullOrEmpty(contactNumber) ? $"+91 {contactNumber}" : "N/A";
+
+    // Format cash amount with commas and .00 at end (no decimal points)
+    var cashInHand = Model["CashInHand"]?.ToString();
+    var formattedCash = !string.IsNullOrEmpty(cashInHand) ?
+        string.Format("{0:#,##0}.00", Math.Floor(Convert.ToDecimal(cashInHand))) : "0.00";
+
+    // Format base salary with commas
+    var baseSalary = Model["BaseSalary"]?.ToString();
+    var formattedBaseSalary = !string.IsNullOrEmpty(baseSalary) ?
+        string.Format("{0:#,##0.00}", Convert.ToDecimal(baseSalary)) : "0.00";
+
+    // Format payable amount with commas and .00 at end
+    var amountToBePaid = Model["AmountToBePaid"]?.ToString();
+    var formattedPayableAmount = !string.IsNullOrEmpty(amountToBePaid) ?
+        string.Format("{0:#,##0}.00", Math.Round(Convert.ToDecimal(amountToBePaid))) : "0.00";
+}
+<!-- ✅ Modal Header -->
+<div class="modal-header">
+    <h6 class="modal-title m-0">
+        Worker Payment By Cash
+    </h6>
+    <button type="button" class="btn btn-danger btn-sm ifsc-close-btn position-absolute"
+            style="top: 10px; right: 15px;box-shadow: none !important; background-color: #dc3545 !important; color: #fff !important; transform: none !important; transition: none !important;"
+            onclick="closeModal()">
+        <i class="fa fa-times"></i>
+    </button>
+</div>
+
+<!-- ✅ Modal Body -->
+<div class="modal-body">
+    <!-- 🔒 Hidden Inputs -->
+    <input type="hidden" id="workerCode" value="@Model["WorkerCode"]" />
+    <input type="hidden" id="baseSalary" value="@Model["BaseSalary"]" />
+    <input type="hidden" id="daysPresent" value="@Model["DaysPresent"]" />
+    <input type="hidden" id="attendanceMonth" value="@Model["AttendanceMonth"]" />
+
+    <div class="container-fluid">
+        <!-- 🔹 Worker Info -->
+        <div class="section-title mb-2" style="color:black; font-weight:bold; font-size:16px;">
+            <strong>Worker Information</strong>
+        </div>
+        <div class="row g-2">
+            <div class="col-md-6"><strong>Name<span style="margin-left:63px">:</span></strong> @Model["WorkerName"]</div>
+            <div class="col-md-6"><strong>Contact<span style="margin-left:56px">:</span></strong> @formattedContact</div>
+            <div class="col-md-6"><strong>Role<span style="margin-left:73px">:</span></strong> @Model["Role"]</div>
+            <div class="col-md-6">
+                <strong>Joining Date<span style="margin-left:20px">:</span></strong> @(Convert.ToDateTime(Model["Date"]).ToString("dd/MM/yyyy"))
+            </div>
+            <div class="col-md-6"><strong>Base Salary<span style="margin-left:20px">:</span></strong> ₹@formattedBaseSalary</div>
+            @{
+                var monthText = DateTime.ParseExact(Model["AttendanceMonth"].ToString(), "yyyy-MM", null).ToString("MMMM - yyyy");
+            }
+            <div class="col-md-6"><strong>Month<span style="margin-left:65px">:</span></strong> @monthText</div>
+        </div>
+
+        <!-- 🔹 Cash Info -->
+        <div class="section-title mt-4 mb-2" style="color:black; font-weight:bold; font-size:16px;">
+            <strong>Cash Information</strong>
+        </div>
+        <div class="row g-2">
+            <div class="col-md-6 d-flex align-items-center">
+                <strong class="me-2">Cash In Hand<span style="margin-left:9px; margin-right:5px">:</span></strong>
+                <span style="margin-right: 20px; font-weight: bold; color: #198754;">₹ @formattedCash</span>
+            </div>
+
+            <div class="d-flex align-items-center" style="margin-left: 13px">
+                <strong class="me-2">Payable Amount<span style="margin-left: 6px; margin-right: 2px;">:</span></strong>
+                <span style="font-weight: bold; color: #0d6efd;">₹ <span id="amountToPay">@formattedPayableAmount</span></span>
+            </div>
+        </div>
+
+        <!-- 🔹 Save Button -->
+        <div class="mt-4 d-flex flex-wrap justify-content-center gap-3">
+            <button id="saveCashPayment"
+                    class="btn btn-primary px-4 py-2 shadow"
+                    style="background-color:#0d6efd;color:white;font-size:16px;border:none;border-radius:4px;display:flex;align-items:center;gap:8px;transition:0.3s;">
+                <i class="fas fa-plus-circle"></i> Save Payment
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ✅ Modal Events
+    let cashModal = document.getElementById('CashpaymentModal'); // 🔥 same id as HTML madhe
+
+    if (cashModal) {
+        cashModal.addEventListener('show.bs.modal', function () {
+            let payDimOverlay = document.getElementById('payDimOverlay');
+            if (payDimOverlay) payDimOverlay.style.display = 'block';
+        });
+
+        cashModal.addEventListener('hidden.bs.modal', function () {
+            let payDimOverlay = document.getElementById('payDimOverlay');
+            if (payDimOverlay) payDimOverlay.style.display = 'none';
+        });
+    }
+
+    // ✅ Save Payment
+    $(document).on('click', '#saveCashPayment', function () {
+        console.log("Save button clicked ✅"); // debug
+
+        // Remove commas before parsing
+        let amountText = $('#amountToPay').text().replace(/,/g, '');
+        let workerCode = $('#workerCode').val();
+        let amount = parseFloat(amountText);
+        let month = $('#attendanceMonth').val();
+
+        $.post('@Url.Action("ProcessCashPaymentAD", "AccountManager")', {
+            WorkerCode: workerCode,
+            AttendanceMonth: month,
+            Amount: amount,
+            PaymentMode: 32, // Cash
+            TransactionType: 30,
+            PaymentPurpose: "Monthly Salary",
+            PaidTo: workerCode,
+            PaymentBy: "STF002",
+            BankName_Code: "BANC086",
+            TransactionId_ChequeId: ""
+        })
+        .done(function (res) {
+            console.log("Server Response:", res); // debug
+            if (res.success) {
+                swal({
+                    icon: 'success',
+                    title: 'Payment Saved Successfully',
+                    text: 'Your payment has been processed successfully.', // हा success चा message
+                    timer: 1500,
+                    showConfirmButton: false,
+                    buttons: false
+                });
+
+                setTimeout(() => location.reload(), 1600);
+            } else {
+                swal({
+                    icon: 'error',
+                    title: 'Failed ❌',
+                    text: res.message || 'Unable to save cash payment.'
+                });
+            }
+        })
+        .fail(function (xhr) {
+            console.log("AJAX Error:", xhr); // debug
+            swal({
+                icon: 'error',
+                title: 'Server Error ',
+                text: 'Something went wrong while processing payment.'
+            });
+        });
+    });
+
+    // ✅ Close Modal
+    function closeModal() {
+        $('#cashPaymentModal').modal('hide');
+    }
+
+    // Function to format number with commas and .00 at end
+    function formatNumberWithCommasNoDecimal(number) {
+        if (!number) return '0.00';
+        let num = Math.floor(parseFloat(number));
+        let str = num.toString();
+        let integerPart = str.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return integerPart + '.00';
+    }
+</script>

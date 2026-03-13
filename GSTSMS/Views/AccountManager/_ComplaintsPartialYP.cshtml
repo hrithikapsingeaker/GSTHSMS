@@ -1,0 +1,586 @@
+﻿@model IEnumerable<dynamic>
+
+<!-- Complaints Modal -->
+<div class="modal fade" id="complaintModal" tabindex="-1"
+     aria-labelledby="complaintModalLabel"
+     aria-hidden="true"
+     data-bs-backdrop="static"
+     data-bs-keyboard="false">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-2xl">
+
+            <!-- Modal Header -->
+            <div class="modal-header bg-light py-2">
+                <h5 class="modal-title text-center w-100" style="color:black">All Complaints</h5>
+                <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Date Range Picker -->
+            <div class="card-body py-2 px-0">
+                <div class="d-flex align-items-center justify-content-between">
+
+                    <div>
+                        <!-- unique class to avoid clash -->
+                        <a href="javascript:;" class="btn btn-primary daterange-btn-complaint icon-left btn-icon me-3">
+                            <i class="fas fa-calendar"></i> <span>Choose Date</span>
+                        </a>
+                        <input type="hidden" id="fromDateComplaint" />
+                        <input type="hidden" id="toDateComplaint" />
+                    </div>
+
+                    <div>
+                        <!-- optional search area remains -->
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body p-2">
+                <div class="table-responsive">
+                    <table id="complaintTable"
+                           class="table table-sm table-bordered table-hover table-striped dataTableExport mb-0"
+                           style="width:100%; table-layout:auto;">
+                        <thead class="text-center">
+                            <tr style="background-color: #615677">
+                                <th style="text-align:center; vertical-align:middle;">
+                                    <div class="d-flex justify-content-center align-items-center" style="height: 100%;">
+                                        <input type="checkbox" id="selectAllComplaints" class="row-checkbox" />
+                                    </div>
+                                </th>
+                                <th style="color:white;">Sr.No</th>
+                                <th style="color:white;">Member Name</th>
+                                <th style="color:white;">Complaint</th>
+                                <th style="color:white;">Date</th>
+                                <th style="color:white;">Type</th>
+                                <th style="color:white;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small">
+                            @{
+                                int i = 1;
+                                if (Model != null && Model.Any())
+                                {
+                                    foreach (var item in Model)
+                                    {
+                                        <tr class="text-center" id="@item.ComplaintId">
+                                            <td><input type="checkbox" class="row-checkbox" /></td>
+                                            <td style="color:black">@i</td>
+                                            <td style="color:black" class="text-truncate" title="@item.MemberName">@item.MemberName</td>
+                                            <td style="color:black" class="text-truncate" title="@item.Complaint">@item.Complaint</td>
+                                            <td style="color:black">@item.ComplaintDate</td>
+                                            <td style="color:black">@item.ComplaintType</td>
+                                            <td style="font-weight:600;
+                                            color:@(
+                                                item.ComplaintStatus == "In Progress" ? "green" :
+                                                item.ComplaintStatus == "Pending" ? "red" :
+                                                item.ComplaintStatus == "Solved" ? "blue" : "black"
+                                            )">
+                                                @item.ComplaintStatus
+                                            </td>
+                                        </tr>
+                                        i++;
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">
+                                            No complaints found.
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Styles -->
+<style>
+    /* Ensure daterangepicker sits above modal */
+    .daterangepicker {
+        z-index: 30000 !important;
+    }
+
+    /* keep other styles as needed */
+    div.table-responsive > div.dataTables_wrapper > div.row > div[class^="col-"]:first-child {
+        padding-left: 0;
+        color: black;
+    }
+
+    .modal-open .modal {
+        overflow-x: visible !important;
+        overflow-y: visible !important;
+    }
+
+    button.export-buttons.icon-only-btn {
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 5px;
+    }
+
+    div.dataTables_wrapper div.dataTables_filter label {
+        font-weight: normal;
+        white-space: nowrap;
+        text-align: left;
+        color: black;
+    }
+
+    /* small spinner for refresh icon */
+    .spin {
+        transform: rotate(360deg);
+        transition: transform .5s linear;
+    }
+
+    .btn {
+        padding: 0.3rem 0.8rem;
+    }
+</style>
+
+<!-- Required scripts & styles (include once on page) -->
+<link href="~/Content/modules/datatables/datatables.min.css" rel="stylesheet" />
+<link href="~/Content/modules/datatables/DataTables-1.10.16/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
+<link href="~/Content/modules/izitoast/css/iziToast.min.css" rel="stylesheet" />
+<link href="~/Content/modules/bootstrap-daterangepicker/daterangepicker.css" rel="stylesheet" />
+
+<script src="~/Content/modules/jquery.min.js"></script>
+<script src="~/Content/modules/moment.min.js"></script>
+<script src="~/Content/modules/bootstrap-daterangepicker/daterangepicker.js"></script>
+
+<script src="~/Content/modules/datatables/datatables.min.js"></script>
+<script src="~/Content/modules/izitoast/js/iziToast.min.js"></script>
+<script src="~/Content/modules/sweetalert/sweetalert.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+
+        const format = 'DD-MM-YYYY';
+        let enableDateFilterComplaint = false;
+        var selectedComplaintRows = {};  // store checked state by row id
+
+        // === HELPER: Sync selection state with currently filtered rows ===
+        function syncSelectionWithFilteredRows() {
+            // Build a set of IDs that are currently present in the filtered table (all pages)
+            var visibleIds = {};
+            var filteredNodes = table.rows({ filter: 'applied' }).nodes().to$();
+            filteredNodes.each(function () {
+                var id = $(this).attr('id');
+                if (id) visibleIds[id] = true;
+            });
+
+            // If no filtered rows at all -> clear all selections and header checkbox
+            if (Object.keys(visibleIds).length === 0) {
+                table.rows().nodes().to$().find('.row-checkbox').prop('checked', false);
+                selectedComplaintRows = {};
+                $('#selectAllComplaints').prop('checked', false);
+                return;
+            }
+
+            // Remove selection flags for rows that are no longer visible (filtered out)
+            for (var id in selectedComplaintRows) {
+                if (selectedComplaintRows.hasOwnProperty(id)) {
+                    if (selectedComplaintRows[id] && !visibleIds[id]) {
+                        selectedComplaintRows[id] = false;
+                        var $row = $('#' + id);
+                        if ($row.length) {
+                            $row.find('.row-checkbox').prop('checked', false);
+                        }
+                    }
+                }
+            }
+
+            // Update "Select All" for current page
+            var $visiblePageRows = table.rows({ page: 'current' }).nodes().to$();
+            var totalVisibleOnPage = $visiblePageRows.find('.row-checkbox').length;
+            var checkedVisibleOnPage = $visiblePageRows.find('.row-checkbox:checked').length;
+            $('#selectAllComplaints').prop('checked', totalVisibleOnPage > 0 && totalVisibleOnPage === checkedVisibleOnPage);
+        }
+
+        // Initialize DataTable
+        var table = $('#complaintTable').DataTable({
+            rowId: 'ComplaintId',
+            dom: "<'row'<'col-md-6'B><'col-md-6'f>>" +
+                "<'row'<'col-12'tr>>" +
+                "<'row'<'col-md-5'i><'col-md-7'p>>",
+            ordering: false,
+            buttons: [
+                // CSV
+                {
+                    extend: 'csvHtml5',
+                    text: '<img src="/Content/img/icons8-csv-64.png" alt="CSV" style="height:32px;" title="Export CSV" />',
+                    className: 'export-buttons icon-only-btn',
+                    filename: 'Complaints Report ' + moment().format("DD-MM-YYYY"),
+                    exportOptions: {
+                        columns: ':visible:not(:first-child)',
+                        rows: function (idx, data, node) {
+                            return $(node).find('input.row-checkbox').is(':checked');
+                        }
+                    },
+                    customize: function (csv) {
+                        const headerTitle = 'Green Valley Society - Complaint List';
+                        const downloadedOn = 'Generated on: ' + moment().format('DD-MM-YYYY hh:mm A');
+                        let csvRows = csv.split('\n');
+
+                        if (csvRows.length > 0) {
+                            let originalHeader = csvRows[0].split(',');
+                            originalHeader[0] = '"Sr No"';
+                            csvRows[0] = originalHeader.join(',');
+                        }
+
+                        csvRows = csvRows.filter(row => row.trim() !== '');
+
+                        for (let i = 1; i < csvRows.length; i++) {
+                            let rowCols = csvRows[i].split(',');
+                            rowCols[0] = `"${i}"`;
+                            csvRows[i] = rowCols.join(',');
+                        }
+
+                        csvRows.unshift(downloadedOn);
+                        csvRows.unshift(headerTitle);
+
+                        return csvRows.join('\n');
+                    },
+                    action: function (e, dt, button, config) {
+                        const selectedRows = dt.rows({ filter: 'applied' }).nodes().to$().filter(function () {
+                            return $(this).find('input.row-checkbox:checked').length > 0;
+                        });
+
+                        if (selectedRows.length === 0) {
+                            iziToast.warning({ title: 'Warning', message: 'Please select at least one row to export CSV.', position: 'topCenter', timeout: 3000 });
+                            return;
+                        }
+
+                        $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+
+                        setTimeout(function () {
+                            swal({ icon: 'success', title: 'CSV Exported', text: 'Selected row(s) exported!', timer: 1600, buttons: false });
+                        }, 400);
+                        clearAllSelectionsAfterExport(dt);
+                    }
+                },
+                // Excel
+                {
+                    extend: 'excelHtml5',
+                    text: '<img src="/Content/img/icons8-xls-64.png" style="height:32px;" title="Export Excel" />',
+                    className: 'export-buttons icon-only-btn',
+                    title: null,
+                    filename: 'Complaints Report ' + moment().format("DD-MM-YYYY"),
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $('input.row-checkbox', node).is(':checked');
+                        },
+                        columns: [1, 2, 3, 4, 5, 6]
+                    },
+                    action: function (e, dt, button, config) {
+                        const selected = dt.rows().nodes().to$().find('.row-checkbox:checked');
+                        if (selected.length === 0) {
+                            iziToast.warning({ title: 'Warning', message: 'Please select at least one row to export Excel.', position: 'topCenter' });
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+                        swal({ icon: 'success', title: 'Excel Exported', text: 'Your Excel file has been downloaded!', timer: 1600, buttons: false });
+                        clearAllSelectionsAfterExport(dt);
+                    }
+                },
+                // PDF
+                {
+                    extend: 'pdfHtml5',
+                    text: '<img src="/Content/img/icons8-pdf-64.png" alt="PDF" style="height:32px;" title="Export PDF" />',
+                    className: 'export-buttons icon-only-btn',
+                    orientation: 'landscape',
+                    filename: 'Complaints Report ' + moment().format("DD-MM-YYYY"),
+                    pageSize: 'A4',
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $('input.row-checkbox', node).is(':checked');
+                        },
+                        columns: ':visible:not(:first-child)'
+                    },
+                    action: function (e, dt, button, config) {
+                        const selected = dt.rows().nodes().to$().find('.row-checkbox:checked');
+                        if (selected.length === 0) {
+                            iziToast.warning({ title: 'Warning', message: 'Please select at least one row to export PDF.', position: 'topCenter' });
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+                        swal({ icon: 'success', title: 'PDF Exported', text: 'Your PDF file has been downloaded!', timer: 1600, buttons: false });
+                        clearAllSelectionsAfterExport(dt);
+                    }
+                },
+                // Print
+                {
+                    extend: 'print',
+                    title: '',
+                    text: '<img src="/Content/img/icons8-print-100.png" alt="Print" style="height:32px;" title="Print Complaints List" />',
+                    className: 'export-buttons icon-only-btn',
+                    exportOptions: {
+                        columns: [1, 2, 3, 4, 5, 6],
+                        rows: function (idx, data, node) {
+                            return $(node).find('input.row-checkbox').prop('checked');
+                        },
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 0) return (row + 1).toString();
+                                return $(node).text().trim();
+                            }
+                        }
+                    },
+                    action: function (e, dt, button, config) {
+                        const selectedCount = dt.rows(function (idx, data, node) {
+                            return $(node).find('input.row-checkbox').prop('checked');
+                        }).count();
+
+                        if (selectedCount === 0) {
+                            iziToast.warning({ title: 'Warning', message: 'Please select at least one complaint row to print.', position: 'topCenter' });
+                            return;
+                        }
+                        $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                    }
+                },
+                // Refresh (IMPROVED)
+                {
+                    text: '<img src="/Content/img/icons8-refresh-50.png" alt="Refresh" style="height:28px;" title="Refresh Table" />',
+                    className: 'export-buttons icon-only-btn btn-spin',
+                    action: function (e, dt, node, config) {
+                        var refreshIcon = $(node).find('img');
+                        refreshIcon.addClass('spin');
+                        setTimeout(function () {
+                            refreshIcon.removeClass('spin');
+                        }, 500);
+
+                        // Reset global search and column searches
+                        dt.search('').columns().search('');
+
+                        // Reset daterangepicker state & UI
+                        enableDateFilterComplaint = false;
+                        $('#fromDateComplaint').val('');
+                        $('#toDateComplaint').val('');
+                        $('.daterange-btn-complaint span').html('Choose Date');
+
+                        // Hide any visible daterangepicker popup (picker appended to body)
+                        if ($('.daterangepicker').length) {
+                            $('.daterangepicker').hide();
+                        }
+
+                        // Uncheck all row checkboxes (ALL pages) and reset state object
+                        dt.rows().nodes().to$().find('.row-checkbox').prop('checked', false);
+                        $('#selectAllComplaints').prop('checked', false);
+                        selectedComplaintRows = {};
+
+                        // Redraw table and go to first page
+                        dt.page('first').draw(false);
+
+                        // small UX toast
+                        iziToast.success({
+                            title: 'Refreshed',
+                            message: 'List and date filter reset.',
+                            position: 'topCenter',
+                            timeout: 1200
+                        });
+                    }
+                }
+            ],
+            columnDefs: [{ orderable: false, targets: 0 }],
+            order: [[1, 'asc']],
+            pageLength: 10,
+            responsive: false,
+            scrollX: false,
+            language: {
+                info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                infoFiltered: "",
+                infoEmpty: "No entries to show"
+            },
+            drawCallback: function (settings) {
+                var api = this.api();
+                var pageInfo = api.page.info();
+                var startIndex = pageInfo.start;
+
+                api.column(1, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = startIndex + i + 1;
+                });
+
+                api.rows({ page: 'current' }).nodes().each(function (row) {
+                    var rowId = $(row).attr('id');
+                    var isChecked = selectedComplaintRows[rowId] || false;
+                    $(row).find('.row-checkbox').prop('checked', isChecked);
+                });
+
+                var allChecked = $('#complaintTable').find('.row-checkbox').length === $('#complaintTable').find('.row-checkbox:checked').length;
+                $('#selectAllComplaints').prop('checked', allChecked);
+            }
+        });
+
+        function clearAllSelectionsAfterExport(dt) {
+            dt.rows().every(function () {
+                $(this.node()).find('.row-checkbox').prop('checked', false);
+            });
+            $('#selectAllComplaints').prop('checked', false);
+            dt.rows().nodes().to$().find('.row-checkbox').prop('checked', false);
+            selectedComplaintRows = {};
+        }
+
+        // -----------------------------
+        // Date-range filter for complaints
+        // -----------------------------
+        // custom search only for complaintTable
+        $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+            if (!(settings.nTable && settings.nTable.id === 'complaintTable')) return true;
+            if (!enableDateFilterComplaint) return true;
+
+            var dateStr = data[4] || ''; // Date column
+            if (!dateStr) return false;
+
+            var min = $('#fromDateComplaint').val();
+            var max = $('#toDateComplaint').val();
+
+            var colDate = moment(dateStr, format);
+            if (!colDate.isValid()) return false;
+
+            if (min && colDate.isBefore(moment(min, format), 'day')) return false;
+            if (max && colDate.isAfter(moment(max, format), 'day')) return false;
+
+            return true;
+        });
+
+        // Initialize daterangepicker for complaints
+        $('.daterange-btn-complaint').daterangepicker({
+            locale: { format: format },
+            autoUpdateInput: false,
+            opens: "right",
+            drops: "down",
+            linkedCalendars: false,
+            ranges: {
+                'Today': [moment(), moment()],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        }, function (start, end) {
+            enableDateFilterComplaint = true;
+            $('#fromDateComplaint').val(start.format(format));
+            $('#toDateComplaint').val(end.format(format));
+            $('.daterange-btn-complaint span').html(start.format(format) + ' - ' + end.format(format));
+            table.draw();
+
+            // ensure selections cleared if no rows - slight delay to let draw complete
+            setTimeout(function () { syncSelectionWithFilteredRows(); }, 50);
+        });
+
+        $('.daterange-btn-complaint span').html('Choose Date');
+
+        // Important: append picker container to body and position it under the button
+        $(document).on('show.daterangepicker', '.daterange-btn-complaint', function (ev, picker) {
+            // move to body to avoid stacking context issues
+            picker.container.appendTo('body');
+
+            var $btn = $(this);
+            var btnOffset = $btn.offset();
+            var btnHeight = $btn.outerHeight();
+
+            // measure after append
+            var pickerW = picker.container.outerWidth();
+            var pickerH = picker.container.outerHeight();
+
+            var left = btnOffset.left;
+            var winW = $(window).width();
+            var margin = 12;
+
+            // if overflowing right, adjust left
+            if (left + pickerW + margin > winW) {
+                left = Math.max(margin, winW - pickerW - margin);
+            }
+
+            // prefer to align left under button; change to center/right if you prefer
+            var top = btnOffset.top + btnHeight + 6;
+
+            picker.container.css({
+                position: 'absolute',
+                top: top + 'px',
+                left: left + 'px',
+                zIndex: 30000
+            });
+        });
+
+        // If user scrolls or resizes while open, close to avoid weird position (optional)
+        $(window).on('scroll resize', function () {
+            if ($('.daterangepicker:visible').length) {
+                $('.daterangepicker').hide();
+            }
+        });
+
+        // Select All checkbox behavior
+        $('#selectAllComplaints').on('click', function () {
+            var isChecked = $(this).prop('checked');
+
+            table.rows().every(function () {
+                var row = this.node();
+                var rowId = $(row).attr('id');
+                selectedComplaintRows[rowId] = isChecked;
+            });
+
+            var visibleRows = table.rows({ page: 'current' }).nodes();
+            $('input.row-checkbox', visibleRows).prop('checked', isChecked);
+        });
+
+        // Individual row checkbox change
+        $('#complaintTable').on('change', '.row-checkbox', function () {
+            var rowId = $(this).closest('tr').attr('id');
+            selectedComplaintRows[rowId] = $(this).prop('checked');
+
+            var visibleRows = table.rows({ page: 'current' }).nodes();
+            var allVisibleChecked = $('input.row-checkbox:checked', visibleRows).length === $('input.row-checkbox', visibleRows).length;
+            $('#selectAllComplaints').prop('checked', allVisibleChecked);
+        });
+
+        // On table draw restore checkbox states AND sync with filtered rows
+        table.on('draw', function () {
+            var visibleRows = table.rows({ page: 'current' }).nodes();
+            $(visibleRows).each(function () {
+                var rowId = $(this).attr('id');
+                var isChecked = selectedComplaintRows[rowId] || false;
+                $(this).find('.row-checkbox').prop('checked', isChecked);
+            });
+
+            var allVisibleChecked = $('input.row-checkbox:checked', visibleRows).length === $('input.row-checkbox', visibleRows).length;
+            $('#selectAllComplaints').prop('checked', allVisibleChecked);
+
+            // Sync selection state with filtered rows (clears selections if no rows)
+            syncSelectionWithFilteredRows();
+        });
+
+        // Modal hidden cleanup (IMPROVED)
+        $('#complaintModal').on('hidden.bs.modal', function () {
+            // Reset table filters & draw
+            table.search('').columns().search('').draw();
+
+            // Uncheck all checkboxes + reset selection object
+            table.rows().nodes().to$().find('.row-checkbox').prop('checked', false);
+            $('#selectAllComplaints').prop('checked', false);
+            selectedComplaintRows = {};
+
+            // Reset date filter variables and UI
+            enableDateFilterComplaint = false;
+            $('#fromDateComplaint').val('');
+            $('#toDateComplaint').val('');
+            $('.daterange-btn-complaint span').html('Choose Date');
+
+            // Hide any visible daterangepicker appended to body
+            if ($('.daterangepicker').length) {
+                $('.daterangepicker').hide();
+            }
+
+            // Ensure we land on first page and redraw
+            table.page('first').draw(false);
+        });
+
+    });
+</script>

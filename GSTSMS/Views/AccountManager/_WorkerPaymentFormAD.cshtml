@@ -1,0 +1,681 @@
+﻿@model System.Data.DataRow
+
+@* CSS / Scripts *@
+<link href="~/Content/css/WorkerPaymentAD.css" rel="stylesheet" />
+<script src="~/Content/modules/izitoast/js/iziToast.min.js"></script>
+<script src="~/Content/modules/sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/modules/datatables/Buttons-1.5.1/js/buttons.bootstrap4.min.js"></script>
+
+<style>
+    /* Modal styling */
+    #payPaymentModal .modal-dialog {
+        max-width: 600px;
+        margin: auto;
+    }
+
+    #payPaymentModal .modal-content {
+        max-height: 80vh;
+        width: 100%;
+        overflow: hidden !important;
+    }
+
+    #payPaymentModal .modal-body {
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1040;
+        display: none;
+    }
+
+    .modal {
+        z-index: 1050;
+    }
+
+    /* Custom styles for payment modal */
+    .modal-header {
+        background-color: #615677 !important;
+        color: white;
+        padding: 0.5rem 1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-bottom: none;
+        position: relative;
+        text-align: center;
+        border-radius: 4px 4px 0 0;
+    }
+
+    .section-title {
+        font-weight: 600;
+        font-size: 1rem;
+        color: black;
+        margin: 1rem 0 0.5rem;
+        border-bottom: 1px dotted black;
+        padding-bottom: 4px;
+    }
+
+    .btn-action {
+        min-width: 130px;
+        font-weight: 500;
+        margin: 0 10px;
+    }
+
+    #cash-pay {
+        background-color: green;
+        color: white;
+    }
+
+        #cash-pay:hover {
+            color: black;
+            background-color: #00b67a;
+        }
+
+    .modal-footer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+</style>
+
+@{
+    // Format contact number with +91
+    var contactNumber = Model["Contact"]?.ToString();
+    var formattedContact = !string.IsNullOrEmpty(contactNumber) ? $"+91 {contactNumber}" : "N/A";
+}
+
+<div class="modal-header">
+    <h6 class="modal-title m-0">
+        <i class="modal-title m-0"></i>Worker Payment
+    </h6>
+    <button type="button" class="btn btn-danger btn-sm ifsc-close-btn position-absolute" style="top: 10px; right: 15px; box-shadow: none !important; background-color: #dc3545 !important; color: #fff !important; transform: none !important; transition: none !important;
+           " onclick="closeMainModal() ">
+        <i class="fa fa-times"></i>
+    </button>
+</div>
+
+<div class="modal-body">
+    <input type="hidden" id="workerCode" value="@Model["WorkerCode"]" />
+    <input type="hidden" id="joiningDate" value="@Model["Date"]" />
+    <input type="hidden" id="baseSalary" value="@Model["BaseSalary"]" />
+    <input type="hidden" id="daysPresent" value="@Model["DaysPresent"]" />
+    <input type="hidden" id="accountNo" value="@Model["AccountNo"]" />
+
+    <div class="container-fluid">
+        <div class="section-title"> Worker Information</div>
+        <div class="row g-2">
+            <div class="col-6"><strong>Name<span style=" margin-left:51px">:</span></strong> @Model["WorkerName"]</div>
+            <div class="col-6"><strong>Contact No.<span style="margin-left:20px">:</span></strong> @formattedContact</div>
+            <div class="col-6"><strong>Role<span style="margin-left:60px">:</span></strong> @Model["Role"]</div>
+
+            <div class="col-md-6 d-flex align-items-center">
+                <strong class="me-2">UPI ID<span style="margin-left: 62px">:</span></strong>
+                @*<span id="WorkerUPI">wor005@okicici</span>*@
+
+                <span id="WorkerUPI"> @Model["Worker UPI"]</span>
+
+                <i class="far fa-copy text-primary ms-2"
+                   title="Copy UPI ID"
+                   onclick="copyToClipboard('WorkerUPI')"
+                   style="cursor: pointer; margin-left: 5px;"></i>
+                <span id="lblCopied" class="ms-2" style="display: none; font-size: 14px; margin-left: 8px; color: black;">Copied</span>
+            </div>
+
+            <div class="col-6"><strong>Base Salary<span style="margin-left:4px">:</span></strong> ₹@string.Format("{0:#,##0.00}", Convert.ToDecimal(Model["BaseSalary"]))</div>
+
+            @{
+                var monthText = DateTime.ParseExact(Model["AttendanceMonth"].ToString(), "yyyy-MM", null).ToString("MMMM - yyyy");
+            }
+            <div class="col-6"><strong>Month<span style="margin-left:61px">:</span></strong> @monthText</div>
+            <div class="col-6"><strong>Total Pay<span style="margin-left:24px">:</span></strong> ₹<span id="amountToPay">@string.Format("{0:#,##0.00}", Convert.ToDecimal(Model["AmountToBePaid"]))</span></div>
+            <div class="col-6"><strong>IFSC Code<span style="margin-left: 29px">:</span></strong> @Model["IFSC Code"]</div>
+            <div class="col-6"><strong>Bank Name<span style="margin-left: 10px">:</span></strong> <span id="bankName">–</span></div>
+            @*<div class="col-6">
+                    <strong class="me-2">Cash Amount <span>:</span></strong>
+                    <span id="cashInHandDisplay" style="margin-right: 20px">Loading...</span>
+                </div>*@
+        </div>
+
+        <div class="section-title mt-4"> Accountant Bank Info</div>
+        <div class="row g-2">
+            <div class="col-12">
+                <label for="bankSelect" class="form-label" style="font-weight: bold; color: #000000;">
+                    Select Bank<span style="margin-left:16px">:</span>
+                </label>
+                <select id="bankSelect" class="form-select mt-1" style="border-radius: 4px; text-align-last: center; height: 27px;">
+                    <option value="" style="font-size: 1rem; font-weight: bold;" class="text-center">-- Select Bank --</option>
+                </select>
+            </div>
+
+            <div class="col-md-4 col-sm-6 d-flex align-items-center">
+                <strong class="me-1">Bank Balance:</strong>
+                <span>₹<span id="bankBalance">–</span></span>
+            </div>
+
+            <div class="modal-footer">
+                <button id="rzp-confirm" class="btn btn-primary btn-action pay-btn">
+                    <i class="fas fa-wallet me-1"></i> Confirm & Pay
+                </button>
+
+                <button id="cash-pay" class="btn btn-action cash-btn">
+                    <i class="fas fa-plus-circle"></i> Pay By Cash
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cash Payment Modal Container -->
+<div id="cashPaymentModal" class="modal fade" tabindex="-1" style=" height: fit-content">
+    <div class="modal-dialog modal-dialog-centered" style=" height: fit-content; ">
+        <div class="modal-content">
+            <!-- Content will be loaded via AJAX -->
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="cashDimOverlay" class="modal-overlay"></div>
+
+<script>
+    function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.style.display = "block";
+    modal.removeAttribute("inert");
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+
+    // Remove focus from any active element inside the modal
+    if (modal.contains(document.activeElement)) {
+        document.activeElement.blur();
+    }
+
+    modal.setAttribute("inert", "");
+    modal.style.display = "none";
+}
+
+    // ==============================================
+    // GLOBAL VARIABLES AND INITIALIZATION
+    // ==============================================
+    let paymentModalInitialized = false;
+    let mainModalHtml = '';
+
+    // Initialize all modal components
+    function initializePaymentModal() {
+        if (paymentModalInitialized) return;
+
+        // Store the current HTML content for later restoration
+        mainModalHtml = $('#payModalContent').html();
+
+        // Reset the dropdown
+        $('#bankSelect').empty().append('<option value="">-- Loading Banks --</option>');
+        $('#bankBalance').text('–').css('color', '');
+
+        // Load essential components
+        loadBankDropdown();
+        fetchBankDetails();
+        loadCashAmount();
+        setupEventHandlers();
+
+        paymentModalInitialized = true;
+    }
+
+    // Load bank dropdown from database
+    function loadBankDropdown() {
+        const $dropdown = $('#bankSelect');
+
+        $.ajax({
+            url: "/AccountManager/GetAccountantBankListAD",
+            type: "GET",
+            dataType: "json",
+            success: function (banks) {
+                if (!banks || banks.length === 0) {
+                    $dropdown.html('<option value="">No bank accounts available</option>');
+                    return;
+                }
+
+                $dropdown.empty().append('<option value="">-- Select Bank --</option>');
+
+                // Process each bank account from database
+                banks.forEach((bank) => {
+                    const bankName = bank.BankName || getBankNameFromIFSC(bank.IFSCCode);
+                    const maskedAccNo = maskAccountNo(bank.AccountNo);
+                    const optionText = `${bankName} - ${maskedAccNo} [${bank.AccountTypeName}]`;
+
+                    $dropdown.append($('<option>', {
+                        value: bank.BankCode,
+                        'data-accountno': bank.AccountNo,
+                        'data-ifsc': bank.IFSCCode,
+                        'data-accounttype': bank.AccountTypeName,
+                        'data-balance': bank.OpeningBalance,
+                        text: optionText
+                    }));
+                });
+            },
+            error: function (xhr, status, error) {
+                console.error("Error loading banks:", error);
+                $dropdown.html('<option value="">Error loading banks</option>');
+            }
+        });
+    }
+
+    // Helper function to get bank name from IFSC
+    function getBankNameFromIFSC(ifscCode) {
+        if (!ifscCode) return "Bank Account";
+
+        const bankCode = ifscCode.substring(0, 4);
+        const bankMap = {
+            "HDFC": "HDFC Bank", "ICIC": "ICICI Bank", "SBIN": "State Bank of India",
+            "KKBK": "Kotak Mahindra Bank", "UTIB": "Axis Bank", "PUNB": "Punjab National Bank",
+            "CNRB": "Canara Bank", "BARB": "Bank of Baroda", "UBIN": "Union Bank of India",
+            "INDB": "IndusInd Bank", "YESB": "Yes Bank", "IDFB": "IDFC First Bank",
+            "FDRL": "Federal Bank", "IOBA": "Indian Overseas Bank", "BKID": "Bank of India",
+            "CBIN": "Central Bank of India", "CIUB": "City Union Bank", "CSBK": "Catholic Syrian Bank",
+            "DCBL": "DCB Bank", "DEUT": "Deutsche Bank", "DLXB": "Dhanlaxmi Bank",
+            "ESFB": "Equitas Small Finance Bank", "ESMF": "Esaf Small Finance Bank",
+            "FINO": "Fino Payments Bank", "GSCB": "Gujarat State Co-operative Bank",
+            "HSBC": "HSBC Bank", "IBKL": "IDBI Bank", "ICBL": "ICICI Bank",
+            "IDIB": "Indian Bank", "JAKA": "Jammu and Kashmir Bank", "JSFB": "Jana Small Finance Bank",
+            "KARB": "Karnataka Bank", "KVBL": "Karur Vysya Bank", "MAHB": "Bank of Maharashtra",
+            "ORBC": "Oriental Bank of Commerce", "RATN": "RBL Bank", "SIBL": "South Indian Bank",
+            "SRCB": "Saraswat Bank", "TNSC": "Tamilnad Mercantile Bank", "UJVN": "Ujjivan Small Finance Bank",
+            "UTKS": "Utkarsh Small Finance Bank", "VIJB": "Vijaya Bank", "PDCC": "PDCC Bank"
+        };
+
+        return bankMap[bankCode] || (bankCode + " Bank");
+    }
+
+    // Mask account number for display
+    function maskAccountNo(accNo) {
+        if (!accNo || accNo.length <= 4) return accNo || '';
+        return '*'.repeat(accNo.length - 4) + accNo.slice(-4);
+    }
+
+    // Fetch IFSC details for worker's bank
+    function fetchBankDetails() {
+        const ifscCode = "@Model["IFSC Code"]";
+        if (!ifscCode) return;
+
+        $.getJSON(`https://ifsc.razorpay.com/${ifscCode}`)
+            .done(d => $('#bankName').text(d.BANK))
+            .fail(() => $('#bankName').text('Invalid IFSC'));
+    }
+
+    // Load cash amount available
+    function loadCashAmount() {
+        $.ajax({
+            url: '@Url.Action("GetAmountCashinHandAD", "AccountManager")',
+            type: 'GET'
+        }).done(function(data) {
+            const cashAmount = data?.cash ? parseFloat(data.cash) : 0;
+            $('#cashInHandDisplay').text('₹ ' + formatNumberWithCommas(cashAmount.toFixed(2)));
+        }).fail(function() {
+            $('#cashInHandDisplay').text('Error!');
+        });
+    }
+
+    // Format number with commas (Indian numbering system)
+    function formatNumberWithCommas(number) {
+        if (!number) return '0.00';
+
+        // Convert to string
+        let str = number.toString();
+
+        // Check if it's a decimal number
+        let parts = str.split('.');
+        let integerPart = parts[0];
+        let decimalPart = parts.length > 1 ? '.' + parts[1] : '';
+
+        // Add commas to integer part
+        integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+        return integerPart + decimalPart;
+    }
+
+    // Setup all event handlers
+    function setupEventHandlers() {
+        // Bank selection change
+        $('#bankSelect').off('change').on('change', updateBankBalanceDisplay);
+
+        // Payment button
+        $('#rzp-confirm').off('click').on('click', handlePayment);
+
+        // Cash payment button
+        $('#cash-pay').off('click').on('click', openCashPaymentModal);
+
+        // Copy UPI ID
+        $('[onclick^="copyToClipboard"]').off('click').on('click', function() {
+            copyToClipboard($(this).data('target') || 'WorkerUPI');
+        });
+    }
+
+    // Update bank balance display when selection changes
+    function updateBankBalanceDisplay() {
+        const selected = $(this).find(':selected');
+        const balance = parseFloat(selected.data('balance')) || 0;
+
+        if (selected.val() === "") {
+            // If "Select Bank" option is chosen, show placeholder
+            $('#bankBalance').text('–').css('color', '');
+        } else {
+            // Show actual balance with comma formatting and color coding
+            $('#bankBalance').text(formatNumberWithCommas(balance.toFixed(2)))
+                .css('color', balance < 1000 ? 'red' : '#198754');
+        }
+    }
+
+    // Handle payment button click
+    function handlePayment(e) {
+        e.preventDefault();
+
+        const amountInRupees = parseFloat($('#amountToPay').text().replace(/,/g, ''));
+        const bankBalance = parseFloat($('#bankBalance').text().replace(/,/g, ''));
+        const selectedBank = $('#bankSelect').val();
+
+        if (!validatePayment(amountInRupees, bankBalance, selectedBank)) return;
+
+        const amountInPaise = Math.round(amountInRupees * 100);
+        const selectedBankText = $('#bankSelect option:selected').text().trim();
+
+        const options = createRazorpayOptions(amountInPaise, selectedBankText);
+        const rzp = new Razorpay(options);
+        rzp.open();
+    }
+
+    // Validate payment conditions
+    function validatePayment(amount, balance, selectedBank) {
+        if (!selectedBank) {
+            showBankSelectionWarning();
+            return false;
+        }
+
+        if (balance < amount) {
+            showInsufficientBalanceError();
+            return false;
+        }
+
+        return true;
+    }
+
+    // Create Razorpay payment options
+    function createRazorpayOptions(amount, bankText) {
+        return {
+            key: "rzp_test_tnu8pNChRc5VBE",
+            amount: amount,
+            currency: "INR",
+            name: "Green Valley Society",
+            description: `Salary for @Model["WorkerName"] (@Model["AttendanceMonth"])`,
+            prefill: {
+                name: "@Model["WorkerName"]",
+                contact: "@formattedContact"
+            },
+            notes: {
+                ifsc: "@Model["IFSC Code"]",
+                upi: "@Model["Worker UPI"]",
+                bank_selected: bankText
+            },
+            handler: function(response) {
+                processPayment(response, amount/100, $('#bankSelect').val(), bankText);
+            }
+        };
+    }
+
+    // Process payment after Razorpay success
+    function processPayment(response, amount, selectedBank, selectedBankText) {
+        const paymentData = {
+            WorkerCode: $('#workerCode').val(),
+            AttendanceMonth: "@Model["AttendanceMonth"]",
+            Amount: amount,
+            TransactionId_ChequeId: response.razorpay_payment_id,
+            IFSCCode: "@Model["IFSC Code"]",
+            WorkerUPI: "@Model["Worker UPI"]",
+            Contact: "@formattedContact",
+            RoleName: "@Model["Role"]",
+            DateOfJoining: $('#joiningDate').val(),
+            BaseSalary: $('#baseSalary').val(),
+            DaysPresent: $('#daysPresent').val(),
+            AccountNumber: $('#accountNo').val(),
+            PaymentMode: 1,
+            PaidTo: $('#workerCode').val(),
+            UPIId: "@Model["Worker UPI"]",
+            PaymentPurpose: "Monthly Salary",
+            EntityCode: selectedBankText,
+            BankName_Code: selectedBank,
+            TransactionType: 27,
+            PaymentBy: "STF002"
+        };
+
+        $.post("@Url.Action("ProcessPaymentUsingUPIAD", "AccountManager")", paymentData)
+            .done(function(res) {
+                if (res.success) {
+                    handlePaymentSuccess();
+                } else {
+                    showPaymentError();
+                }
+            })
+            .fail(showPaymentError);
+    }
+
+    // Handle successful payment
+    function handlePaymentSuccess() {
+        showPaymentSuccess();
+        updateWorkerTable();
+        setTimeout(() => location.reload(), 2000);
+    }
+
+    // Update worker table after payment
+    function updateWorkerTable() {
+        const workerCode = $('#workerCode').val();
+        const month = "@Model["AttendanceMonth"]";
+
+        $('#workerTable tbody tr').each(function() {
+            const row = $(this);
+            const rowWorker = row.find('.payBtn').data('worker');
+            const rowMonth = row.find('.payBtn').data('month');
+
+            if (rowWorker === workerCode && rowMonth === month) {
+                row.find('td:last').html(`
+                    <button class="btn btn-info btn-sm viewBtn" data-worker="${workerCode}" data-month="${month}">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                `);
+                row.addClass("table-success");
+            }
+        });
+    }
+
+    // Open cash payment modal - Fixed version
+    function openCashPaymentModal() {
+        const workerCode = $('#workerCode').val();
+        const month = "@Model["AttendanceMonth"]";
+        const mainModalEl = document.getElementById('payPaymentModal');
+        const mainModal = bootstrap.Modal.getInstance(mainModalEl);
+
+        // Store the current HTML content of the main modal BEFORE closing it
+        const mainModalContent = $('#payModalContent').html();
+
+        // Close the main modal first
+        if (mainModal) {
+            mainModal.hide();
+        } else {
+            $(mainModalEl).modal('hide');
+        }
+
+        // Show loading overlay
+        $('#cashDimOverlay').show();
+
+        // Fetch and show cash modal
+        $.get('@Url.Action("FetchSingleWorkerForCashAD", "AccountManager")', {
+            workerCode: workerCode,
+            attendanceMonth: month
+        }).done(function(html) {
+            if (html.trim() !== "") {
+                // Remove any existing cash modal
+                $('#cashPaymentModal').remove();
+
+                // Create cash modal container
+                $('body').append(`
+                    <div id="cashPaymentModal" class="modal fade" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content"></div>
+                        </div>
+                    </div>
+                `);
+
+                // Inject content into cash modal
+                $('#cashPaymentModal .modal-content').html(html);
+
+                // Initialize and show cash modal after a short delay to ensure DOM is ready
+                setTimeout(function() {
+                    const cashModalEl = document.getElementById('cashPaymentModal');
+                    if (cashModalEl) {
+                        const cashModal = new bootstrap.Modal(cashModalEl, {
+                            backdrop: 'static',
+                            keyboard: false
+                        });
+
+                        cashModal.show();
+
+                        // When cash modal closes, reopen the main modal with original content
+                        $(cashModalEl).off('hidden.bs.modal').on('hidden.bs.modal', function() {
+                            // Remove cash modal from DOM
+                            $(this).remove();
+
+                            // Restore the main modal's original content
+                            $('#payModalContent').html(mainModalContent);
+
+                            // Reopen the main modal
+                            const newMainModal = new bootstrap.Modal(mainModalEl);
+                            newMainModal.show();
+
+                            // Reinitialize the main modal functionality
+                            setTimeout(function() {
+                                initializePaymentModal();
+                            }, 300);
+                        });
+                    }
+                }, 100);
+            } else {
+                showCashModalError();
+                // Reopen main modal on error with original content
+                $('#payModalContent').html(mainModalContent);
+                const newMainModal = new bootstrap.Modal(mainModalEl);
+                newMainModal.show();
+            }
+        }).fail(function() {
+            showCashModalError();
+            // Reopen main modal on error with original content
+            $('#payModalContent').html(mainModalContent);
+            const newMainModal = new bootstrap.Modal(mainModalEl);
+            newMainModal.show();
+        }).always(function() {
+            $('#cashDimOverlay').hide();
+        });
+    }
+
+    // Close main modal
+    function closeMainModal() {
+        const modalEl = document.getElementById('payPaymentModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+
+        if (modal) {
+            modal.hide();
+        } else {
+            $('#payPaymentModal').modal('hide');
+        }
+    }
+
+    // Copy text to clipboard
+    function copyToClipboard(elementId) {
+        const text = document.getElementById(elementId)?.innerText;
+        const copiedLabel = document.getElementById("lblCopied");
+
+        if (!text) return;
+
+        navigator.clipboard.writeText(text).then(() => {
+            if (copiedLabel) {
+                copiedLabel.style.display = "inline";
+                copiedLabel.innerText = "Copied";
+                setTimeout(() => copiedLabel.style.display = "none", 2000);
+            }
+        });
+    }
+
+    // ==============================================
+    // NOTIFICATION FUNCTIONS
+    // ==============================================
+
+    function showBankSelectionWarning() {
+        if (document.querySelector('.iziToast')) return;
+        $('#rzp-confirm').prop('disabled', true);
+        iziToast.warning({
+            title: 'Oops!',
+            message: 'Please select a bank before proceeding.',
+            position: 'topCenter',
+            timeout: 3000,
+            icon: 'fa fa-university',
+            onClosing: function() {
+                $('#rzp-confirm').prop('disabled', false);
+            }
+        });
+    }
+
+    function showInsufficientBalanceError() {
+        if (document.querySelector('.iziToast')) return;
+        iziToast.error({
+            title: 'Insufficient Balance',
+            message: 'Bank balance is less than payable amount',
+            position: 'topCenter'
+        });
+    }
+
+    function showPaymentSuccess() {
+        iziToast.success({
+            title: 'Success',
+            message: 'Payment  Successfully',
+            position: 'topCenter'
+        });
+    }
+
+    function showPaymentError() {
+        iziToast.error({
+            title: 'Error',
+            message: 'Payment failed. Please try again.',
+            position: 'topCenter'
+        });
+    }
+
+    function showCashModalError() {
+        iziToast.error({
+            title: 'Error',
+            message: 'Failed to load cash payment form',
+            position: 'topCenter'
+        });
+    }
+
+    // ==============================================
+    // MODAL EVENT HANDLERS
+    // ==============================================
+
+    // Initialize when modal is shown
+    $(document).on('shown.bs.modal', '#payPaymentModal', function() {
+        setTimeout(initializePaymentModal, 100);
+    });
+
+    // Cleanup when modal is hidden
+    $(document).on('hidden.bs.modal', '#payPaymentModal', function() {
+        paymentModalInitialized = false;
+        $('#bankSelect').empty();
+    });
+</script>

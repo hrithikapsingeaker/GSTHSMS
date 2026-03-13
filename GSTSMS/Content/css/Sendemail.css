@@ -1,0 +1,725 @@
+﻿html, body {
+    height: auto !important;
+    overflow-y: auto !important;
+}
+
+.form-wrapper, #mainContentArea, #content {
+    height: auto !important;
+    max-height: none !important;
+    overflow: hidden !important;
+}
+
+body {
+    position: static !important;
+    scrollbar-width: none; /* hides scrollbar but scroll works */
+}
+
+
+
+
+
+
+
+
+
+
+
+
+body {
+    overflow: auto !important;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    
+}
+
+    body::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Edge */
+    }
+
+
+.form-control, .smart-dropdown {
+    width: 400px !important;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-bottom: 15px;
+    margin-left: 15px;
+}
+
+.is-invalid {
+    border: 2px solid red !important;
+    background-color: #fff0f0;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.checkbox-scroll-box {
+    max-height: 400px;
+    overflow-y: auto !important;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    width: 350px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.form-check input {
+    margin-right: 5px;
+}
+
+.form-check {
+    margin-bottom: 5px;
+}
+
+.form-check-label {
+    font-size: 14px;
+    color: #333;
+}
+
+.wing-container {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.wing-header {
+    padding: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: #fff;
+    border-bottom: 1px solid #ccc;
+}
+
+.wing-details {
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+    .wing-details summary {
+        padding: 10px;
+        font-weight: bold;
+        cursor: pointer;
+        list-style: none;
+        background-color: #fff;
+        border-bottom: 1px solid #ccc;
+        font-size: 16px;
+    }
+
+.members-box {
+    max-height: 200px;
+    overflow-y: auto;
+    padding-left: 10px;
+    scrollbar-width: thin;
+}
+
+.email-editor {
+    height: 300px;
+    border: 1px solid #000;
+    padding: 10px;
+    background-color: #fff;
+    overflow-y: auto !important;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.subjecttextbox {
+    max-width: 400px;
+}
+
+
+.file-upload-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Adjust the gap between label and file input */
+    margin-top: 10px;
+}
+
+    .file-upload-wrapper label {
+        margin: 0;
+        white-space: nowrap;
+        font-weight: 600;
+    }
+
+    .file-upload-wrapper input[type="file"] {
+        flex: 1;
+    }
+
+
+
+
+.col-form-label {
+    font-weight: 500;
+    font-size: 16px;
+    color: black;
+}
+
+
+
+
+
+
+
+
+
+#label {
+    color: black;
+    font-size: 16px;
+    font-weight: bold;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,  sans-serif;
+}
+
+/*
+#label {
+    margin-left: 10px;
+    color: black;
+    font-size: large;
+    font-weight: 500;
+}*/
+
+#mainContentArea {
+    margin-left: 5px;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+}
+
+
+#content {
+    margin-left: 10px;
+}
+
+#loadingSpinner {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 20;
+    border-radius: 10px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,  sans-serif;
+}
+
+    #loadingSpinner .centered-content {
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
+.loader {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #fff;
+    border-top: 5px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+
+
+
+/* File limit message */
+.file-limit-error {
+    display: none;
+}
+
+
+
+
+.heading {
+    text-align: center;
+    font-weight: bold;
+    color: black;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+summary.wing-summary {
+    position: relative;
+    padding-right: 20px;
+    list-style: none;
+}
+
+
+
+
+
+
+
+summary.wing-summary {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    font-size: 14px;
+    cursor: pointer;
+    color: black;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,  sans-serif;
+}
+
+    summary.wing-summary::before {
+        content: "▶";
+        font-size: 0.9rem;
+        margin-right: 8px;
+        transition: transform 0.2s ease;
+    }
+
+details[open] summary.wing-summary::before {
+    transform: rotate(90deg);
+}
+
+
+
+
+
+
+
+
+
+
+.invalid-checkbox-group {
+    border: 2px solid red;
+    padding: 5px;
+    border-radius: 5px;
+    position: relative;
+}
+
+    .invalid-checkbox-group::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        top: -30px;
+        left: 0;
+        background-color: #f8d7da;
+        color: #721c24;
+        padding: 4px 8px;
+        border: 1px solid #f5c6cb;
+        border-radius: 4px;
+        font-size: 13px;
+        white-space: nowrap;
+        z-index: 10;
+    }
+
+.select-error {
+    border: 1px solid red !important;
+    box-shadow: 0 0 4px red;
+}
+
+
+
+#wingSelector {
+    width: 300px !important;
+    height: 46px;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    background-color: #fff;
+    color: #212529;
+    font-size: 1rem;
+    margin-left: 36px;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,  sans-serif;
+}
+
+    #wingSelector:focus {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 0.15rem rgba(0, 123, 255, 0.25);
+    }
+
+
+
+.wings-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 0.55rem;
+    margin-left: 7px !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,  sans-serif;
+}
+
+.wing-column {
+    flex: 1 1 30%;
+    min-width: 170px;
+    max-width: 300px;
+    margin-left: 10px;
+}
+
+.member-box {
+    width: 100%;
+    margin-bottom: 8px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    text-align: left;
+}
+
+.member-name {
+    font-weight: 600;
+}
+
+
+.is-invalid {
+    border: 1px solid red !important;
+}
+
+.is-valid {
+    border: 1px solid green !important;
+}
+
+.invalid-selection {
+    border: 1px solid red;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.valid-selection {
+    border: 1px solid green;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+
+
+
+
+.inline-subject-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 10px;
+}
+
+.subject-label {
+    margin-bottom: 0;
+    white-space: nowrap;
+    font-weight: 500;
+    font-size: large;
+    color: black;
+}
+
+.subject-error-message {
+    display: none;
+    margin-left: 10px;
+}
+
+
+
+
+
+
+
+.ccstaff-div .invalid-selection {
+    border: 1px solid red;
+    padding: 5px;
+    border-radius: 6px;
+}
+
+.ccstaff-div .valid-selection {
+    border: 1px solid green;
+    padding: 5px;
+    border-radius: 6px;
+}
+
+
+
+
+
+/* Fix file input spacing/alignment */
+.custom-file {
+    height: 38px;
+    line-height: 38px;
+}
+
+/* Preview list styling */
+#filePreviewList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+    max-width: 100%;
+}
+
+/* Optional: Label fix */
+.col-form-label {
+    padding-top: 7px;
+    font-weight: 500;
+    font-size: 16px;
+}
+
+
+#wingSelectorError {
+    margin-left: 19px;
+}
+
+#SubjectError {
+    margin-left: 19px;
+    font-weight: 400;
+}
+
+#MemberSelectionError {
+    margin-left: 19px;
+}
+
+
+
+.form-group {
+    margin-bottom: 01px;
+}
+
+.form-groupp {
+    margin-top: 20px;
+}
+/*message body
+*/
+.message-wrapper {
+    max-width: 900px;
+    gap: 70px;
+}
+
+.message-label {
+    min-width: 100px;
+    margin-bottom: 0;
+    padding-top: 0.5rem;
+    white-space: nowrap;
+}
+
+.message-editor-container {
+    flex-grow: 1;
+}
+
+.email-editor {
+    min-height: 150px;
+    width: 100%;
+    outline: none;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+#filePreviewList {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    margin-top: 10px;
+    margin-left: 8px;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.preview-item {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: blue;
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+}
+
+    .preview-item img {
+        width: 16px;
+        height: 16px;
+        margin-right: 5px;
+    }
+
+    .preview-item a {
+        color: blue;
+        text-decoration: none;
+        margin-right: 6px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 180px;
+        display: inline-block;
+    }
+
+.btnsavecancle {
+    width: 108.5px;
+}
+
+.remove-btn {
+    color: red;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+
+/* Set custom file input width */
+.custom-file {
+    width: 300px;
+}
+
+/* Ensure label is aligned properly */
+.col-form-label {
+    margin-bottom: 0;
+}
+
+/* Optional: tweak file input label appearance if needed */
+.custom-file-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+
+
+
+
+
+
+
+
+select.form-control.is-invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,  sans-serif;
+}
+
+select.form-control.is-valid {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,  sans-serif;
+}
+
+.spinner-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+#loadingSpinner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 99999;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Spinner animation */
+.loader {
+    width: 50px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 8px solid;
+    border-color: #fff #ffffff00;
+    animation: l1 1s infinite linear;
+}
+
+@keyframes l1 {
+    to {
+        transform: rotate(.5turn);
+    }
+}
+
+
+.is-invalid {
+    border: 1px solid red;
+    background-color: white;
+    box-shadow: none;
+}
+
+.equal-width-btn {
+    width: 160px;
+}
+
+
+.btn-send {
+    background-color: #0cbd6e !important;
+    color: black;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    margin: 10px;
+    font-weight: bold;
+    height: 40px;
+    width: 150px;
+    font-size: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+    .btn-send:hover {
+        background-color: #0aa45c !important;
+        color: white !important;
+    }
+
+
+
+.validation {
+    margin-left: 10px;
+}
+
+
+
+.btn-cancel {
+    background-color: #dc3545 !important; /* Bootstrap danger red */
+    color: black !important;
+    border: none;
+    padding: 8px 18px;
+    font-weight: 500;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    font-weight: bold;
+    height: 40px;
+    width: 150px;
+    font-size: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+    .btn-cancel:hover {
+        background-color: darkred !important; /* Darker red on hover */
+        color: white !important;
+    }
+
+.buttonss {
+/*    position: sticky;
+*/    bottom: 20px;
+    padding: 10px;
+    z-index: 100;
+    margin-left:380px;
+}
+
+
+

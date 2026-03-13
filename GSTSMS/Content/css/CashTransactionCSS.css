@@ -1,0 +1,813 @@
+﻿/* ========== Base Modal Styles ========== */
+#CashModal {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    color: #1e1e1e;
+    line-height: 1.5;
+}
+
+    /* Modal Layout */
+    #CashModal .modal-dialog {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        /* margin: 1.5rem auto;*/
+        max-width: 630px;
+        width: 100%;
+        transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+    }
+
+
+
+    #CashModal .modal-content {
+        display: flex;
+        flex-direction: column;
+        max-height: calc(100vh - 60px);
+        border-radius: 4px;
+        /* overflow: hidden; ❌ remove this */
+        overflow: visible !important; /* ✅ allow scroll */
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    }
+
+
+
+
+
+    /* Smooth zoom-in animation for centered modal */
+    #CashModal .modal.fade .modal-dialog {
+        transform: scale(0.9);
+        transition: transform 0.3s ease-out;
+    }
+
+    #CashModal .modal.show .modal-dialog {
+        transform: scale(1);
+    }
+
+
+
+    #CashModal .modal-header {
+        background-color: #615677;
+        color: #fff;
+        height: 45px;
+        justify-content: center;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-bottom: none;
+        display: flex; /* Required for justify-content & align-items */
+    }
+
+
+    #CashModal .modal-title {
+        font-size: 18px;
+        font-weight: bold;
+        text-align: center;
+        width: 100%;
+    }
+
+
+
+    #CashModal .modal-bodySM {
+        flex: 1 1 auto;
+        max-height: calc(100vh - 150px);
+        overflow-y: auto; /* scrollable vertically */
+        overflow-x: hidden !important; /* no horizontal scroll */
+        -webkit-overflow-scrolling: touch;
+        background-color: #f9f9f9;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE/Edge */
+    }
+
+        /* Chrome, Safari, Opera */
+        #CashModal .modal-bodySM::-webkit-scrollbar {
+            width: 0 !important;
+            height: 0 !important;
+        }
+
+
+
+        #CashModal .modal-bodySM::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.25);
+            border-radius: 4px;
+        }
+
+    #CashModal .modal-bodySM {
+        scrollbar-width: none; /* Firefox */
+    }
+
+
+    /* Modal Footer */
+    #CashModal .modal-footerSM {
+        justify-content: center;
+        /*  /padding: 0 2rem 2rem 2rem;
+        / margin-top: 1rem;*/
+        border-top: none;
+        gap: 1rem;
+    }
+
+/* Close Button */
+.custom-modal-close {
+    /* background-color: #546e7a; */
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    font-size: 28px;
+    width: 30px;
+    height: 26px;
+    border-radius: 3px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    padding-bottom: 5px;
+}
+
+    .custom-modal-close:focus,
+    .custom-modal-close:active {
+        outline: none !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+
+/* Modal Zoom-in Animation */
+/*.modal.fade .modal-dialog {
+    transform: scale(0.8);
+    opacity: 0;
+}
+
+.modal.show .modal-dialog {
+    transform: scale(1);
+    opacity: 1;
+}
+*/
+/* Always center modal vertically */
+.modal.show .modal-dialog {
+    display: flex !important;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Hide body scroll when modal is open */
+body.modal-open {
+    overflow: hidden !important;
+    padding-right: 0 !important;
+}
+
+body::-webkit-scrollbar {
+    display: none;
+}
+
+body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Remove hover effects on buttons */
+#CashModal .btn-success:hover {
+    background-color: #28a745 !important;
+    color: black !important;
+    border-color: #28a745 !important;
+    box-shadow: none !important;
+    cursor: default;
+}
+
+#CashModal .btn-danger:hover {
+    background-color: #dc3545 !important;
+    color: black !important;
+    border-color: #dc3545 !important;
+    box-shadow: none !important;
+    cursor: default;
+}
+
+
+/* Inputs, Selects */
+#CashModal .form-control,
+#CashModal input[type="text"],
+#CashModal input[type="number"] {
+    font-size: 16px;
+    padding: 0.45rem 0.6rem;
+    border: 0.5px solid black;
+    height: 40px;
+    max-width: 370px;
+    border-radius: 2px;
+    color: #000;
+    background-color: #fff;
+    transition: border 0.2s ease-in-out;
+}
+
+    #CashModal .form-control:focus {
+        border-color: #0d6efd;
+        outline: none;
+    }
+
+#CashModal input[readonly] {
+    background-color: #f1f1f1;
+    color: #444;
+}
+
+/* Labels */
+#CashModal label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 0.25rem;
+    display: inline-block;
+}
+
+#CashModal .col-sm-4 {
+    text-align: left;
+    padding-top: 0.5rem;
+}
+
+/* File Upload */
+#CashModal .custom-file {
+    position: relative;
+    max-width: 370px;
+    height: 40px;
+}
+
+#CashModal .custom-file-input,
+#CashModal .custom-file-label {
+    height: 40px;
+    font-size: 14px;
+    border: 0.5px solid black;
+    padding: 0.4rem 0.6rem;
+    border-radius: 2px;
+    background-color: #fff;
+    color: #000;
+    width: 370px;
+}
+
+#CashModal .custom-file-input {
+    cursor: pointer;
+    width: 100%;
+}
+
+#CashModal .custom-file-label {
+    line-height: 22px;
+}
+
+.custom-file-input ~ .custom-file-label::after {
+    content: "Browse";
+    background-color: #e9ecef;
+    border-left: 0.5px solid black;
+    padding: 0.45rem 0.75rem;
+    height: 100%;
+    top: 0;
+    right: 0;
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0 .25rem .25rem 0;
+}
+
+/* File Preview */
+#filePreviewList {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 5px;
+    font-size: 15px;
+    color: #444;
+}
+
+    #filePreviewList li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 5px;
+    }
+
+    #filePreviewList .btn {
+        margin-left: 10px;
+    }
+
+/* Button Row */
+#CashModal .button-row,
+#CashModal .form-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+/* Buttons */
+#CashModal .btn-success,
+#CashModal .btn-danger {
+    min-width: 110px;
+    font-size: 14px;
+    padding: 0.5rem 1.3rem;
+    border-radius: 4px;
+    font-weight: 500;
+    border: none;
+    transition: background-color 0.2s ease;
+}
+
+#CashModal .btn-success {
+    background-color: #28a745;
+    color: #fff;
+}
+
+    #CashModal .btn-success:hover {
+        background-color: #28a745;
+    }
+
+#CashModal .btn-danger {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+    #CashModal .btn-danger:hover {
+        background-color: #dc3545;
+    }
+
+/* Form Groups */
+#CashModal .form-group.row:not(.radio-group) {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.8rem;
+}
+
+    #CashModal .form-group.row:not(.radio-group) .col-sm-4 {
+        text-align: left;
+        padding-top: 0.45rem;
+    }
+
+    #CashModal .form-group.row:not(.radio-group) .col-sm-9 {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+/* Hidden Sections */
+#CreditSection,
+#ChequeSection,
+#AttachFileDiv,
+#PaymentPurposeDiv,
+#ReceiverDropdownDiv,
+#ReceiverTextboxDiv,
+#TypeDropdownDiv {
+    display: none;
+}
+
+/* Hide any horizontal rules */
+#CashModal hr {
+    display: none;
+}
+
+/* Responsive (Mobile) */
+@media (max-width: 576px) {
+    #CashModal .modal-dialog {
+        margin: 0.5rem;
+        max-width: 100%;
+    }
+
+    #CashModal .col-sm-4 {
+        text-align: left;
+        padding-top: 0;
+    }
+
+    #CashModal .form-control,
+    .custom-file-label {
+        max-width: 100%;
+    }
+
+    #CashModal .modal-bodySM {
+        padding: 1rem 1rem 0.75rem 1rem;
+    }
+
+    #CashModal .modal-footerSM {
+        padding: 0 1rem 1.5rem 1rem;
+    }
+}
+/* Completely disable modal fade & zoom animation */
+.modal.fade .modal-dialog {
+    transform: none !important;
+    transition: none !important;
+}
+
+.modal.fade {
+    opacity: 1 !important;
+    transition: none !important;
+}
+
+.col-form-label {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* Red border for invalid fields */
+
+
+
+
+
+#CashModal .is-invalid {
+    border: 1px solid #dc3545 !important;
+}
+/*
+ Green border for valid fields */
+#CashModal .is-valid {
+    border: 1px solid #28a745 !important;
+    background-image: none !important;
+}
+
+
+
+
+.select2-selection.is-invalid {
+    border: 1px solid #dc3545 !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.select2-container.is-invalid {
+    border: none !important;
+}
+
+
+/* Remove validation background icon */
+#CashModal input.is-invalid,
+#CashModal select2.is-invalid,
+#CashModal textarea.is-invalid {
+    background-image: none !important;
+    padding-right: 0.75rem !important; /* Adjust padding if needed */
+    background-position: right calc(0.375em + 0.1875rem) center !important;
+    background-repeat: no-repeat !important;
+    background-size: 0 !important; /* This disables the icon */
+}
+
+/* ==========================
+   Select2 Styling for CashModal
+   Matches Other Input Fields
+========================== */
+/* Match dropdown with other inputs */
+/* ==========================
+   Select2 Styling for CashModal
+   Matches Other Input Fields
+========================== */
+#CashModal .select2-container {
+    max-width: 370px !important;
+    width: 100% !important;
+}
+
+    #CashModal .select2-container .select2-selection--single {
+        height: 40px !important;
+        color: black !important;
+        border: 0.5px solid black !important;
+        border-radius: 2px !important; /* same as inputs */
+        background-color: #fff !important;
+        display: flex !important;
+        align-items: center !important;
+        padding-left: 8px !important;
+        font-size: 16px !important;
+        transition: border-color 0.15s ease-in-out;
+        box-shadow: none !important; /* remove any shadow */
+    }
+
+/* Remove box-shadow on focus */
+#CashModal .select2-container--default .select2-selection--single:focus {
+    border-color: #0d6efd !important;
+    outline: none !important;
+}
+
+/* Align text inside dropdown */
+#CashModal .select2-selection__rendered {
+    line-height: 38px !important;
+    font-size: 16px !important;
+    color: black !important;
+    padding-left: 10px !important;
+    text-align: left !important;
+}
+
+/* Arrow alignment */
+#CashModal .select2-selection__arrow {
+    height: 38px !important;
+    right: 8px !important;
+}
+
+/* Options in dropdown */
+.select2-container .select2-results__option {
+    color: black !important;
+    font-size: 16px !important;
+}
+
+/* Validation styles */
+/* Directly target select2 container when invalid */
+#CashModal .select2-container.is-invalid .select2-selection {
+    border: 1px solid #dc3545 !important;
+}
+
+/* Keep your existing green border for valid */
+#CashModal .select2-container.is-valid .select2-selection {
+    border: 1px solid #28a745 !important;
+}
+
+/* Remove parent border if select2 is invalid */
+#CashModal .select2-selection.is-invalid {
+    border: 1px solid #dc3545 !important;
+}
+
+/* Dropdown valid (green border) */
+#CashModal .select2-selection.is-valid {
+    border: 1px solid #28a745 !important;
+}
+
+#CashModal .select2-container.is-invalid .select2-selection {
+    border: 1px solid #dc3545 !important; /* Only selection la border */
+}
+
+
+
+/* Align validation message right under Select2 */
+#CashModal .select2-container ~ .invalid-feedback {
+    display: block !important;
+    margin-top: 0.25rem !important;
+}
+
+/* Common validation message placement */
+#CashModal .form-group .validation-message,
+#CashModal .form-group .invalid-feedback {
+    display: block !important;
+    font-size: 0.875rem !important;
+    color: #dc3545 !important;
+    margin-top: 4px !important;
+    margin-left: 0 !important;
+}
+
+/* Radio group message alignment */
+#CashModal #PaymentModeValidationContainer .validation-message {
+    margin-top: 4px !important;
+}
+
+/* Select2 focus blue border remove */
+#CashModal .select2-container--default .select2-selection--single:focus {
+    border-color: inherit !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Normal input focus blue border remove */
+#CashModal input:focus,
+#CashModal select:focus,
+#CashModal textarea:focus {
+    border-color: inherit !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+
+
+
+
+
+/* Force validation message under input instead of label */
+#CashModal .validation-message {
+    display: block;
+    font-size: 0.875rem;
+    color: #dc3545;
+    margin-top: 4px;
+    margin-left: 0;
+    width: 100%;
+}
+
+#CashModal .col-sm-7,
+#CashModal .col-sm-9 {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+#CashModal .form-control.is-invalid {
+    border-color: #dc3545;
+}
+
+
+.rupee-input-wrapper {
+    position: relative;
+}
+
+.rupee-inside-input {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    color: #6c757d;
+    font-size: 16px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.rupee-padding-left {
+    padding-left: 30px !important; /* Enough space for ₹ */
+}
+
+.input-with-rupee {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='16'><text x='0' y='14' font-size='14'>₹</text></svg>");
+    background-repeat: no-repeat;
+    background-position: 8px center;
+    padding-left: 28px !important;
+    background-size: 18px 20px;
+}
+/* Remove exclamation icon from invalid form fields */
+input.is-invalid,
+select2.is-invalid,
+textarea.is-invalid {
+    background-image: none !important;
+    background-repeat: no-repeat !important;
+    background-position: right center !important;
+    background-size: 0 !important;
+}
+
+input.form-control.is-valid,
+select2.form-control.is-valid,
+textarea.form-control.is-valid {
+    border-color: #28a745 !important;
+    background-image: none !important;
+}
+
+.custom-file-input.is-valid {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+
+#loadingSpinner {
+    display: none;
+    position: fixed; /* full page */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 2000;
+    border-radius: 10px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+    #loadingSpinner .centered-content {
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
+
+.colon {
+    display: inline-block;
+    width: 12px; /* fix केलेली जागा : साठी */
+    text-align: right;
+}
+
+.required-star {
+    color: red;
+    font-weight: bold;
+}
+
+
+
+
+
+.loader {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #fff;
+    border-top: 5px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+
+/* =========================================================
+   ✅ MONTH–YEAR INPUT (SAME AS OTHER INPUTS)
+========================================================= */
+
+#CashModal #MonthDropdown {
+    font-size: 16px !important;
+    padding: 0.45rem 0.6rem !important;
+    border: 0.5px solid black !important;
+    height: 40px !important;
+    max-width: 370px !important;
+    border-radius: 2px !important;
+    color: #000 !important;
+    background-color: #fff !important;
+    cursor: pointer;
+}
+
+    #CashModal #MonthDropdown[readonly] {
+        background-color: #f1f1f1 !important;
+        color: #444 !important;
+    }
+
+    #CashModal #MonthDropdown:focus {
+        border-color: #0d6efd !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+/* =========================================================
+   ✅ ICON INSIDE INPUT (RIGHT SIDE – SIMPLE)
+========================================================= */
+
+.month-picker-wrapper {
+    position: relative;
+    width: 370px;
+}
+
+    .month-picker-wrapper input {
+        padding-right: 34px !important;
+    }
+
+    .month-picker-wrapper .calendar-icon {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #555;
+        font-size: 15px;
+        pointer-events: none;
+    }
+
+/* =========================================================
+   ✅ FLATPICKR CALENDAR – CLEAN & NO OVERLAP
+========================================================= */
+
+.flatpickr-calendar {
+    z-index: 9999 !important;
+}
+
+#CashModal .flatpickr-calendar {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 14px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    margin-top: 6px !important;
+}
+
+
+
+
+
+/* =========================================================
+   ✅ FLATPICKR HEADER (MONTH/YEAR BAR – SIMPLE)
+========================================================= */
+
+#CashModal .flatpickr-months {
+    background: #615677;
+}
+
+#CashModal .flatpickr-current-month,
+#CashModal .flatpickr-current-month span.cur-month,
+#CashModal .flatpickr-current-month input.cur-year {
+    color: #fff !important;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+
+
+/* =========================================================
+   ✅ MOBILE FIX (SMALL SCREEN)
+========================================================= */
+
+@media (max-width: 576px) {
+    #CashModal .flatpickr-calendar {
+        left: 50% !important;
+        transform: translateX(-50%);
+        max-width: 95vw;
+    }
+
+    .month-picker-wrapper {
+        width: 100% !important;
+    }
+}
+
+.bank-label {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.bank-amount {
+    color: #007bff;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: right; /* ✅ digits always right side */
+    min-width: 200px; /* ✅ extra digits saan fit honar */
+    white-space: nowrap; /* ✅ amount break honar nahi */
+}
+
+
+/* ✅ BANK BALANCE FORCE HIDE */
+#CashModal #bankBalanceWrapper {
+    display: none;
+}

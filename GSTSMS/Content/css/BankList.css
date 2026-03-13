@@ -1,0 +1,298 @@
+﻿body, table, th, td {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+/* Table Header Height Fix */
+#bankTable thead th {
+    background-color: #615677 !important;
+    color: white !important;
+    font-size: 14px !important;
+    /*padding-top: 6px !important;
+    padding-bottom: 6px !important;*/
+    line-height: 1.2 !important;
+    vertical-align: middle !important;
+    height: 30px !important;
+    text-align: center;
+}
+
+/* Row height */
+#bankTable tbody tr {
+    /* padding-top: 10px !important;
+    padding-bottom: 10px !important;*/
+    vertical-align: middle !important;
+    height: 25px !important;
+}
+
+
+    #bankTable tbody tr:hover td {
+        background-color: #f9f9f9 !important;
+    }
+
+
+
+#bankTable tbody td {
+    color: black !important;
+    font-size: 13px !important;
+    text-align: center !important;
+}
+
+/* Search box sizing */
+.dataTables_filter input[type="search"] {
+    width: 178.4px !important;
+    height: 31px !important;
+    font-size: 14px;
+}
+
+/* Pagination alignment */
+div.dataTables_paginate {
+    text-align: right !important;
+    float: right !important;
+}
+
+
+.bank-active {
+    background-color: #343a40;
+    color: #fff;
+}
+
+.bank-inactive {
+    color: #6c757d !important;
+    opacity: 0.5;
+}
+
+.disabled-style {
+    opacity: 0.5;
+    filter: grayscale(70%);
+}
+
+/* Remove sorting arrows */
+table.dataTable th.sorting:after,
+table.dataTable th.sorting:before,
+table.dataTable th.sorting_asc:after,
+table.dataTable th.sorting_asc:before,
+table.dataTable th.sorting_desc:after,
+table.dataTable th.sorting_desc:before {
+    display: none !important;
+}
+
+
+/* Search box style if needed */
+.dataTables_filter input {
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+/* Bank List Heading */
+.card-title {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.dt-buttons .btn {
+    margin-right: 5px;
+}
+
+/* Remove default label space */
+#bankTable_filter label {
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Compact search box */
+#bankTable_filter input[type="search"] {
+    width: 180px;
+    padding: 4px 8px;
+    font-size: 13px;
+    height: 30px;
+}
+
+/* Keep export buttons and search bar on same line */
+#topBarWrapper {
+    flex-wrap: nowrap !important;
+    margin-bottom: 10px;
+}
+
+#exportButtons > * {
+    margin-right: 10px;
+}
+
+#customSearchWrapper {
+    margin-left: auto;
+}
+
+
+.dataTables_filter {
+    text-align: right !important;
+}
+
+.disabled-link {
+    pointer-events: none;
+    opacity: 0.6;
+}
+/* Optional - spacing fix */
+.dataTables_filter {
+    float: right !important;
+    text-align: right;
+}
+
+Vertical borders for table columns
+#bankTable td,
+#bankTable th {
+    border-right: 1px solid #dee2e6 !important;
+    text-align: center !important;
+}
+
+    /* Avoid double border on last column */
+    #bankTable th:last-child,
+    #bankTable td:last-child {
+        border-right: none !important;
+    }
+
+#bankTable thead th {
+    /*background-color: #f8f9fa;*/
+    font-weight: 600;
+}
+
+.card {
+    margin-top: 0 !important;
+}
+
+/* ✅ Remove top margin/padding above Event List card */
+body {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+.card {
+    margin-top: 0 !important;
+}
+
+.section,
+.section-body,
+.main-content {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+
+.active-bank {
+    background-color: white !important;
+    color: #212529 !important;
+    opacity: 1 !important;
+    filter: none !important;
+}
+
+.bank-inactive {
+    background-color: #e9ecef !important; /* light gray */
+    color: #6c757d !important; /* gray text */
+    opacity: 0.8;
+    filter: grayscale(100%);
+}
+
+.custom-heading {
+    text-align: center;
+    color: #000;
+    font-size: 24px;
+    font-weight: 700;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+}
+
+
+.receipt-link {
+    margin-right: 12px; /* space between receipt button and toggle */
+    font-size: 12px;
+}
+
+.custom-switch {
+    display: inline-flex;
+    align-items: center;
+    font-size: 12px;
+}
+
+
+
+/* 🔽 Remove background and border from export buttons */
+button.export-buttons.icon-only-btn {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 10px;
+    gap: 10px !important;
+}
+
+    /* 🔽 Optional: Remove hover background */
+    button.export-buttons.icon-only-btn:hover {
+        background-color: transparent !important;
+        box-shadow: none !important;
+    }
+
+
+.AddBankCSS {
+    border: none;
+    border-radius: 5Px;
+    background-color: #ef6351;
+    margin: 1px 0px 0px;
+    padding: 6px 18px;
+    color: white;
+}
+/*//////////////////////////////////////////////////Mukesh*/
+.AddButtonDIv {
+    width: 78%;
+    padding: 0px;
+    margin-left: 349px !important;
+    /*margin-right: -344px !important;*/
+}
+
+#addBankModalContent {
+    border-radius: 4px !important;
+    overflow: hidden; /* ensures corners are clipped if needed */
+}
+
+.custom-add-bank-btn {
+    width: 150px;
+    height: 40px;
+    font-size: 14px; /* Optional: Adjust text size */
+    padding: 6px 12px; /* Optional: Adjust inner spacing */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+body {
+    overflow: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+    body::-webkit-scrollbar {
+        display: none; /*Chrome, Safari, Edge */
+    }
+
+#bankTable thead th {
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+    vertical-align: middle !important;
+    height: 30px !important;
+    text-align: center;
+}
+
+/* Row height */
+#bankTable tbody tr {
+    max-height: 25px !important;
+    height: 25px !important;
+}
+
+
+#bankTable tbody td {
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+    line-height: 20px !important;
+    vertical-align: middle;
+    text-align: center;
+}

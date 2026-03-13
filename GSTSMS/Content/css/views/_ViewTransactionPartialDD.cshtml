@@ -1,0 +1,237 @@
+﻿@model GSTSMSLibrary.AccountManager.AccountManager
+
+<style>
+    /* Modal Container */
+    .modal-content {
+        border-radius: 4px !important;
+        overflow: hidden;
+        max-height: 90vh;
+        width: 100%;
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .modal-header-txndd {
+        background-color: #615677;
+        height: 45px;
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        padding-bottom: 25px;
+    }
+
+    .modal-title-txndd {
+        font-size: 18px;
+        font-weight: bold;
+        color: #fff;
+        margin: 0;
+    }
+
+    .custom-close-btn {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        border: none !important;
+        background-color: red;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        padding: 5px 10px;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.3s ease;
+        /* New properties to remove outline */
+        outline: none !important;
+        box-shadow: none !important;
+    }
+        .custom-close-btn:focus,
+        .custom-close-btn:active,
+        .custom-close-btn:hover {
+            outline: none !important;
+            box-shadow: none !important;
+            border: none !important;
+        }
+
+    .custom-close-btn:hover {
+        background-color: orangered;
+        color: white;
+    }
+
+    .custom-close-btn i {
+        pointer-events: none;
+        font-size: 14px;
+    }
+
+    /* Body */
+    .modal-body-txndd {
+        padding: 1.25rem 1.5rem;
+        max-height: calc(90vh - 60px);
+        overflow-y: auto;
+    }
+
+    /* Section Titles */
+    .section-title-txndd {
+        font-weight: bold;
+        color: black;
+        font-size: 16px;
+        margin-bottom: 0.75rem;
+    }
+
+    .section-block-txndd {
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    /* Two-column grid */
+    .details-grid-txndd {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem 2rem;
+    }
+
+    /* Labels & Values */
+    .detail-label-txndd {
+        font-size: 16px;
+        font-weight: bold;
+        color: #444;
+        display: inline-block;
+        min-width: 110px;
+    }
+
+    .detail-value-txndd {
+        font-size: 16px;
+        font-weight: normal;
+        color: #555;
+        word-break: break-word;
+    }
+
+    .text-success-txndd {
+        color: #27ae60;
+        font-weight: bold;
+    }
+
+    /* Attachments */
+    .attachments-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 6px;
+    }
+
+    .attachment-item-txndd {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 8px;
+/*        background-color: #f8f9fa;*/
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    .attachment-icon-txndd {
+        color: blue;
+    }
+
+    .attachment-link-txndd {
+        color: blue;
+        text-decoration: none;
+        max-width: 220px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .attachment-link-txndd:hover {
+        text-decoration: underline;
+    }
+
+    .no-attachments {
+        color: #95a5a6;
+        font-style: italic;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Footer buttons center */
+    .modal-footer-txndd {
+        justify-content: center;
+        border-top: 1px solid #e0e0e0;
+        padding: 0.75rem;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .details-grid-txndd {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<!-- Modal Header -->
+<div class="modal-header modal-header-txndd">
+    <h5 class="modal-title modal-title-txndd">Transaction Details</h5>
+    <button type="button" class="custom-close-btn" id="modalCloseButton" aria-label="Close">
+        <i class="fas fa-times"></i>
+    </button>
+</div>
+
+<!-- Modal Body -->
+<div class="modal-body modal-body-txndd">
+    <!-- Payment Info -->
+    <div class="section-block-txndd">
+        <div class="section-title-txndd">Payment Information</div>
+        <hr />
+        <div class="details-grid-txndd">
+            <div><span class="detail-label-txndd">Payment By:</span> <span class="detail-value-txndd">@Model.PaymentByName</span></div>
+            <div><span class="detail-label-txndd">Paid To:</span><span class="detail-value-txndd">@Model.PaidToName</span></div>
+            <div><span class="detail-label-txndd">Amount:</span> <span class="text-success-txndd">₹ @Model.Amount</span></div>
+            <div><span class="detail-label-txndd">Payment Mode:</span> <span class="detail-value-txndd">@Model.PaymentModeName</span></div>
+            <div><span class="detail-label-txndd">Purpose:</span> <span class="detail-value-txndd">@Model.PaymentPurpose</span></div>
+            <div><span class="detail-label-txndd">Check No:</span> <span class="detail-value-txndd">@Model.TransactionId_ChequeId</span></div>
+            <div><span class="detail-label-txndd">Paid Date:</span> <span class="detail-value-txndd">@(Model.PaidDate?.ToString("dd-MM-yyyy") ?? "-")</span></div>
+            <div><span class="detail-label-txndd"> Time:</span> <span class="detail-value-txndd">@(Model.PaidDate?.ToString("hh:mm tt") ?? "-")</span></div>
+        </div>
+    </div>
+
+    <!-- Attachments -->
+    <div class="section-block-txndd">
+        <div class="section-title-txndd">Attachments</div>
+        @{
+            var documentList = string.IsNullOrWhiteSpace(Model.Document) || Model.Document == "-"
+                ? new List<string>()
+                : Model.Document.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries)
+                                .Select(doc => doc.Trim())
+                                .ToList();
+        }
+
+        @if (documentList.Count > 0)
+        {
+            <div class="attachments-container">
+                @foreach (var doc in documentList)
+                {
+                    var fileUrl = Url.Content(doc);
+                    <div class="attachment-item-txndd">
+                        <i class="fas fa-file-pdf attachment-icon-txndd"></i>
+                        <a href="@fileUrl" target="_blank" class="attachment-link-txndd" title="@System.IO.Path.GetFileName(doc)">
+                            @System.IO.Path.GetFileName(doc)
+                        </a>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="no-attachments">
+                <i class="fas fa-times-circle text-danger"></i>
+                <span>No attachments</span>
+            </div>
+        }
+    </div>
+</div>

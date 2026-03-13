@@ -1,0 +1,722 @@
+﻿@model IEnumerable<Dictionary<string, object>>
+
+<div class="table-responsive">
+    <table id="workerPaymentTable"
+           class="table table-sm table-bordered table-hover table-striped dataTableExport mb-0"
+           style="width:100%; table-layout:auto;">
+        <thead class="text-center">
+            <tr style="background-color: #615677">
+                <th style="text-align:center; vertical-align:middle;">
+                    <div class="d-flex justify-content-center align-items-center" style="height: 100%;">
+                        <input type="checkbox" id="selectAllWorkers" class="row-checkbox" />
+                    </div>
+                </th>
+                <th style="color:white;">Sr.No</th>
+                <th style="color:white;">Worker Name</th>
+                <th style="color:white;">Contact No.</th>
+                <th style="color:white;">Base Salary(₹)</th>
+                <th style="color:white;">Joining Date</th>
+                <th style="color:white;">Worker Type</th>
+                <th style="color:white;">Status</th>
+            </tr>
+        </thead>
+        <tbody class="small">
+            @{
+                int i = 1;
+                if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr class="text-center">
+                            <td>
+                                <input type="checkbox" class="row-checkbox" value="@item["WorkerId"]" />
+                            </td>
+                            <td style="color:black">@i</td>
+                            <td style="color:black">@item["WorkerName"]</td>
+                            <td style="color:black">@item["WorkerContactNo"]</td>
+                            <td style="color:black">₹@item["BaseSalary"]</td>
+                            <td style="color:black">
+                                @(item["JoiningDate"] != null ? Convert.ToDateTime(item["JoiningDate"]).ToString("dd-MM-yyyy") : "")
+                            </td>
+                            <td style="color:black">@item["WorkerType"]</td>
+                            <td style="font-weight:600;
+                color:@(
+                    (item["PaymentStatus"]?.ToString() == "Completed") ? "green" :
+                    (item["PaymentStatus"]?.ToString() == "Pending") ? "red" : "black"
+                )">
+                                @item["PaymentStatus"]
+                            </td>
+                        </tr>
+                        i++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">No worker payment records found.</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+<style>
+    div.table-responsive > div.dataTables_wrapper > div.row > div[class^="col-"]:first-child {
+        padding-left: 0;
+        color: black;
+    }
+
+    .modal-open .modal {
+        overflow-x: visible !important;
+        overflow-y: visible !important;
+        margin-bottom: 1000px;
+    }
+
+    button.export-buttons.icon-only-btn {
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 5px;
+    }
+
+        button.export-buttons.icon-only-btn:hover {
+            background-color: transparent !important;
+            box-shadow: none !important;
+        }
+</style>
+
+
+<!-- ✅ DataTables + Export + Select -->
+<link href="~/Content/modules/datatables/datatables.min.css" rel="stylesheet" />
+<link href="~/Content/modules/datatables/DataTables-1.10.16/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
+<link href="~/Content/css/AuditReport.css" rel="stylesheet" />
+<link href="~/Content/modules/izitoast/css/iziToast.css" rel="stylesheet" />
+<link href="~/Content/modules/izitoast/css/iziToast.min.css" rel="stylesheet" />
+
+
+
+
+
+<!-- Page Specific JS File -->
+<script src="~/Content/modules/sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/modules/datatables/datatables.min.js"></script>
+<script src="~/Content/modules/izitoast/js/iziToast.js"></script>
+<script src="~/Content/modules/izitoast/js/iziToast.min.js"></script>
+<script src="~/Content/modules/moment.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        var selectedWorkerRows = {};  // Store selected state by unique row ID (important!)
+        var table = $('#workerPaymentTable').DataTable({
+            dom: "<'row'<'col-md-6'B><'col-md-6'f>>" +
+                "<'row'<'col-12'tr>>" +
+                "<'row'<'col-md-5'i><'col-md-7'p>>",
+            ordering: false,
+            buttons: [
+                {
+                    extend: 'csvHtml5',
+                    text: '<img src="/Content/img/icons8-csv-64.png" alt="CSV" style="height:32px;" title="Export CSV" />',
+                    className: 'export-buttons icon-only-btn',
+                    filename: 'Green Valley Society - Worker Payment List ' + moment().format('DD-MM-YYYY'),
+                    action: function (e, dt, button, config) {
+                        const $selectedNodes = dt
+                            .rows({ filter: 'applied' })
+                            .nodes()
+                            .to$()
+                            .filter(function () {
+                                return $(this).find('input.row-checkbox:checked').length > 0;
+                            });
+
+                        if ($selectedNodes.length === 0) {
+                            iziToast.warning({
+                                title: 'Warning',
+                                message: 'Please select at least one row to export CSV.',
+                                position: 'topCenter'
+                            });
+                            return;
+                        }
+
+                        const csvEscape = function (val) {
+                            if (val === null || val === undefined) return '""';
+                            const s = String(val).replace(/"/g, '""');
+                            return '"' + s + '"';
+                        };
+
+                        // ✅ Visible columns except checkbox
+                        const visibleCols = dt.columns(':visible').indexes().toArray();
+                        const visibleColsExclFirst = visibleCols.slice(1);
+
+                        // ✅ Headers
+                        let headers = visibleColsExclFirst.map(function (colIdx) {
+                            return $(dt.column(colIdx).header()).text().trim();
+                        });
+
+                        // Sr No fix
+                        if (headers.length > 0) headers[0] = 'Sr No';
+
+                        // Column positions
+                        const phoneRel = headers.findIndex(h => /phone|mobile|contact/i.test(h));
+                        const salaryRel = headers.findIndex(h => /salary|amount|pay|payment|fee/i.test(h));
+                        const joinDateRel = headers.findIndex(h => /join|joining|joined|date/i.test(h));
+
+                        // Title + timestamp rows
+                        const headerLen = headers.length;
+                        const headerTitle = 'Green Valley Society - Worker Payment List';
+                        const downloadedOn = 'Generated on: ' + moment().format('DD-MM-YYYY hh:mm A');
+
+                        const titleArr = Array(headerLen).fill('');
+                        titleArr[Math.floor(headerLen / 2)] = headerTitle;
+                        const timeArr = Array(headerLen).fill('');
+                        timeArr[Math.floor(headerLen / 2)] = downloadedOn;
+
+                        const csvLines = [];
+                        csvLines.push(titleArr.map(csvEscape).join(','));
+                        csvLines.push(timeArr.map(csvEscape).join(','));
+                        csvLines.push(headers.map(csvEscape).join(','));
+
+                        // Build rows
+                        let sr = 1;
+                        $selectedNodes.each(function () {
+                            const rowNode = this;
+                            const rowIndex = dt.row(rowNode).index();
+
+                            let rowVals = visibleColsExclFirst.map(function (colIdx) {
+                                const cellNode = dt.cell(rowIndex, colIdx).node();
+                                return $(cellNode).text().trim();
+                            });
+
+                            // Sr No
+                            rowVals[0] = sr++;
+
+                            // Phone formatting
+                            if (phoneRel >= 0 && rowVals[phoneRel]) {
+                                const phoneRaw = String(rowVals[phoneRel]).replace(/"/g, '').trim();
+                                rowVals[phoneRel] = '="' + phoneRaw + '"';
+                            }
+
+                            // ✅ Base Salary formatting with ₹ sign
+                            if (salaryRel >= 0 && rowVals[salaryRel]) {
+                                let clean = String(rowVals[salaryRel])
+                                    .replace(/"/g, '')        // remove quotes
+                                    .replace(/[^0-9.,]/g, '') // remove non-numeric chars
+                                    .trim();
+
+                                if (clean === '') clean = '0';
+
+                                // Prefix ₹ symbol
+                                rowVals[salaryRel] = '₹' + clean;
+                            }
+
+
+                            // Joining Date formatting
+                            if (joinDateRel >= 0 && rowVals[joinDateRel]) {
+                                const dv = String(rowVals[joinDateRel]).replace(/"/g, '').trim();
+                                const parsed = moment(dv, [
+                                    'YYYY-MM-DD HH:mm:ss',
+                                    'YYYY-MM-DD',
+                                    'DD/MM/YYYY',
+                                    'MM/DD/YYYY',
+                                    'DD-MM-YYYY'
+                                ], true);
+                                rowVals[joinDateRel] = parsed.isValid() ? parsed.format('DD-MM-YYYY') : '';
+                            }
+
+                            csvLines.push(rowVals.map(csvEscape).join(','));
+                        });
+
+                        // Download CSV
+                        const csvString = csvLines.join('\n');
+
+                        // ✅ Add UTF-8 BOM so Excel shows ₹ correctly
+                        const blob = new Blob(["\ufeff" + csvString], { type: 'text/csv;charset=utf-8;' });
+
+                        const filename = 'Green Valley Society - Worker Payment List ' + moment().format('DD-MM-YYYY') + '.csv';
+
+                        if (navigator.msSaveBlob) {
+                            navigator.msSaveBlob(blob, filename);
+                        } else {
+                            const link = document.createElement('a');
+                            const url = URL.createObjectURL(blob);
+                            link.href = url;
+                            link.download = filename;
+                            document.body.appendChild(link);
+                            link.click();
+                            setTimeout(function () {
+                                document.body.removeChild(link);
+                                window.URL.revokeObjectURL(url);
+                            }, 100);
+                        }
+
+
+                        // Success
+                        setTimeout(function () {
+                            swal({
+                                icon: 'success',
+                                title: 'CSV Exported',
+                                text: 'Your CSV file has been downloaded successfully!',
+                                timer: 2000,
+                                buttons: false
+                            });
+                        }, 300);
+                        clearAllSelectionsAfterExport(dt);
+                    }
+                },
+
+
+
+
+                {
+                    extend: 'excelHtml5',
+                    text: '<img src="/Content/img/icons8-xls-64.png" style="height:32px;" title="Export Excel" />',
+                    className: 'export-buttons icon-only-btn',
+                    title: null,
+                    filename: 'Green Valley Society - Worker Payment List ' + moment().format("DD-MM-YYYY"),
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $('input.row-checkbox', node).is(':checked');
+                        },
+                        columns: [1, 2, 3, 4, 5, 6, 7]
+                    },
+                    customize: function (xlsx) {
+                        const sheet = xlsx.xl.worksheets['sheet1.xml'];
+                        const styles = xlsx.xl['styles.xml'];
+                        const $ = window.jQuery;
+
+
+                        const title = 'Green Valley Society - Worker Payment List';
+                        const timestamp = 'Generated on: ' + moment().format('DD-MM-YYYY hh:mm A');
+
+                        const sheetData = $('sheetData', sheet);
+                        const rows = sheetData.find('row');
+
+                        // Shift existing rows down by 2
+                        rows.each(function () {
+                            const r = parseInt($(this).attr('r')) + 2;
+                            $(this).attr('r', r);
+                            $(this).find('c').each(function () {
+                                const cellRef = $(this).attr('r');
+                                const col = cellRef.replace(/[0-9]/g, '');
+                                $(this).attr('r', col + r);
+                            });
+                        });
+
+                        // Insert custom header rows
+                        const titleRow = `
+<row r="1">
+    <c t="inlineStr" r="D1" s="2">
+        <is><t>${title}</t></is>
+    </c>
+</row>`;
+                        const dateRow = `
+<row r="2">
+    <c t="inlineStr" r="D2" s="2">
+        <is><t>${timestamp}</t></is>
+    </c>
+</row>`;
+
+                        sheetData.prepend(dateRow);
+                        sheetData.prepend(titleRow);
+
+                        // Add center style in styles.xml
+                        const cellXfs = $('cellXfs', styles);
+                        const centerStyleIndex = cellXfs.children().length;
+                        cellXfs.append(`
+<xf xfId="0" applyAlignment="1">
+    <alignment horizontal="center" vertical="center"/>
+</xf>`);
+
+                        // Apply center style to all cells
+                        $('sheetData row c', sheet).attr('s', centerStyleIndex);
+
+                        // Fix Sr.No column (A)
+                        let srNo = 1;
+                        $('row', sheet).each(function () {
+                            const rowIndex = parseInt($(this).attr('r'));
+                            if (rowIndex >= 4) {
+                                const firstCell = $('c[r^="A"]', this);
+                                if (firstCell.length) {
+                                    firstCell.attr('t', 'n');
+                                    firstCell.find('v').text(srNo++);
+                                }
+                            }
+                        });
+                    },
+                    action: function (e, dt, button, config) {
+                        const selected = dt.rows().nodes().to$().find('.row-checkbox:checked');
+
+                        // ✅ Condition 1: No checkbox selected
+                        if (selected.length === 0) {
+                            iziToast.warning({
+                                title: 'Warning',
+                                message: 'Please select at least one row to export Excel.',
+                                position: 'topCenter'
+                            });
+                            return;
+                        }
+
+                        // ✅ Condition 2: Header selected but no data rows
+                        const dataRows = dt.rows({ search: 'applied' }).nodes().to$().filter(function () {
+                            return $(this).find('.row-checkbox').length > 0;
+                        });
+
+                        if (dataRows.length === 0) {
+                            iziToast.warning({
+                                title: 'Warning',
+                                message: 'Please select at least one row to export Excel.',
+                                position: 'topCenter'
+                            });
+                            return;
+                        }
+
+                        // ✅ All good – allow export
+                        $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+
+                        swal({
+                            icon: 'success',
+                            title: 'Excel Exported',
+                            text: 'Your Excel file has been downloaded successfully!',
+                            timer: 2000,
+                            buttons: false
+                        });
+                        clearAllSelectionsAfterExport(dt);
+                    }
+                },
+                {
+                    extend: 'pdfHtml5',
+                    text: '<img src="/Content/img/icons8-pdf-64.png" alt="PDF" style="height:32px;" title="Export PDF" />',
+                    className: 'export-buttons icon-only-btn',
+                    orientation: 'landscape',
+
+                    filename: 'Green Valley Society - Worker Payment List ' + moment().format("DD-MM-YYYY"),
+                    pageSize: 'A4',
+                    title: '',
+                    messageTop: '',
+                    exportOptions: {
+                        rows: function (idx, data, node) {
+                            return $('input.row-checkbox', node).is(':checked');
+                        },
+                        columns: ':visible:not(:first-child)',
+                        format: {
+                            body: function (data, row, col, node) {
+                                if (col === 0) return (row + 1).toString(); // Sr.No
+
+                                let text = $(node).attr('data-export') || $(node).text().trim();
+
+                                // 🔴 Optional: Limit description length
+                                if (col === 5 && text.length > 50) {
+                                    text = text.substring(0, 50) + '...';
+                                }
+
+                                return text;
+                            }
+                        }
+                    },
+                    customize: function (doc) {
+                        const now = moment().format("DD-MM-YYYY hh:mm A");
+                        doc.content.unshift({
+                            alignment: 'center',
+                            margin: [0, 0, 0, 12],
+                            text: [
+
+                                { text: 'Green Valley Society - Worker Payment List\n', fontSize: 18, bold: true },
+                                { text: 'Generated on: ' + now + '\n\n', fontSize: 12, italics: true }
+                            ]
+                        });
+
+                        const tableContent = doc.content.find(obj => obj.table);
+                        if (tableContent) {
+                            const colCount = tableContent.table.body[0].length;
+                            tableContent.table.widths = (colCount === 7)
+                                ? [30, 120, 100, 80, 100, 150, 70]
+                                : Array(colCount).fill('auto');
+
+                            tableContent.alignment = 'center';
+                            tableContent.table.body.forEach((row, rowIndex) => {
+                                row.forEach((cell, colIndex) => {
+                                    if (typeof cell === 'object') {
+                                        cell.alignment = 'center';
+                                    } else {
+                                        row[colIndex] = { text: cell, alignment: 'center' };
+                                    }
+                                });
+                            });
+
+                            tableContent.layout = {
+                                hLineWidth: () => 0.5,
+                                vLineWidth: () => 0.5,
+                                hLineColor: () => '#aaa',
+                                vLineColor: () => '#aaa',
+                                paddingLeft: () => 4,
+                                paddingRight: () => 4,
+                                paddingTop: () => 2,       // less padding → less height
+                                paddingBottom: () => 2     // less padding → less height
+                            };
+                        }
+
+                        doc.defaultStyle.fontSize = 10;
+                        doc.styles.tableHeader.fontSize = 11;
+                        doc.styles.tableHeader.bold = true;
+                        doc.styles.tableHeader.alignment = 'center';
+                        doc.styles.tableHeader.fillColor = '#615677 ';
+                        doc.styles.tableHeader.color = '#ffffff';
+                    },
+                    action: function (e, dt, button, config) {
+                        const selected = dt.rows().nodes().to$().find('.row-checkbox:checked');
+
+                        // ✅ Condition 1: No checkbox selected
+                        if (selected.length === 0) {
+                            iziToast.warning({
+                                title: 'Warning',
+                                message: 'Please select at least one row to export PDF.',
+                                position: 'topCenter'
+                            });
+                            return;
+                        }
+
+                        // ✅ Condition 2: Only header selected, no data rows
+                        const dataRows = dt.rows({ search: 'applied' }).nodes().to$().filter(function () {
+                            return $(this).find('.row-checkbox').length > 0;
+                        });
+
+                        if (dataRows.length === 0) {
+                            iziToast.warning({
+                                title: 'Warning',
+                                message: 'Please select at least one row to export PDF.',
+                                position: 'topCenter'
+                            });
+                            return;
+                        }
+
+                        // ✅ All good – allow export
+                        $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+
+                        swal({
+                            icon: 'success',
+                            title: 'PDF Exported',
+                            text: 'Your PDF file has been downloaded successfully!',
+                            timer: 2000,
+                            buttons: false
+                        });
+                        clearAllSelectionsAfterExport(dt);
+                    }
+                },
+
+                {
+                    extend: 'print',
+                    title: '',
+                    text: '<img src="/Content/img/icons8-print-100.png" alt="Print" style="height:32px;" title="Print Worker Payment List" />',
+                    className: 'export-buttons icon-only-btn',
+
+                    exportOptions: {
+                        columns: ':visible:not(:first-child)', // ✅ Checkbox column skip केला
+                        modifier: { page: 'all', search: 'applied', order: 'applied' }, // ✅ सर्व pages consider होतील
+                        rows: function (idx, data, node) {
+                            return $(node).find('input.row-checkbox').prop('checked'); // ✅ फक्त selected rows
+                        },
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 0) return (row + 1).toString(); // Sr.No reset
+                                return $(node).text().trim();
+                            }
+                        }
+                    },
+
+                    customize: function (win) {
+                        $(win.document.body).css('font-size', '10pt');
+
+                        // ✅ Custom date format
+                        const now = new Date();
+                        const day = now.getDate().toString().padStart(2, '0');
+                        const month = (now.getMonth() + 1).toString().padStart(2, '0');
+                        const year = now.getFullYear();
+                        const hours = now.getHours() % 12 || 12;
+                        const minutes = now.getMinutes().toString().padStart(2, '0');
+                        const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+                        const dateString = `${day}-${month}-${year}`;
+                        const timeString = `${hours.toString().padStart(2, '0')}:${minutes} ${ampm}`;
+
+                        // ✅ Heading + timestamp
+                        $(win.document.body).prepend(
+                            '<div style="text-align:center; margin-bottom:10px;">' +
+                            '<h6>GREEN VALLEY SOCIETY : Worker Payment List</h6>' +
+                            '<p>Generated on: ' + dateString + ' ' + timeString + '</p>' +
+                            '</div>'
+                        );
+
+                        // ✅ Style table
+                        $(win.document.body).find('table')
+                            .addClass('compact print-table')
+                            .css({ fontSize: 'inherit', textAlign: 'center', margin: '0 auto', borderCollapse: 'collapse' });
+
+                        $(win.document.body).find('th, td')
+                            .css({ border: '1px solid black', padding: '5px' });
+
+                        // ✅ Remove duplicate headings if any
+                        $(win.document.body).find('caption').remove();
+                        $(win.document.body).find('tr.print-hide').remove();
+
+                        // ✅ Additional print styles
+                        const style = document.createElement('style');
+                        style.type = 'text/css';
+                        style.innerHTML = `
+@@page { margin: 0; }
+@@media print {
+  caption, .print-hide {
+    display: none !important;
+  }
+  html, body {
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 20px !important;
+  }
+  .dt-print-view {
+    overflow: visible !important;
+    position: static !important;
+  }
+  table.print-table thead th {
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+    background-color: transparent !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  table.print-table tbody td {
+    border: 1px solid #000000 !important;
+  }
+}`;
+                        $(win.document.head).append(style);
+                    },
+
+                    action: function (e, dt, button, config) {
+                        const selectedCount = dt.rows(function (idx, data, node) {
+                            return $(node).find('input.row-checkbox').prop('checked');
+                        }, { page: 'all' }).count();
+
+                        if (selectedCount === 0) {
+                            iziToast.warning({
+                                title: 'Warning',
+                                message: 'Please select at least one row to print.',
+                                position: 'topCenter'
+                            });
+                            return;
+                        }
+
+                        $.fn.dataTable.ext.buttons.print.action.call(this, e, dt, button, config);
+                    }
+                },
+
+                // Refresh Worker Payment Table
+                {
+                    text: '<img src="/Content/img/icons8-refresh-50.png" alt="Refresh" style="height:28px;" title="Refresh Table" />',
+                    className: 'export-buttons icon-only-btn btn-spin',
+                    action: function (e, dt, node, config) {
+                        // Spin effect
+                        $(node).find('img').addClass('spin');
+                        setTimeout(function () {
+                            $(node).find('img').removeClass('spin');
+                        }, 500);
+
+                        // ✅ Clear global search and column searches
+                        dt.search('').columns().search('').draw();
+
+                        // ✅ Reset any dropdowns if needed (update IDs as per your page)
+                        $('#monthTransactionSelect, #bankSelector').val('');
+
+                        // ✅ Uncheck all checkboxes
+                        dt.rows().nodes().to$().find('.row-checkbox').prop('checked', false);
+
+                        // ✅ Uncheck select-all checkbox
+                        $('#selectAllWorkers').prop('checked', false);
+
+                        // ✅ Reset selection object
+                        selectedWorkerRows = {};
+                    }
+
+
+
+
+                },
+
+            ],
+            columnDefs: [
+                {
+                    orderable: false,
+                    targets: 0
+                }
+            ],
+            order: [[1, 'asc']],
+            pageLength: 10,
+            responsive: false,
+            scrollX: false,
+
+            language: {
+                info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                infoFiltered: "",   // removes "(filtered from ...)" part
+                infoEmpty: "No entries to show"
+            },
+            drawCallback: function (settings) {
+                var api = this.api();
+                var pageInfo = api.page.info();
+                var startIndex = pageInfo.start;
+
+                // Update Sr.No column
+                api.column(1, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = startIndex + i + 1;
+                });
+
+                // Restore checkbox selection state based on selectedWorkerRows
+                api.rows({ page: 'current' }).nodes().each(function (row) {
+                    var rowId = $(row).attr('id');  // Make sure <tr> has unique id like id="worker_123"
+                    var isChecked = selectedWorkerRows[rowId] || false;
+                    $(row).find('.row-checkbox').prop('checked', isChecked);
+                });
+
+                // Update Select All checkbox state
+                var allChecked = $('#workerPaymentTable').find('.row-checkbox').length === $('#workerPaymentTable').find('.row-checkbox:checked').length;
+                $('#selectAllWorkers').prop('checked', allChecked);
+            }
+        });
+
+
+        function clearAllSelectionsAfterExport(dt) {
+            // ✅ 1. Clear all row checkboxes (on current page)
+            dt.rows().every(function () {
+                $(this.node()).find('.row-checkbox').prop('checked', false);
+            });
+
+            // ✅ 2. Uncheck "Select All"
+            $('#selectAllWorkers').prop('checked', false);
+        }
+        // Select All Checkbox
+        $('#selectAllWorkers').on('click', function () {
+            var isChecked = $(this).prop('checked');
+
+            $('#workerPaymentTable').find('.row-checkbox').each(function () {
+                $(this).prop('checked', isChecked);
+
+                var rowId = $(this).closest('tr').attr('id');
+                selectedWorkerRows[rowId] = isChecked;
+            });
+        });
+
+        // Individual row checkbox change
+        $('#workerPaymentTable').on('change', '.row-checkbox', function () {
+            var rowId = $(this).closest('tr').attr('id');
+            selectedWorkerRows[rowId] = $(this).prop('checked');
+
+            var allChecked = $('#workerPaymentTable').find('.row-checkbox').length === $('#workerPaymentTable').find('.row-checkbox:checked').length;
+            $('#selectAllWorkers').prop('checked', allChecked);
+        });
+
+        // Example: Get selected IDs when needed (e.g., export button click)
+        $('#exportSelectedWorkers').on('click', function () {
+            var selectedIds = Object.keys(selectedWorkerRows).filter(function (rowId) {
+                return selectedWorkerRows[rowId] === true;
+            });
+            $('#selectAllWorkers').prop('checked', allChecked);
+        });
+    });
+</script>

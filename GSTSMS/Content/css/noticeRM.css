@@ -1,0 +1,767 @@
+﻿/* --- AddNotice Styles --- */
+
+/* Validation border styles */
+.select-member-section.is-valid {
+    border-color: #28a745 !important;
+}
+
+.select-member-section.border-danger,
+.border-danger {
+    border-color: #dc3545 !important;
+}
+
+.is-valid {
+    border-color: #28a745 !important;
+}
+
+.is-invalid {
+    border-color: #dc3545 !important;
+}
+
+/* Card and label styles */
+.card-body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #000;
+    font-size: 15px;
+    position: relative;
+    margin-top: -24px;
+}
+
+    .card-body label {
+        font-size: 16px;
+    }
+
+/* Member section scrollable */
+.scrollable-member-list {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+/* Wing details */
+details summary {
+    cursor: pointer;
+    margin-bottom: 0.25rem;
+}
+
+.form-check {
+    margin-bottom: 3px;
+}
+
+.form-group {
+    margin-bottom: 0.9rem;
+}
+
+/* Email loader */
+/*.custom-loader-container {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 9999;
+    background-color: rgba(255, 255, 255, 0.85);
+    padding: 30px 50px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.loader {
+    width: 50px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 5px solid;
+    border-color: #17a2b8 #0000;
+    animation: l1 1s infinite;
+}
+
+@keyframes l1 {
+    to {
+        transform: rotate(0.5turn);
+    }
+}
+
+.hidden {
+    display: none !important;
+}*/
+
+
+/* ===== Plain File Attachment List ===== */
+#filePreviewList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+    max-width: 100%;
+}
+
+    #filePreviewList a {
+        color: #007bff;
+        text-decoration: underline;
+        margin-right: 4px;
+    }
+
+    #filePreviewList span[onclick] {
+        color: #dc3545;
+        cursor: pointer;
+        margin-left: 4px;
+    }
+
+
+
+#btnAddNotice.btn {
+    width: 500px;
+    background-color: #EF6351;
+    border-color: #EF6351;
+    color: white;
+    border-radius: 5px;
+    margin: 1px 0px 0px;
+    padding: 2px 15px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+    #btnAddNotice.btn:hover {
+        background-color: #f38375;
+        border-color: #f38375;
+    }
+
+.btn.btn-success:hover {
+    background-color: #00b67a !important;
+    border-color: #00b67a !important;
+    color: black !important;
+}
+
+/************************************************************************************************************************/
+
+
+
+/*************************************************View Notice CSS********************************************************/
+
+
+
+/* New style for fetched data */
+.fetched-data {
+    color: #808080 !important;
+}
+
+/* Custom size for view notice modal */
+.view-notice-dialog {
+    max-width: 500px; /* Adjust this value to your preferred width */
+    width: auto;
+    margin: 1.75rem auto;
+}
+
+/* Optional: Adjust modal content padding if needed */
+#viewNoticeModal .modal-content {
+    width: 100%;
+}
+
+/* Keep the existing modal body styles but adjust width */
+#viewNoticeModal .modal-body {
+    width: 100%;
+    padding: 15px;
+}
+
+@media (max-width: 576px) {
+    .view-notice-dialog {
+        max-width: 95%;
+        margin: 1.75rem auto;
+    }
+}
+
+.modal-body, .modal-header, .modal-footer {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #000;
+    font-size: 15.5px;
+    font-weight: 400;
+}
+
+    .modal-body label {
+        font-size: 16px;
+        font-weight: 400;
+        color: #000;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+.modal-header {
+    background-color: #615677 !important;
+    justify-content: center !important;
+    align-items: center;
+    padding-top: 10px;
+    padding-bottom: 8px;
+    height: 45px;
+}
+
+    .modal-header .modal-title {
+        color: #fff !important;
+        text-align: center;
+        width: 100%;
+        font-size: 18px !important;
+        margin-bottom: 0;
+    }
+
+.modal-content {
+    border-radius: 4px !important;
+}
+
+.modal-body {
+    padding-bottom: 12px !important;
+}
+
+.modal-footer {
+    display: flex !important;
+    justify-content: center !important;
+}
+
+.file-preview {
+    display: inline-flex;
+    align-items: center;
+    font-size: 15px;
+    background: none;
+    border: none;
+    padding: 0;
+    max-width: 100%;
+}
+
+    .file-preview a {
+        color: #007bff;
+        text-decoration: underline;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 250px;
+        display: inline-block;
+    }
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+    }
+
+.form-control-plaintext {
+    padding: 0.375rem 0;
+    margin-bottom: 0;
+    line-height: 1.5;
+    background-color: transparent;
+    border: solid transparent;
+    border-width: 1px 0;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+
+
+
+
+
+/************************************************************************************************************************/
+
+
+
+
+
+
+/*///////////////////////////////////////////////////// Savita/////////////////////////////////////////////////////
+/* Base Styles */
+body, table, th, td {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+    /* DataTable Sorting Icons */
+    table.dataTable thead th.sorting:after,
+    table.dataTable thead th.sorting:before,
+    table.dataTable thead th.sorting_asc:after,
+    table.dataTable thead th.sorting_asc:before,
+    table.dataTable thead th.sorting_desc:after,
+    table.dataTable thead th.sorting_desc:before {
+        display: none !important;
+    }
+
+    /* Table Header Styling */
+    table.dataTable thead th {
+        vertical-align: middle !important;
+        background-color: #615677 !important;
+        color: white !important;
+        font-size: 14px !important;
+        height: 30px !important;
+        text-align: center !important;
+        padding: 0 8px !important;
+    }
+
+    /* Table Row Styling */
+    /*    table.dataTable tbody tr {
+        height: 25px !important;
+
+    }*/
+
+    table.dataTable tbody tr:hover td {
+        background-color: #f9f9f9 !important;
+    }
+
+    table.dataTable tbody td {
+        vertical-align: middle !important;
+        font-size: 13px !important;
+        color: black !important;
+        text-align: center !important;
+        /*padding: 2px 6px !important;*/
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+    }
+
+/* table.dataTable tbody td {
+        height: 25px !important;
+        line-height: 25px !important;
+        vertical-align: middle !important;
+    }*/
+
+
+/* Search Input */
+.dataTables_filter input[type="search"] {
+    width: 180px !important;
+    height: 31px !important;
+    font-size: 14px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+    margin-left: 10px;
+}
+
+/* Export Buttons */
+.custom-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+
+
+
+.custom-heading {
+    text-align: center;
+    color: #000;
+    font-size: 24px;
+    font-weight: 700;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+}
+
+/* Edit Button */
+.btn-sm i {
+    vertical-align: middle;
+}
+
+/* Responsive Table */
+table.dataTable {
+    width: 100% !important;
+}
+
+/* Special Table Fixes */
+#accountantNoticesTable thead th,
+#expiredNoticesTable thead th {
+    background-color: #615677 !important;
+    color: white !important;
+    font-size: 14px !important;
+    height: 30px !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    padding: 0 8px !important;
+}
+/* 🔽 Remove background and border from export buttons */
+button.export-buttons.icon-only-btn {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 10px;
+    gap: 10px !important;
+}
+
+    /* 🔽 Optional: Remove hover background */
+    button.export-buttons.icon-only-btn:hover {
+        background-color: transparent !important;
+        box-shadow: none !important;
+    }
+
+.btn-editNoticeBtn {
+    background-color: #9b59b6; /* Base Color - Purple */
+    color: white; /* Text Color */
+    border: none;
+    transition: all 0.3s ease;
+}
+
+    .btn-editNoticeBtn i {
+        pointer-events: none; /* icon hover events नको */
+    }
+
+    /* Hover effects for enabled button */
+    .btn-editNoticeBtn:hover:not(.disabled) {
+        background-color: lightgray; /* Hover Color */
+        color: #9b59b6; /* Text Hover Color */
+        cursor: pointer;
+    }
+
+    /* Disabled state */
+    .btn-editNoticeBtn.disabled,
+    .btn-editNoticeBtn[disabled] {
+        opacity: 0.3;
+        cursor: not-allowed;
+        background-color: #9b59b6; /* Maintain base color even disabled */
+        color: white;
+    }
+/* Remove margin below DataTables buttons for all three tables */
+div.dt-buttons {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Remove space above the table wrappers */
+#allNoticesTable_wrapper .row:first-child,
+#accountantNoticesTable_wrapper .row:first-child,
+#expiredNoticesTable_wrapper .row:first-child {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Remove margin on top of tables */
+#allNoticesTable,
+#accountantNoticesTable,
+#expiredNoticesTable {
+    margin-top: 0 !important;
+}
+
+.nav-tabs .nav-link {
+    background-color: white; /* Inactive tab background */
+    border: 1px solid lightgray !important;
+    color: black !important; /* Inactive tab text color */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 40px;
+    padding: 0 30px;
+    margin-right: 25px;
+    text-align: center;
+    outline: none;
+    box-shadow: none;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+    .nav-tabs .nav-link:hover {
+        background-color: #615677 !important;
+        color: white;
+        text-decoration: none;
+    }
+
+    .nav-tabs .nav-link:focus,
+    .nav-tabs .nav-link:active {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    /* ✅ Active tab */
+    .nav-tabs .nav-link.active {
+        background-color: #615667 !important;
+        color: white !important;
+        border-color: lightgray !important;
+    }
+
+
+
+.form-group {
+    margin-bottom: 10px !important;
+}
+
+#btnAddNotice {
+    margin-left: 0 !important;
+}
+
+/*#btnAddNotice {
+    background-color: #EF6351;
+    width: 150px;
+    border-color: #EF6351;
+    color: white;
+    border-radius: 5px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+    border: none;
+    margin-left: auto;
+}
+*/
+.button-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+}
+
+#btnAddNotice {
+    width: 150px;
+    background-color: #0d6efd;
+    /* border-color: #EF6351;*/
+    color: white;
+    /* border-radius: 5px;*/
+    /*margin: 1px 0px 0px;*/
+    /*padding: 2px 15px;*/
+    font-weight: 500;
+    /*transition: background-color 0.3s ease;*/
+    /* display: flex;*/
+    /*justify-content: flex-end;*/ /* Right side ला नेतो */
+    margin-bottom: -11px;
+    margin-top: -32px;
+    height: 40px;
+    border: none;
+    outline: none; /* Focus outline हटवतो */
+    box-shadow: none;
+}
+
+
+
+.main-content {
+    padding-left: 130px;
+    padding-right: 30px;
+    padding-top: 1px;
+    width: 100%;
+    position: relative;
+}
+
+
+/* Remove border from the entire nav-tabs container */
+.nav-tabs {
+    border-bottom: none !important; /* This removes the horizontal line */
+}
+
+.custom-edit-btn {
+    background-color: #9b59b6;
+    color: white;
+    border: none;
+    width: 25px;
+    height: 23px;
+    font-size: 14px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0; /* Ensures exact sizing */
+}
+
+    .custom-edit-btn:hover {
+        background-color: lightgray;
+        color: #9b59b6;
+    }
+
+body {
+    overflow: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+    body::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Edge */
+    }
+
+
+/* Search Input */
+.dataTables_filter input[type="search"] {
+    width: 180px !important;
+    height: 31px !important;
+    font-size: 14px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+    margin-left: 10px;
+}
+
+/* Export Buttons */
+.custom-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+
+
+
+.custom-heading {
+    text-align: center;
+    color: #000;
+    font-size: 24px;
+    font-weight: 700;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+}
+
+/* Edit Button */
+.btn-sm i {
+    vertical-align: middle;
+}
+
+/* Responsive Table */
+table.dataTable {
+    width: 100% !important;
+}
+
+/* Special Table Fixes */
+#accountantNoticesTable thead th,
+#expiredNoticesTable thead th {
+    background-color: #615677 !important;
+    color: white !important;
+    font-size: 14px !important;
+    height: 30px !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    padding: 0 8px !important;
+}
+/* 🔽 Remove background and border from export buttons */
+button.export-buttons.icon-only-btn {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 10px;
+    gap: 10px !important;
+}
+
+    /* 🔽 Optional: Remove hover background */
+    button.export-buttons.icon-only-btn:hover {
+        background-color: transparent !important;
+        box-shadow: none !important;
+    }
+
+.btn-editNoticeBtn {
+    background-color: #9b59b6; /* Base Color - Purple */
+    color: white; /* Text Color */
+    border: none;
+    transition: all 0.3s ease;
+}
+
+    .btn-editNoticeBtn i {
+        pointer-events: none; /* icon hover events नको */
+    }
+
+    /* Hover effects for enabled button */
+    .btn-editNoticeBtn:hover:not(.disabled) {
+        background-color: lightgray; /* Hover Color */
+        color: #9b59b6; /* Text Hover Color */
+        cursor: pointer;
+    }
+
+    /* Disabled state */
+    .btn-editNoticeBtn.disabled,
+    .btn-editNoticeBtn[disabled] {
+        opacity: 0.3;
+        cursor: not-allowed;
+        background-color: #9b59b6; /* Maintain base color even disabled */
+        color: white;
+    }
+/* Remove margin below DataTables buttons for all three tables */
+div.dt-buttons {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Remove space above the table wrappers */
+#allNoticesTable_wrapper .row:first-child,
+#accountantNoticesTable_wrapper .row:first-child,
+#expiredNoticesTable_wrapper .row:first-child {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Remove margin on top of tables */
+#allNoticesTable,
+#accountantNoticesTable,
+#expiredNoticesTable {
+    margin-top: 0 !important;
+}
+
+.nav-tabs .nav-link {
+    background-color: white; /* Inactive tab background */
+    border: 1px solid lightgray !important;
+    color: black; /* Inactive tab text color */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 40px;
+    padding: 0 30px;
+    margin-right: 25px;
+    text-align: center;
+    outline: none;
+    box-shadow: none;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+    .nav-tabs .nav-link:hover {
+        background-color: #615667 !important;
+        color: black;
+    }
+
+    .nav-tabs .nav-link:focus,
+    .nav-tabs .nav-link:active {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    /* ✅ Active tab */
+    .nav-tabs .nav-link.active {
+        background-color: #615667 !important;
+        color: white !important;
+        border-color: lightgray !important;
+    }
+
+.form-group {
+    margin-bottom: 10px !important;
+}
+
+#btnAddNotice {
+    margin-left: 0 !important;
+}
+
+/*#btnAddNotice {
+    background-color: #EF6351;
+    width: 150px;
+    border-color: #EF6351;
+    color: white;
+    border-radius: 5px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+    border: none;
+    margin-left: auto;
+}
+*/
+.main-content {
+    padding-left: 130px;
+    padding-right: 30px;
+    padding-top: 1px;
+    width: 100%;
+    position: relative;
+}
+
+
+/* Remove border from the entire nav-tabs container */
+.nav-tabs {
+    border-bottom: none !important; /* This removes the horizontal line */
+}
+
+
+#allNoticesTable tbody tr:nth-of-type(odd),
+#accountantNoticesTable tbody tr:nth-of-type(odd),
+#expiredNoticesTable tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.02); /* हलकासा background */
+}

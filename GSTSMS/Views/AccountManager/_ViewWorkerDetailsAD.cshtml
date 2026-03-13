@@ -1,0 +1,260 @@
+﻿@model System.Data.DataRow
+
+@{
+    var fileName = $"Salary_Receipt_{Model["WorkerName"]}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+    var paymentMode = Model["PaymentModeName"]?.ToString()?.ToLower();
+    var amount = Convert.ToDecimal(Model["AmountToBePaid"]);
+    var accountNo = Model["PaidFromAccountNo"]?.ToString();
+    var maskedAccountNo = "XXXX";
+
+    if (!string.IsNullOrEmpty(accountNo) && accountNo.Length > 4)
+    {
+        var last4Digits = accountNo.Substring(accountNo.Length - 4);
+        var xCount = accountNo.Length - 4;
+        var xString = new string('X', xCount);
+        maskedAccountNo = $"{xString}{last4Digits}";
+    }
+
+    // Format contact number with +91
+    var contactNumber = Model["Contact"]?.ToString();
+    var formattedContact = !string.IsNullOrEmpty(contactNumber) ? $"+91 {contactNumber}" : "N/A";
+}
+
+<link href="~/Content/css/WorkerPaymentAD.css" rel="stylesheet" />
+<script src="~/Content/modules/izitoast/js/iziToast.min.js"></script>
+<script src="~/Content/modules/sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/modules/datatables/Buttons-1.5.1/js/buttons.bootstrap4.min.js"></script>
+
+<style>
+    .download-spinner {
+        display: inline-block;
+        width: 22px;
+        height: 22px;
+        border: 3px solid #fff;
+        border-radius: 50%;
+        border-top: 3px solid #33e5bf;
+        animation: spin 1s linear infinite;
+        vertical-align: middle;
+        margin-right: 8px;
+    }
+
+    @@keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .section-dotted-header {
+        border-bottom: 1px dotted #117a8b;
+        padding-bottom: 6px;
+        margin-bottom: 14px;
+        font-weight: bold;
+        font-size: 16px;
+        color: black;
+    }
+
+    .ifsc-close-btn:hover {
+        background-color: #c82333;
+        transform: scale(1.1);
+    }
+
+    .section-title {
+        border-bottom: 1px dotted #117a8b;
+        padding-bottom: 6px;
+        margin-bottom: 14px;
+        font-weight: bold;
+        font-size: 16px;
+        color: black;
+    }
+</style>
+
+<!-- 🪟 Modal Header -->
+<div class="modal-header position-relative">
+    <h5 class="modal-title mx-auto text-white">Worker Payment Details</h5>
+    <button type="button"
+            class="btn btn-danger btn-sm"
+            onclick="closeModal()"
+            style="box-shadow: none !important;
+           background-color: #dc3545 !important;
+           color: #fff !important;
+           border: none !important;
+           transition: none !important;
+           outline: none !important;
+           transform: none !important;">
+        <i class="fa fa-times"></i>
+    </button>
+</div>
+
+<!-- 🔽 Modal Body -->
+<div class="modal-body">
+    <!-- 👤 Worker Info -->
+    <h6 class="section-dotted-header">Worker Info</h6>
+    <div class="row">
+        <div class="col-md-6 mb-2"><strong>Name<span style="margin-left: 84px;">:</span></strong> @Model["WorkerName"]</div>
+        <div class="col-md-6 mb-2"><strong>Contact No<span style="margin-left:67px">:</span></strong> @formattedContact</div>
+        <div class="col-md-6 mb-2"><strong>Role<span style="margin-left: 96px">:</span></strong> @Model["Role"]</div>
+        <div class="col-md-6 mb-2"><strong>Joining Date<span style="margin-left:57px">:</span></strong> @Convert.ToDateTime(Model["Date"]).ToString("dd MMM yyyy")</div>
+    </div>
+
+    <!-- 🏦 Bank Info -->
+    <h6 class="section-title">Worker's Bank Details</h6>
+    <div class="row">
+        <div class="col-md-6 mb-2"><strong>IFSC Code<span style="margin-left: 53px">:</span></strong> @Model["IFSC Code"]</div>
+        <div class="col-md-6 mb-2"><strong>UPI ID<span style="margin-left: 104px">:</span></strong> @Model["Worker UPI"]</div>
+    </div>
+
+    <!-- 💼 Accountant Info -->
+    <h6 class="section-title">Accountant's Payment Details</h6>
+    <div class="row">
+        <div class="col-md-6 mb-2"><strong>Payment Mode<span style="margin-left: 14px">:</span></strong> @Model["PaymentModeName"]</div>
+        <div class="col-md-6 mb-2">
+            <strong>Paid Date<span style="margin-left: 78px">:</span></strong>
+            @((Model["PaidDate"] != DBNull.Value && Model["PaidDate"] != null)
+                ? Convert.ToDateTime(Model["PaidDate"]).ToString("dd MMM yyyy")
+                : "Not Paid")
+        </div>
+        <div class="col-md-6 mb-2">
+            <strong>Amount Paid<span style="margin-left: 30px">:</span></strong>
+            <span style="color: #27ae60; margin-left: 5px;">
+                @(paymentMode == "cash"
+        ? $"₹ {Math.Round(Convert.ToDecimal(amount))}:00"
+        : String.Format("₹ {0:N2}", amount))
+            </span>
+        </div>
+        <div class="col-md-6 mb-2">
+            <strong>Attendance Month<span style="margin-left: 7px">:</span></strong>
+            @(Model["AttendanceMonth"] != DBNull.Value && Model["AttendanceMonth"] != null
+                ? DateTime.Parse(Model["AttendanceMonth"].ToString()).ToString("MMMM yyyy")
+                : "N/A")
+        </div>
+        @if (paymentMode != "cash")
+        {
+            <div class="col-md-6 mb-2"><strong>Transaction Ref<span style="margin-left: 13px;">:</span></strong> @Model["TransactionRef"]</div>
+            <div class="col-md-6 mb-2">
+                <strong>Paid From Bank<span style="margin-left: 20px">:</span></strong>
+                <span id="bankWithAccount">
+                    <span id="bankNameText">Loading...</span> - @maskedAccountNo
+                </span>
+            </div>
+        }
+    </div>
+
+    @{
+        var ifsc = Model["PaidFromIFSCCode"]?.ToString();
+    }
+
+    <script>
+        function fetchBankName(ifsc) {
+            if (ifsc && ifsc.trim().length > 0) {
+                fetch(`https://ifsc.razorpay.com/${ifsc}`)
+                    .then(r => r.json())
+                    .then(d => {
+                        const bankName = d.BANK || "Unknown Bank";
+                        document.getElementById("bankNameText").textContent = bankName;
+                        document.getElementById("receiptBankNameText").textContent = bankName;
+                    })
+                    .catch(() => {
+                        document.getElementById("bankNameText").textContent = "Unknown Bank";
+                        document.getElementById("receiptBankNameText").textContent = "Unknown Bank";
+                    });
+            } else {
+                document.getElementById("bankNameText").textContent = "Unknown Bank";
+                document.getElementById("receiptBankNameText").textContent = "Unknown Bank";
+            }
+        }
+        fetchBankName('@ifsc');
+    </script>
+</div>
+
+<!-- 📄 Hidden Receipt for PDF -->
+@{
+    var monthText = DateTime.ParseExact(Model["AttendanceMonth"].ToString(), "yyyy-MM", null).ToString("MMMM - yyyy");
+}
+<div id="receiptContent" style="display: none; max-width: 650px; margin: auto; font-family: 'Segoe UI', sans-serif; border: 1px solid #dee2e6; padding: 30px 35px; border-radius: 12px; background-color: #ffffff;">
+    <div style="text-align: center; margin-bottom: 25px;">
+        <h6 style="margin-bottom: 6px; font-size: 14px; color: #666;">Transaction Code</h6>
+        <h4 style="margin-bottom: 18px; font-weight: 600; color: #000;">@Model["TransactionCode"]</h4>
+        <h2 style="margin: 0; color: #615677; font-size: 22px;">Green Valley Society</h2>
+        <p style="margin: 5px 0 0; font-size: 14px; color: #333;">Pune - 411038</p>
+        <h4 style="margin-top: 20px; font-weight: 600; color: #000;">Salary Payment Receipt</h4>
+        <hr style="margin-top: 15px; border-top: 1px dashed #ccc;">
+    </div>
+
+    <table style="width: 100%; font-size: 14px; border-collapse: collapse; color: #222;">
+        <tr><td>Employee Name</td><td>@Model["WorkerName"]</td></tr>
+        <tr><td>Contact Number</td><td>@formattedContact</td></tr>
+        <tr><td>Role</td><td>@Model["Role"]</td></tr>
+        <tr><td>Attendance Month</td><td>@monthText</td></tr>
+        <tr><td>Amount Paid</td><td style="font-weight:bold; color:#615677;">₹@(paymentMode == "cash" ? String.Format("{0:0}.00", amount) : String.Format("{0:N2}", amount))</td></tr>
+        <tr><td>Paid Date & Time</td><td>@((Model["PaidDate"] != DBNull.Value && Model["PaidDate"] != null) ? Convert.ToDateTime(Model["PaidDate"]).ToString("dd MMM yyyy hh:mm tt") : "Not Paid")</td></tr>
+        <tr><td>Payment Mode</td><td>@Model["PaymentModeName"]</td></tr>
+        @if (paymentMode != "cash")
+        {
+            <tr><td>Transaction Ref</td><td>@Model["TransactionRef"]</td></tr>
+            <tr>
+                <td>Paid From Bank</td>
+                <td>
+                    <span id="receiptBankNameText"></span> - @maskedAccountNo
+                </td>
+            </tr>
+        }
+    </table>
+
+    <p style="margin-top: 25px; font-size: 13px; color: #555;">
+        <strong>Receipt Generated On:</strong> @DateTime.Now.ToString("dd MMM yyyy hh:mm tt")
+    </p>
+    <div style="margin-top: 40px; text-align: right; font-size: 14px; font-weight: 500; color: #333;">
+        Authorized By: Accountant Meena Bhaskar Deshmukh
+    </div>
+</div>
+
+<div class="text-center" style="margin: 10px 0;">
+    <button class="btn" id="downloadPdfBtn" onclick="downloadReceipt()" style="background-color: green; color: white; font-size: 16px; padding: 8px 20px; border: none; border-radius: 4px; display: inline-flex; align-items: center; gap: 8px;">
+        <span id="pdfSpinner" style="display:none;"><span class="download-spinner"></span></span>
+        <span id="pdfBtnText"><i class="bi bi-download"></i> Download Receipt</span>
+    </button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+    async function downloadReceipt() {
+        document.getElementById("pdfSpinner").style.display = "inline-block";
+        document.getElementById("pdfBtnText").style.display = "none";
+        document.getElementById("downloadPdfBtn").disabled = true;
+
+        const element = document.getElementById('receiptContent');
+        const clone = element.cloneNode(true);
+        clone.style.display = 'block';
+        const opt = {
+            margin: 0.5,
+            filename: '@fileName',
+            image: { type: 'jpeg', quality: 0.7 },
+            html2canvas: { scale: 3, backgroundColor: "#fff" },
+            jsPDF: { unit: 'in', format: [6, 9], orientation: 'portrait' }
+        };
+
+        await html2pdf().set(opt).from(clone).save();
+
+        document.getElementById("pdfSpinner").style.display = "none";
+        document.getElementById("pdfBtnText").style.display = "inline";
+        document.getElementById("downloadPdfBtn").disabled = false;
+
+        swal({
+            title: "Receipt downloaded",
+            text: "Salary receipt downloaded successfully",
+            icon: "success",
+            timer: 3000,
+            buttons: false,
+        });
+    }
+
+    function closeModal() {
+        let modalEl = document.getElementById('viewPaymentModal');
+        let modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.hide();
+    }
+</script>

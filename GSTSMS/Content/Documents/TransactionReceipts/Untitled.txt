@@ -1,0 +1,1403 @@
+
+@model IEnumerable<GSTSMSLibrary.AccountManager.AccountManager>
+
+@{
+    ViewBag.Title = "EventBudget List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<!-- Required CSS -->
+<link href="~/Content/modules/bootstrap-daterangepicker/daterangepicker.css" rel="stylesheet" />
+<link href="~/Content/modules/izitoast/css/iziToast.min.css" rel="stylesheet" />
+<link href="~/Content/modules/fontawesome/css/all.min.css" rel="stylesheet" />
+<link href="~/Content/modules/datatables/Buttons-1.5.1/css/buttons.bootstrap4.min.css" rel="stylesheet" />
+<link href="~/Content/modules/datatables/DataTables-1.10.16/css/dataTables.bootstrap4.css" rel="stylesheet" />
+
+<style>
+
+    Font
+    body, table, th, td {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+    }
+
+        /*Header: No wrap + center + better spacing*/
+        table.dataTable thead th {
+            background-color: #615677 !important; /* #1 */
+            color: white !important; /* #3 */
+            font-size: 14px !important; /* #5 */
+            height: 30px !important; /* #7 */
+            text-align: center !important; /* #9 */
+            vertical-align: middle !important;
+            padding: 0 8px !important;
+            white-space: nowrap !important;
+        }
+
+
+
+        table.dataTable tbody td {
+            color: black !important; /* #4 */
+            font-size: 13px !important; /* #6 */
+            text-align: center !important; /* #9 */
+            vertical-align: middle !important;
+            padding: 0 8px !important;
+            height: 25px !important;
+            white-space: nowrap;
+        }
+
+
+
+
+        /* Row styling - requirements #2,4,6,8,9 */
+        table.dataTable tbody tr {
+            height: 25px !important; /* #8 */
+        }
+
+            table.dataTable tbody tr:hover td {
+                background-color: #f9f9f9 !important; /* #2 */
+            }
+
+        /*  table.dataTable tbody tr {
+         padding-top: 10px !important;
+         padding-bottom: 10px !important;
+         vertical-align: middle !important;
+
+     }*/
+        /*Remove sort arrows*/
+        table.dataTable thead .sorting:after,
+        table.dataTable thead .sorting:before,
+        table.dataTable thead .sorting_asc:after,
+        table.dataTable thead .sorting_asc:before,
+        table.dataTable thead .sorting_desc:after,
+        table.dataTable thead .sorting_desc:before {
+            display: none !important;
+        }
+
+    /*Pagination Right*/
+    div.dataTables_paginate {
+        text-align: right !important;
+    }
+
+    /*Showing entries Left*/
+    div.dataTables_info {
+        text-align: left !important;
+    }
+
+    /*Search bar size*/
+    div.dataTables_filter input {
+        width: 178.4px !important;
+        height: 31px !important;
+    }
+
+
+    div.dt-buttons {
+        text-align: left !important;
+    }
+
+
+    div.dataTables_wrapper {
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+    }
+
+
+    table.dataTable {
+        width: 100% !important;
+        table-layout: fixed !important;
+    }
+
+
+    div.dataTables_wrapper {
+        overflow-x: hidden !important;
+    }
+
+    .table-responsive {
+        overflow-x: auto !important; /*पूर्वी hidden होतं, ते आता auto केलं */
+    }
+
+    table td:last-child {
+        white-space: nowrap;
+        width: 130px;
+    }
+    /*✅ Checkbox column*/
+    table td:first-child,
+    table th:first-child {
+        width: 40px;
+        text-align: center;
+    }
+
+    /*✅ Sr.No column*/
+    table td:nth-child(2),
+    table th:nth-child(2) {
+        width: 60px;
+        text-align: center;
+    }
+
+    /*2. Export buttons & search in same line*/
+    .custom-top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 5px;
+    }
+
+
+    .card {
+        margin-top: 0 !important;
+    }
+
+    /*✅ Remove top margin/padding above Event List card*/
+    body {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+
+    .card {
+        margin-top: 0 !important;
+    }
+
+    .section,
+    .section-body,
+    .main-content {
+        padding-top: 0 !important;
+        margin-top: -25px;
+    }
+
+    .custom-heading {
+        text-align: center;
+        color: #000;
+        font-size: 24px;
+        font-weight: 700;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        margin: 0;
+    }
+
+    .event-label {
+        font-size: 18px;
+        font-weight: 600;
+        color: #000;
+        margin-bottom: -2px;
+        display: block;
+        margin-right: -4px;
+        margin-left: 29px;
+    }
+
+
+
+
+    .form-group.mb-3 {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .card-body > .form-group.mb-3 {
+        display: flex !important;
+        padding-top: 0 !important;
+    }
+
+    /* 🔽 Remove background and border from export buttons */
+    button.export-buttons.icon-only-btn {
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 10px;
+        gap: 10px !important;
+    }
+
+        /* 🔽 Optional: Remove hover background */
+        button.export-buttons.icon-only-btn:hover {
+            background-color: transparent !important;
+            box-shadow: none !important;
+        }
+
+
+    /* Remove margin below DataTables buttons */
+    div.dt-buttons {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    /* Optional: remove space above the table */
+    #eventTable_wrapper .row:first-child {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    /* Optional: if table has margin on top */
+    #eventTable {
+        margin-top: 0 !important;
+    }
+
+
+  /*  .btn-pay {
+        background-color: #28a745;
+        color: #fff;
+        padding: 2px 10px;
+        font-size: 12px;
+        height: 23px;
+        line-height: 16px;
+        border-radius: 4px;
+        border: none;
+        width: 30px;
+        text-align: center;
+    }
+*/
+/*        .btn-pay-green:hover {
+            background-color: #218838;
+        }*/
+
+    .btn-secondary {
+        padding: 2px 10px;
+        font-size: 12px;
+        line-height: 16px;
+        border-radius: 4px;
+        border: none;
+        text-align: center;
+    }
+
+       /* .btn-secondary:hover {
+            background-color: #218838;
+        }
+*/
+    .send-request-btn {
+        padding: 2px 10px;
+        font-size: 10px;
+        line-height: 18px;
+        border-radius: 4px;
+        border: none;
+        text-align: center;
+    }
+
+    .btn-edit-custom {
+        background-color: #9b59b6;
+        color: white;
+        border: none;
+        width: 25px;
+        height: 23px;
+        font-size: 14px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0; /* Ensures exact sizing */
+    }
+
+        .btn-edit-custom:hover {
+            background-color: lightgray;
+            color: #9b59b6;
+        }
+
+    .btn-view-custom {
+        background-color: #339af0;
+        color: white;
+        border: none;
+        width: 25px;
+        height: 23px;
+        font-size: 14px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0; /* Ensures exact sizing */
+    }
+
+        .btn-view-custom:hover {
+            background-color: lightgray;
+            color: #339af0;
+        }
+
+    body {
+        overflow: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+        body::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Edge */
+        }
+
+   .btnSS{
+       border:none;
+    }
+    .btnSS:focus {
+        outline: none !important;
+        box-shadow: none !important;
+        border: green !important;
+    }
+
+    /*pradnya*/
+    .btn-danger:disabled {
+        color: #fff;
+        background-color: #dc3545;
+        border-color: #dc3545;
+        /*        height: 24px;*/
+        color: white;
+        border: none;
+        width: 25px;
+        height: 23px;
+        font-size: 14px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+
+
+
+
+    /* shubham*/
+    .popup-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .popup-box {
+        background: #fff;
+        border-radius: 10px;
+        width: 600px;
+        max-width: 95%;
+        box-shadow: 0 0 15px rgba(0,0,0,0.3);
+        position: relative;
+    }
+
+        .popup-box button.close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+
+
+    .modal.modal-centered-scale .modal-dialog {
+        transform: scale(0.7);
+        transition: transform 0.3s ease-out;
+    }
+
+    .modal.modal-centered-scale.show .modal-dialog {
+        transform: scale(1);
+    }
+</style>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center position-relative">
+        <h2 class="custom-heading" style="font-size:25px;">Event List</h2>
+    </div>
+
+
+    <!-- 🔽 Event Name Filter -->
+    <div style="display: flex; align-items: center; gap: 10px; padding-top:0 !important; margin-top:-13px;">
+        <label class="event-label" for="eventFilter" style="font-weight: 600; font-size: 13px;">Event Name :</label>
+        <select id="eventFilter" class="form-control form-control-sm" style="width: 200px; height: 40px;">
+            <option value="">-- All Events --</option>
+            @foreach (var ev in Model.Select(m => m.EventName).Distinct())
+            {
+                <option value="@ev">@ev</option>
+            }
+        </select>
+    </div>
+
+
+
+    <div class="card-body">
+        <!-- 🔁 Combined Top Filters Row -->
+        <div class="form-group mb-3 d-flex justify-content-between align-items-end flex-wrap" style="gap: 20px;">
+            <!-- 📅 Date Range -->
+            <div>
+
+                <a href="javascript:;" class="btn btn-primary daterange-btn icon-left btn-icon">
+                    <i class="fas fa-calendar"></i> <span>Select Date</span>
+                </a>
+                <input type="hidden" id="fromDate1" />
+                <input type="hidden" id="toDate1" />
+            </div>
+
+
+
+            <!-- ➕ Add Budget Button -->
+            <div style="margin-left: auto;">
+                <label class="invisible">Add Budget</label>
+                <a href="javascript:;" class="btn btn-primary icon-left btn-icon open-create-modal"
+                   data-url="@Url.Action("CreateBudget", "AccountManager")"
+                   style="background-color: #007bff; color: white; font-size: 14px; padding: 6px 12px; border-radius: 2px; border: none; display: inline-flex; align-items: center; gap: 6px; height: 35px; width: 136px;">
+                    <i class="fas fa-plus-circle"></i> Add Budget
+                </a>
+            </div>
+
+        </div>
+
+
+        <!-- 🧾 Event Table -->
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped" id="eventTable">
+                <thead>
+                    <tr>
+                        <th style="width: 10px;"><input type="checkbox" id="selectAll" /></th>
+                        <th style="width: 38px;">Sr. No</th>
+                        <th style="width: 90px;">Event Name</th>
+                        <th style="width: 135px;">Event Handler Name</th>
+                        <th style="width: 85px;">Created Date</th>
+                        <th style="width: 120px;">Allocated Budget</th>
+                        <th style="width: 75px;">Actual Cost</th>
+                        <th style="width: 83px;">Budget Date</th>
+                        <th>Payment</th>
+                        <th style="width: 78px;">Wing Name</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            var status = item.BudgetStatusName?.ToLower();
+                            <tr>
+                                <td><input type="checkbox" class="row-checkbox" /></td>
+                                <td></td>
+                                <td style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="@item.EventName">
+                                    @item.EventName
+                                </td>
+                                <td style="max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="@item.EventHandlerName">
+                                    @item.EventHandlerName
+                                </td>
+                                <td>@(item.CreatedDate?.ToString("dd-MM-yyyy"))</td>
+                                <td>₹ @item.AllocatedBudget</td>
+                                <td>₹ @(item.ActualCost ?? 0)</td>
+
+                                <td>@(item.BudgetAddedDate?.ToString("dd-MM-yyyy"))</td>
+                                <td class="text-center">
+                                    @if (status == "paid")
+                                    {
+                                        <button class="btn btn-sm btn-secondary" disabled>Paid</button>
+                                    }
+                                    else if (status == "approved")
+                                    {
+                                        if (item.ActualCost == null || item.ActualCost == 0)
+                                        {
+                                            <button class="btnSS" style="background-color: green; color: white;font-size: 12px; height: 23px; width: 30px; text-align: center; " title="Enter actual cost to enable" disabled>Pay</button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btnSS pay-btn"
+                                                    style="background-color: green; color: white; border: green !important; font-size: 12px; height: 23px; width: 30px; border-radius: 4px; text-align: center;"
+                                                    data-eventcode="@item.EventCode">
+                                                Pay
+                                            </button>
+                                        }
+                                    }
+                                    else if (status == "unpaid")
+                                    {
+                                        <button type="button" class="btn btn-sm btn-primary send-request-btn" data-id="@item.EBudgetId">
+                                            <span class="spinner-border spinner-border-sm d-none"></span>
+                                            <span class="btn-text">Send Request</span>
+                                        </button>
+                                    }
+                                    else if (status == "rejected")
+                                    {
+                                        <button class="btn btn-sm btn-secondary" disabled style="opacity: 0.6;">
+                                            <i class="fa fa-ban"></i> Pay
+                                        </button>
+                                    }
+                                </td>
+                                <td>@item.WingName</td>
+                                <td>
+                                    <span style="color:@GetStatusColor(item.BudgetStatusName)">
+                                        @item.BudgetStatusName
+                                    </span>
+                                </td>
+                                <td class="text-center text-nowrap">
+                                    @if (item.ActualCost != null && item.ActualCost != 0)
+                                    {
+                                        <button class="btn btn-sm btn-edit-custom" title="Edit Disabled" disabled style="opacity: 0.5;">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <a href="javascript:;"
+                                           class="btn btn-sm btn-edit-custom open-update-modal"
+                                           data-url="@Url.Action("UpdateDetails", "AccountManager", new { eventCode = item.EventCode })"
+                                           title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    }
+
+                                    <a href="javascript:;"
+                                       class="btn btn-sm btn-view-custom open-view-modal"
+                                       data-url="@Url.Action("ViewBudget", "AccountManager", new { eventCode = item.EventCode })"
+                                       title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    @if (!string.IsNullOrEmpty(item.EBudgetCode) && item.BudgetStatus == 11)
+                                    {
+                                        <a href="javascript:;" class="btn btn-sm btn-danger delete-budget"
+                                           data-ebudgetcode="@item.EBudgetCode" title="Delete">
+                                            <i class="fa fa-trash"></i>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-sm btn-danger" disabled title="Cannot delete">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    }
+
+
+
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<!--Modal-->
+<div class="modal fade modal-centered-scale" id="createModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content"></div>
+    </div>
+</div>
+
+<div class="modal fade modal-centered-scale" id="viewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog  modal-dialog-centered modal-xl">
+        <div class="modal-content"></div>
+    </div>
+</div>
+
+<div class="modal fade modal-centered-scale" id="updateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog  modal-dialog-centered modal-xl">
+        <div class="modal-content"></div>
+    </div>
+</div>
+
+
+<!--✅ Razor Partial Popup Modal-->
+<div id="paymentPopupOverlay" class="popup-overlay d-none">
+    <div class="popup-box">
+        @*<button class="btn btn-outline-danger btn-sm close-btn" onclick="hidePartial()"></button>*@
+        <div id="paymentPartialContainer"></div>
+    </div>
+</div>
+@functions {
+    public string GetStatusColor(string status)
+    {
+        if (string.IsNullOrEmpty(status)) return "gray";
+
+        switch (status.ToLower())
+        {
+            case "paid": return "#007bff";
+            case "approved": return "green"; // Bootstrap Blue
+            case "rejected": return "red";
+            case "unpaid": return "orange";
+            default: return "gray";
+        }
+    }
+}
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+
+    <script src="~/Content/modules/moment.min.js"></script>
+    <script src="~/Content/modules/bootstrap-daterangepicker/daterangepicker.js"></script>
+    <script src="~/Content/modules/datatables/datatables.min.js"></script>
+    <script src="~/Content/modules/sweetalert/sweetalert.min.js"></script>
+    <script src="~/Content/modules/datatables/Buttons-1.5.1/js/dataTables.buttons.min.js"></script>
+    <script src="~/Content/modules/datatables/Buttons-1.5.1/js/buttons.bootstrap4.min.js"></script>
+    <script src="~/Content/modules/datatables/JSZip-2.5.0/jszip.min.js"></script>
+    <script src="~/Content/modules/datatables/pdfmake-0.1.36/pdfmake.min.js"></script>
+    <script src="~/Content/modules/datatables/pdfmake-0.1.36/vfs_fonts.js"></script>
+    <script src="~/Content/modules/datatables/Buttons-1.5.1/js/buttons.html5.min.js"></script>
+    <script src="~/Content/modules/datatables/Select-1.2.6/js/dataTables.select.min.js"></script>
+    <script src="~/Content/modules/izitoast/js/iziToast.js"></script>
+    <script src="~/Content/modules/izitoast/js/iziToast.min.js"></script>
+    <script src="~/Content/modules/moment.min.js"></script>
+
+
+
+    <script>
+        $(document).ready(function () {
+            $(function () {
+                $('[data-toggle="tooltip"]').tooltip();
+            });
+
+            // Date filter
+            $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+                var min = $('#fromDate1').val();
+                var max = $('#toDate1').val();
+                var dateStr = data[4];
+                var format = 'DD-MM-YYYY';
+                var rowDate = moment(dateStr, format);
+                var minDate = moment(min, format);
+                var maxDate = moment(max, format);
+                if (!min && !max) return true;
+                return rowDate.isValid() && (!min || rowDate.isSameOrAfter(minDate)) && (!max || rowDate.isSameOrBefore(maxDate));
+            });
+
+            // Init date range picker
+            function initializeDateRangePicker() {
+                var format = 'DD-MM-YYYY';
+                $('.daterange-btn').daterangepicker({
+                    locale: { format: format },
+                    startDate: moment().startOf('month'),
+                    endDate: moment(),
+                    ranges: {
+                        'Today': [moment(), moment()],
+                        'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                        'This Month': [moment().startOf('month'), moment().endOf('month')],
+                        'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                    }
+                }, function (start, end) {
+                    $('#fromDate1').val(start.format(format));
+                    $('#toDate1').val(end.format(format));
+                    $('.daterange-btn span').html(start.format(format) + ' - ' + end.format(format));
+                    $('#eventTable').DataTable().draw();
+                });
+                $('#fromDate1').val(moment().startOf('month').format(format));
+                $('#toDate1').val(moment().format(format));
+                $('.daterange-btn span').html(moment().startOf('month').format(format) + ' - ' + moment().format(format));
+            }
+            initializeDateRangePicker();
+
+            // ✅ Filter by Event Name (Column index 2)
+            $('#eventFilter').on('change', function () {
+                var selectedEvent = $(this).val();
+                table.column(2).search(selectedEvent).draw(); // 2 = Event Name
+            });
+
+
+            // Init datatable
+            var table = $('#eventTable').DataTable({
+                responsive: true, // ✅ enable responsive layout
+                ordering: false, // ⛔ Sorting completely disabled
+
+                dom: "<'row mb-3 align-items-center'<'col-md-6 text-left'B><'col-md-6 text-right'f>>" +
+                    "<'row'<'col-12'tr>>" +
+                    "<'row mt-3'<'col-md-6'i><'col-md-6'p>>",
+
+
+                language: {
+                    infoFiltered: "",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries"
+                },
+
+                buttons: [
+
+                    {
+                        extend: 'csvHtml5',
+                        text: '<img src="/Content/img/icons8-csv-64.png" alt="CSV" style="height:32px;" title="Export CSV" />',
+                        className: 'export-buttons icon-only-btn',
+                        action: function (e, dt, button, config) {
+                            const selected = getSelectedRows(dt);
+                            if (selected.length === 0) {
+                                iziToast.warning({
+                                    title: 'Warning',
+                                    message: 'Please select at least one row to export.',
+                                    position: 'topCenter'
+                                });
+                                return;
+                            }
+
+                            // Call default action
+                            $.fn.dataTable.ext.buttons.csvHtml5.action.call(this, e, dt, button, config);
+
+                            swal({
+                                icon: 'success',
+                                title: 'CSV Exported',
+                                text: 'Your CSV file has been downloaded successfully!',
+                                timer: 2000,
+                                button: false
+                            });
+                        },
+                        exportOptions: {
+                            rows: function (idx, data, node) {
+                                return $(node).find('input.row-checkbox').prop('checked'); // Only selected rows
+                            },
+                            columns: ':not(:first-child):not(:last-child)', // Skip checkbox and action columns
+                            format: {
+                                body: function (data, row, column, node) {
+                                    return $(node).find(".export-label").text().trim() || $(node).text().trim();
+                                }
+                            }
+                        },
+                        customize: function (csv) {
+                            const now = moment().format("DD-MM-YYYY hh:mm A");
+                            const header = "GreenValley Towers-Event Budget List\nGenerated on: " + now + "\n\n";
+                            return header + csv;
+                        }
+                    },
+
+                    {
+                        extend: 'excelHtml5',
+                        text: '<img src="/Content/img/icons8-xls-64.png" style="height:32px;" title="Export Excel" />',
+                        className: 'export-buttons icon-only-btn',
+                        action: function (e, dt, button, config) {
+                            const selected = getSelectedRows(dt);
+                            if (selected.length === 0) {
+                                iziToast.warning({
+                                    title: 'Warning',
+                                    message: 'Please select at least one row to export.',
+                                    position: 'topCenter'
+                                });
+                                return;
+                            }
+
+                            $.fn.dataTable.ext.buttons.excelHtml5.action.call(this, e, dt, button, config);
+
+                            swal({
+                                icon: 'success',
+                                title: 'Excel Exported',
+                                text: 'Your Excel file has been downloaded successfully!',
+                                timer: 2000,
+                                button: false
+                            });
+                        },
+                        exportOptions: {
+                            rows: function (idx, data, node) {
+                                return $(node).find('input.row-checkbox').prop('checked');
+                            },
+                            columns: ':not(:first-child):not(:last-child)',
+                            format: {
+                                body: function (data, row, column, node) {
+                                    return $(node).find(".export-label").text().trim() || $(node).text().trim();
+                                }
+                            }
+                        },
+                        customize: function (xlsx) {
+                            const sheet = xlsx.xl.worksheets['sheet1.xml'];
+                            const $sheet = $(sheet);
+
+                            const title = 'GreenValley Towers-Event Budget List';
+                            const downloadedOn = 'Generated on: ' + moment().format("DD-MM-YYYY hh:mm A");
+
+                            const row1 = `<row r="1"><c t="inlineStr" r="A1"><is><t>${title}</t></is></c></row>`;
+                            const row2 = `<row r="2"><c t="inlineStr" r="A2"><is><t>${downloadedOn}</t></is></c></row>`;
+
+                            // Shift existing rows by 2 (to make room for headers)
+                            $('row', sheet).each(function () {
+                                const r = parseInt($(this).attr('r')) + 2;
+                                $(this).attr('r', r);
+                                $(this).find('c').each(function () {
+                                    const cellRef = $(this).attr('r');
+                                    if (cellRef) {
+                                        const col = cellRef.replace(/[0-9]/g, '');
+                                        $(this).attr('r', col + r);
+                                    }
+                                });
+                            });
+
+                            // Insert header rows
+                            const sheetData = $('sheetData', sheet);
+                            sheetData.prepend(row2);
+                            sheetData.prepend(row1);
+
+                            // Merge cells A1:J1 and A2:J2 (header rows)
+                            const mergeCellsXml = `
+<mergeCells count="2">
+    <mergeCell ref="A1:J1"/>
+    <mergeCell ref="A2:J2"/>
+</mergeCells>
+`;
+                            if ($sheet.find('mergeCells').length === 0) {
+                                $sheet.append(mergeCellsXml);
+                            }
+
+                            // Define style id for center alignment (using id 51)
+                            // Apply this style to all cells in sheet to center header text
+                            $('row c', sheet).each(function () {
+                                // Only apply to header rows 1 and 2
+                                const rowNum = parseInt($(this).closest('row').attr('r'));
+                                if (rowNum === 1 || rowNum === 2) {
+                                    $(this).attr('s', '51');
+                                }
+                            });
+
+                            // Add the custom centered alignment style to styles.xml
+                            const stylesXml = xlsx.xl['styles.xml'];
+                            const $styles = $(stylesXml);
+
+                            const cellXfs = $styles.find('cellXfs');
+                            const currentCount = parseInt(cellXfs.attr('count'));
+                            // Avoid adding multiple times if already added
+                            const hasCenterStyle = $styles.find('cellXfs xf[applyAlignment="1"]').length > 0;
+
+                            if (!hasCenterStyle) {
+                                cellXfs.attr('count', currentCount + 1);
+                                cellXfs.append('<xf xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>');
+                            }
+                        }
+                    },
+
+
+
+                    {
+                        extend: 'pdfHtml5',
+                        text: '<img src="/Content/img/icons8-pdf-64.png" alt="PDF" style="height:32px;" title="Export PDF" />',
+                        className: 'export-buttons icon-only-btn',
+                        orientation: 'landscape',
+                        pageSize: 'A4',
+
+                        action: function (e, dt, button, config) {
+                            var selected = getSelectedRows(dt);
+                            if (selected.length === 0) {
+                                iziToast.warning({
+                                    title: 'Warning',
+                                    message: 'Please select at least one row to export.',
+                                    position: 'topCenter'
+                                });
+                                return;
+                            }
+
+                            $.fn.dataTable.ext.buttons.pdfHtml5.action.call(this, e, dt, button, config);
+
+                            swal({
+                                icon: 'success',
+                                title: 'PDF Exported',
+                                text: 'Your PDF file has been downloaded successfully!',
+                                timer: 2000,
+                                button: false
+                            });
+                        },
+
+                        exportOptions: {
+                            rows: function (idx, data, node) {
+                                return $(node).find('input.row-checkbox').prop('checked');
+                            },
+                            columns: ':not(:first-child):not(:last-child)',
+                            format: {
+                                body: function (data, row, column, node) {
+                                    return $(node).find(".export-label").text().trim() || $(node).text().trim();
+                                }
+                            }
+                        },
+
+                        customize: function (doc) {
+                            const now = new Date();
+                            const formattedDate = moment(now).format("DD-MM-YYYY hh:mm A");
+
+                            // ✅ Remove any default title (like "EventBudget List") if accidentally included
+                            doc.content = doc.content.filter(item => {
+                                return !(typeof item.text === 'string' && item.text.trim() === 'EventBudget List');
+                            });
+
+                            // ✅ Add clean custom header
+                            doc.content.splice(0, 0,
+                                {
+                                    text: 'GreenValley Towers-EventBudget List',
+                                    fontSize: 18,
+                                    bold: true,
+                                    alignment: 'center',
+                                    margin: [0, 0, 0, 4]
+                                },
+
+                                {
+                                    text: 'Generated on: ' + formattedDate,
+                                    fontSize: 9,
+                                    alignment: 'center',
+                                    italics: true,
+                                    margin: [0, 0, 0, 10]
+                                }
+                            );
+
+                            // ✅ Apply table layout styling
+                            const table = doc.content.find(content => content.table);
+                            if (table) {
+                                table.layout = {
+                                    hLineWidth: () => 0.5,
+                                    vLineWidth: () => 0.5,
+                                    hLineColor: () => '#aaa',
+                                    vLineColor: () => '#aaa',
+                                    paddingLeft: () => 4,
+                                    paddingRight: () => 4
+                                };
+                                doc.styles.tableHeader = {
+                                    bold: true,
+                                    fontSize: 11,
+                                    color: 'white',
+                                    fillColor: '#615677',       // Teal background like image
+                                    alignment: 'center'
+                                };
+
+                                // ✅ Sr.No column update
+                                let body = table.table.body;
+                                for (let i = 1; i < body.length; i++) {
+                                    if (body[i][0]) {
+                                        body[i][0].text = i.toString();
+                                        body[i][0].alignment = 'center';
+                                    }
+                                }
+
+                                // ✅ Center align all cells
+                                for (let i = 0; i < body.length; i++) {
+                                    for (let j = 0; j < body[i].length; j++) {
+                                        body[i][j].alignment = 'center';
+                                        body[i][j].fontSize = 9;
+                                    }
+                                }
+                            }
+                        }
+
+                    },
+                    {
+                        text: '<img src="/Content/img/icons8-refresh-50.png" alt="Refresh" style="height:28px;" title="Refresh Table" />',
+                        className: 'export-buttons icon-only-btn',
+                        action: function (e, dt, node, config) {
+
+                            // 1. Reset filters
+                            $('#eventFilter').val('').trigger('change');
+                            dt.search('').columns().search('');
+
+                            // 2. Clear checkboxes
+                            dt.rows().every(function () {
+                                $(this.node()).find('.row-checkbox').prop('checked', false);
+                            });
+                            $('#selectAll').prop('checked', false);
+
+                            // 3. Reset date range
+                            const start = moment().startOf('month');
+                            const end = moment().endOf('month');
+                            const displayFormat = 'DD-MM-YYYY';
+
+                            $('#fromDate1').val(start.format('YYYY-MM-DD'));
+                            $('#toDate1').val(end.format('YYYY-MM-DD'));
+
+                            $('.daterange-btn span').html(start.format(displayFormat) + ' - ' + end.format(displayFormat));
+
+                            if ($('.daterange-btn').data('daterangepicker')) {
+                                $('.daterange-btn').data('daterangepicker').setStartDate(start);
+                                $('.daterange-btn').data('daterangepicker').setEndDate(end);
+                            }
+
+                            $('#fromDate1, #toDate1').trigger('change');
+
+                            // 4. Toast
+                            iziToast.success({
+                                title: 'Refreshed',
+                                message: 'Filter reset & table reloaded!',
+                                position: 'topCenter',
+                                timeout: 1200
+                            });
+
+                            // ✅ 5. Final fallback: reload full page (if data not reloading)
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1200); // allow toast to show
+                        }
+                    },
+
+
+                ],
+
+                pageLength: 10,
+                columnDefs: [{ orderable: false, targets: [0, 11] }],
+                drawCallback: function () {
+                    var api = this.api();
+                    var startIndex = api.page.info().start; // Get the starting index of the current page
+
+                    api.rows({ page: 'current' }).every(function (rowIdx, tableLoop, rowLoop) {
+                        // Calculate the serial number (global index)
+                        var srNo = startIndex + rowLoop + 1;
+                        $(this.node()).find('td:eq(1)').html(srNo); // Sr.No column is second (1st index)
+                    });
+                }
+            });
+
+
+
+            // Move buttons to top-right corner
+            table.buttons().container().appendTo('#exportButtons');
+
+            // ✅ Select All across all pages
+            $('#selectAll').on('change', function () {
+                var checked = this.checked;
+                table.rows({ search: 'applied' }).nodes().to$().find('input.row-checkbox').prop('checked', checked);
+            });
+
+            // ✅ If any checkbox is unchecked manually, uncheck the "Select All"
+            $('#eventTable').on('change', '.row-checkbox', function () {
+                var total = table.rows({ search: 'applied' }).nodes().to$().find('input.row-checkbox').length;
+                var checked = table.rows({ search: 'applied' }).nodes().to$().find('input.row-checkbox:checked').length;
+                $('#selectAll').prop('checked', total === checked);
+            });
+
+            // ✅ Function to get selected rows across all pages
+            function getSelectedRows(dt) {
+                return dt.rows({ search: 'applied' }).nodes().to$().find('input.row-checkbox:checked');
+            }
+            //ithe payrt copy kryche
+
+            table.buttons().container().appendTo('#exportButtons');
+
+            $('#selectAll').on('change', function () {
+                $('.row-checkbox').prop('checked', this.checked);
+            });
+
+            $('#eventTable').on('change', '.row-checkbox', function () {
+                $('#selectAll').prop('checked', $('.row-checkbox:checked').length === $('.row-checkbox').length);
+            });
+
+    // ✅ Send Request Button Click
+$(document).on('click', '.send-request-btn', function () {
+    var btn = $(this);
+    var budgetId = btn.data("id");
+
+    // Show spinner, change text
+    btn.find('.spinner-border').removeClass('d-none');
+    btn.find('.btn-text').text("Sending...");
+
+    $.ajax({
+        url: '@Url.Action("SendRequestAjax", "AccountManager")',
+        type: 'POST',
+        data: { id: budgetId },
+        success: function (response) {
+            if (response.success) {
+                iziToast.success({
+                    title: 'Success',
+                    message: response.message,
+                    position: 'topCenter'
+                });
+
+                var row = btn.closest('tr');
+
+                // ✅ Update Status column (index 10)
+                row.find('td').eq(10).html('<span style="color:#007bff;">Approved</span>');
+
+
+                // ✅ Update Send Request button to "Request Sent"
+                btn.find('.spinner-border').addClass('d-none');
+                btn.find('.btn-text').html('<i class="fa fa-check-circle"></i> Request Sent');
+                btn.prop("disabled", true); // Disable button
+
+                // ✅ Read ActualCost (column 7)
+                var actualCostText = row.find('td').eq(7).text();
+                var actualCost = parseFloat(actualCostText.replace(/,/g, ''));
+
+                // ✅ If ActualCost > 0, add Pay button (column 8)
+                if (!isNaN(actualCost) && actualCost > 0) {
+                    row.find('td').eq(8).html(`
+                        <a href="/AccountManager/Pay?id=${budgetId}" class="btnSS"> Pay
+                        </a>
+                    `);
+                }
+
+            } else {
+                iziToast.error({
+                    title: 'Error',
+                    message: response.message,
+                    position: 'topCenter'
+                });
+
+                btn.find('.spinner-border').addClass('d-none');
+                btn.find('.btn-text').html('Send Request');
+            }
+        },
+        error: function () {
+            iziToast.error({
+                title: 'Error',
+                message: 'Something went wrong. Please try again.',
+                position: 'topCenter'
+            });
+
+            btn.find('.spinner-border').addClass('d-none');
+            btn.find('.btn-text').html('Send Request');
+        }
+    });
+});
+
+
+
+            // ✅ Actual Cost बदलल्यावर Pay बटन dynamic enable
+$(document).on('change', '.actual-cost-input', function () {
+    var input = $(this);
+    var budgetId = input.data("id");
+    var newCost = parseFloat(input.val());
+    var row = input.closest('tr');
+
+    if (isNaN(newCost) || newCost <= 0) {
+        iziToast.warning({
+            title: 'Warning',
+            message: 'Please enter a valid Actual Cost.',
+            position: 'topCenter'
+        });
+
+        return;
+    }
+
+    $.ajax({
+        url: '@Url.Action("UpdateActualCostAjax", "AccountManager")',
+        type: 'POST',
+        data: { id: budgetId, actualCost: newCost },
+        success: function (response) {
+
+
+
+            if (response.success) {
+                iziToast.success({
+                    title: 'Success',
+                    message: response.message,
+                    position: 'topCenter'
+                });
+                // Enable Pay button if status is Approved
+                var statusText = row.find('td').eq(10).text().trim().toLowerCase(); // Status column index = 10
+                if (statusText === "approved") {
+                    row.find('td').eq(8).html(`
+                        <a href="/AccountManager/Pay?id=${budgetId}" class="btnSS">Pay
+                        </a>
+                    `);
+                }
+
+            } else {
+                iziToast.error({
+                    title: 'Error',
+                    message: response.message,
+                    position: 'topCenter'
+                });
+
+            }
+        },
+        error: function () {
+            iziToast.error({
+                title: 'Error',
+                message: 'Failed to update Actual Cost. Try again.',
+                position: 'topCenter'
+            });
+
+        }
+    });
+});
+
+
+
+
+
+@*$(document).on('click', '.delete-budget', function () {
+    const $button = $(this);
+    const eBudgetCode = $button.data('ebudgetcode');
+
+    if (confirm("Are you sure you want to delete this event budget?")) {
+        $.ajax({
+            url: '@Url.Action("DeleteBudget", "AccountManager")',
+            type: 'POST',
+            data: { eBudgetCode: eBudgetCode },
+            success: function (response) {
+                if (response.success) {
+                    // Optional: Fancy feedback before removing row
+                    $button.closest('tr').fadeOut(300, function () {
+                        $(this).remove();
+                    });
+                } else {
+                    alert(response.message || "Delete failed.");
+                }
+            },
+            error: function () {
+                alert("An error occurred while deleting the budget.");
+            }
+        });
+    }
+});*@
+
+
+    //Delete Button Code
+$(document).on('click', '.delete-budget', function () {
+    const $button = $(this);
+    const eBudgetCode = $button.data('ebudgetcode');
+
+    swal({
+        title: "Are you sure?",
+        text: "This action cannot be undone!",
+        icon: "warning",
+        buttons: ["Cancel", "Yes, delete it!"],
+        dangerMode: true
+    }).then(function (willDelete) {
+        if (willDelete) {
+            $.ajax({
+                url: '@Url.Action("DeleteBudget", "AccountManager")',
+                type: 'POST',
+                data: { eBudgetCode: eBudgetCode },
+                success: function (response) {
+                    if (response.success) {
+                        swal({
+                            title: "Deleted!",
+                            text: "Event budget deleted successfully.",
+                            icon: "success",
+                            buttons: false,
+                            timer: 3000 // ✅ Only success alert auto-closes
+                        });
+                        $button.closest('tr').fadeOut(300, function () {
+                            $(this).remove();
+                        });
+                    } else {
+                        swal({
+                            title: "Failed",
+                            text: response.message || "Delete failed.",
+                            icon: "error",
+                            buttons: true // ❌ This will stay until user clicks
+                        });
+                    }
+                },
+                error: function () {
+                    swal({
+                        title: "Error",
+                        text: "An error occurred while deleting.",
+                        icon: "error",
+                        buttons: true // ❌ This will stay until user clicks
+                    });
+                }
+            });
+        }
+    });
+});
+
+
+
+
+
+                // ✅ Modal logic
+
+
+
+            // ✅ CREATE Modal - Bootstrap 5 Safe Initialization
+            $(document).on("click", ".open-create-modal", function () {
+                var url = $(this).data("url");
+
+                $.get(url, function (data) {
+                    $("#createModal .modal-content").html(data);
+
+                    const modalEl = document.getElementById('createModal');
+                    const modal = new bootstrap.Modal(modalEl, {
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                    modal.show();
+                });
+            });
+
+            // ✅ VIEW Modal - Bootstrap 5 Safe Initialization
+            $(document).on("click", ".open-view-modal", function () {
+                var url = $(this).data("url");
+
+                $.get(url, function (data) {
+                    $("#viewModal .modal-content").html(data);
+
+                    const modalEl = document.getElementById('viewModal');
+                    const modal = new bootstrap.Modal(modalEl, {
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                    modal.show();
+                });
+            });
+
+            // ✅ UPDATE Modal - Bootstrap 5 Safe Initialization
+            $(document).on("click", ".open-update-modal", function () {
+                var url = $(this).data("url");
+
+                $.get(url, function (data) {
+                    $("#updateModal .modal-content").html(data);
+
+                    const modalEl = document.getElementById('updateModal');
+                    const modal = new bootstrap.Modal(modalEl, {
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                    modal.show();
+                });
+            });
+
+
+        // Close modal function
+        function closeModal() {
+            if ($('#createModal').hasClass('show')) {
+                $('#createModal').modal('hide');
+            } else if ($('#viewModal').hasClass('show')) {
+                $('#viewModal').modal('hide');
+            } else if ($('#updateModal').hasClass('show')) {
+                $('#updateModal').modal('hide');
+            }
+        }
+
+        // Clear modal content when hidden
+        $('.modal').on('hidden.bs.modal', function () {
+            $(this).find('.modal-content').html('');
+        });
+
+
+      });
+
+
+        /*   shubham*/
+
+
+        // Attach click event to close button
+        document.addEventListener('DOMContentLoaded', function () {
+            document.addEventListener('click', function (e) {
+                if (e.target.classList.contains('close-btn')) {
+                    document.getElementById('paymentPopupOverlay').classList.add('d-none');
+                    document.getElementById('paymentPartialContainer').innerHTML = '';
+                }
+            });
+        });
+        $(document).ready(function () {
+            let selectedEventCode = '';
+            let selectedAmount = 0;
+
+            // ✅ Handle "Pay" button click in the event list
+            $(document).on('click', '.btnSS.pay-btn', function () {
+                var selectedEventCode = $(this).data('eventcode');
+
+                $.ajax({
+                    url: '/AccountManager/LoadPaymentPartialSV',
+                    type: 'GET',
+                    data: { eventCode: selectedEventCode },
+                    success: function (html) {
+                        $('#paymentPartialContainer').html(html);
+                        $('#paymentPopupOverlay').removeClass('d-none');
+                    },
+                    error: function (err) {
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Failed to load payment form',
+                            position: 'topCenter'
+                        });
+                        console.error(err);
+                    }
+                });
+            });
+
+            // ✅ Close modal when it's hidden
+            $('.modal').on('hidden.bs.modal', function () {
+                $(this).find('.modal-content').html('');
+            });
+        });
+
+
+
+    </script>
+
+
+
+
+}

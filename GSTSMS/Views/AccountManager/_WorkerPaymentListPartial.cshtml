@@ -1,0 +1,1238 @@
+﻿@model IEnumerable<Dictionary<string, object>>
+<style>
+    #dateRangePicker::placeholder {
+        color: white !important;
+        opacity: 1;
+    }
+
+    .export-buttons {
+        display: flex;
+        gap: 5px;
+    }
+
+        .export-buttons .export-btn {
+            background: white;
+            border: 1px solid #c7c7c7;
+            padding: 6px 10px;
+            margin-right: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .export-buttons .export-btn:hover {
+                background: #f0f0f0;
+                border-color: #999;
+            }
+
+        .export-buttons .export-icon {
+            width: 26px;
+            height: 26px;
+            object-fit: contain;
+        }
+
+    /* Status filter tabs */
+    .status-filter-tabs {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+    }
+
+    .status-tab {
+        padding: 8px 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+
+        .status-tab:hover {
+            background: #f8f9fa;
+        }
+
+    .col-sm-12 {
+        margin-top: -19px;
+    }
+
+    .status-tab.active {
+        background: #615677;
+        color: white;
+        border-color: #615677;
+    }
+
+    /* Role filter dropdown */
+    .role-filter-container {
+        margin-bottom: 15px;
+    }
+
+    .role-filter-dropdown {
+        min-width: 200px;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
+        cursor: pointer;
+        font-size: 14px;
+        color: #333;
+    }
+
+        .role-filter-dropdown:focus {
+            outline: none;
+            border-color: #615677;
+            box-shadow: 0 0 0 0.2rem rgba(97, 86, 119, 0.25);
+        }
+    /* One-line filter bar */
+    .filter-bar {
+        display: flex;
+        justify-content: start;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    /* Date input width */
+    .date-filter {
+        width: 260px;
+    }
+
+    /* Status tabs */
+    .status-filter-tabs {
+        display: flex;
+        gap: 10px;
+    }
+
+    .status-tab {
+        padding: 6px 16px;
+        background: #f1f1f1;
+        border-radius: 6px;
+        cursor: pointer;
+        border: 1px solid #d0d0d0;
+        font-weight: 500;
+        transition: 0.2s;
+    }
+
+        .status-tab:hover {
+            background: #ddd;
+        }
+
+        /* Active tab class (you may toggle this with JS) */
+        .status-tab.active {
+            background: #7b83d9;
+            color: white;
+            border-color: #7b83d9;
+        }
+
+    /* Role dropdown */
+    .role-filter-dropdown {
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: 1px solid #c7c7c7;
+        background: white;
+        min-width: 160px;
+    }
+
+    .col-md-12 {
+        margin-bottom: -23px !important;
+    }
+</style>
+<div class="filter-bar d-flex flex-wrap align-items-center gap-3 mb-3">
+
+    <!-- Date Range Picker -->
+    <div class="input-group date-filter">
+        <span class="input-group-text bg-light border-end-0">
+            <i class="fa fa-calendar"></i>
+        </span>
+        <input type="text" id="dateRangePicker" class="form-control border-start-0"
+               placeholder="Select date range"
+               style="cursor: pointer; background-color: #7b83d9; color:white;">
+        <button class="btn btn-outline-secondary" type="button" id="clearDateFilter">
+            <i class="fa fa-times"></i>
+        </button>
+    </div>
+
+    <!-- Status Tabs -->
+    <div class="row mb-2">
+        <div class="col-md-12">
+            <div class="status-filter-tabs" id="statusFilterTabs">
+                <div class="status-tab" data-status="paid">Paid</div>
+                <div class="status-tab" data-status="pending">Pending</div>
+            </div>
+        </div>
+    </div>
+    <!-- Role Dropdown -->
+    <div class="role-filter-group">
+        <span class="filter-label">Role:</span>
+        <select id="roleFilter" class="role-filter-dropdown">
+            <option value="all">All Roles</option>
+            <!-- Dynamic options will be added by JavaScript -->
+        </select>
+    </div>
+
+</div>
+
+
+<div class="table-responsive">
+
+
+
+    <table id="workerPaymentTableDD"
+           class="table table-bordered table-striped table-hover text-center small"
+           style="width:100%;">
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <div class="btn-group export-buttons" id="exportButtons">
+                    <button class="export-btn" id="btnExportCSV">
+                        <img src="@Url.Content("~/Content/img/icons8-csv-64.png")" class="export-icon" />
+                    </button>
+
+                    <button class="export-btn" id="btnExportExcel">
+                        <img src="@Url.Content("~/Content/img/icons8-xls-64.png")" class="export-icon" />
+                    </button>
+
+                    <button class="export-btn" id="btnExportPDF">
+                        <img src="@Url.Content("~/Content/img/icons8-pdf-64.png")" class="export-icon" />
+                    </button>
+
+                    <button class="export-btn" id="btnPrint">
+                        <img src="@Url.Content("~/Content/img/icons8-print-100.png")" class="export-icon" />
+                    </button>
+                </div>
+            </div>
+        </div>
+        <thead>
+            <tr style="background:#615677; color:white;">
+                <th style="width: 30px; padding: 0;" class="p-0">
+                    <div class="d-flex justify-content-center align-items-center" style="height: 100%;">
+                        <input type="checkbox" id="selectAllWorkers" />
+                    </div>
+                </th>
+                <th>Sr.No</th>
+                <th>Worker Name</th>
+                <th>Contact</th>
+                <th>Salary (₹)</th>
+                <th>Worker Role</th>
+                <th>Month</th>
+                <th>Payable Amount(₹)</th>
+                <th>Paid Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @{
+                int i = 1;
+                foreach (var row in Model)
+                {
+                    string rid = "row_" + i;
+                    string paidDate = row["PaidDate"] == DBNull.Value ? "-" : Convert.ToDateTime(row["PaidDate"]).ToString("dd-MM-yyyy");
+                    string status = row["PaymentStatus"].ToString();
+                    string salary = Convert.ToDecimal(row["Salary"]).ToString("N2");
+                    string amountToPay = Convert.ToDecimal(row["AmountToPaid"]).ToString("N2");
+                    string workerRole = row["WorkerType"].ToString();
+
+                    // Convert month from "2025-11" to "November 2025"
+                    string monthValue = row["AttendanceMonth"].ToString();
+                    string monthName = "";
+                    if (!string.IsNullOrEmpty(monthValue))
+                    {
+                        try
+                        {
+                            var parts = monthValue.Split('-');
+                            if (parts.Length == 2)
+                            {
+                                int year = int.Parse(parts[0]);
+                                int month = int.Parse(parts[1]);
+                                monthName = new DateTime(year, month, 1).ToString("MMMM yyyy");
+                            }
+                        }
+                        catch
+                        {
+                            monthName = monthValue;
+                        }
+                    }
+
+                    <tr id="@rid" data-status="@status.ToLower()" data-role="@workerRole.ToLower()" data-payment-date="@paidDate" data-month="@row["AttendanceMonth"]">
+                        <td>
+                            <input type="checkbox" class="row-checkbox"
+                                   data-worker="@row["WorkerCode"]"
+                                   data-month="@row["AttendanceMonth"]"
+                                   data-amount="@row["AmountToPaid"]"
+                                   data-unique-id="@row["WorkerCode"]_@row["AttendanceMonth"]" />
+                        </td>
+                        <td>@i</td>
+                        <td title="@row["WorkerName"]">@row["WorkerName"]</td>
+                        <td>@row["ContactNo"]</td>
+                        <td>₹@salary</td>
+                        <td>@workerRole</td>
+                        <td>@monthName</td>
+                        <td>₹@amountToPay</td>
+                        <td>@paidDate</td>
+                        <td>
+                            @if (status == "Paid")
+                            {
+                                <span class="text-success">Paid</span>
+                            }
+                            else if (status == "Pending")
+                            {
+                                <span class="text-primary">Pending</span>
+                            }
+                        </td>
+                    </tr>
+                    i++;
+                }
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td></td>
+                <td colspan="3" class="text-right font-weight-bold text-dark">Total:</td>
+                <td class="text-right font-weight-bold text-dark" id="salary-total">₹0.00</td>
+                <td></td>
+                <td></td>
+                <td class="text-right font-weight-bold text-dark" id="amount-total">₹0.00</td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<link href="~/Content/modules/bootstrap-daterangepicker/daterangepicker.css" rel="stylesheet" />
+<link href="~/Content/modules/datatables/datatables.min.css" rel="stylesheet" />
+<link href="~/Content/modules/datatables/DataTables-1.10.16/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
+<link href="~/Content/modules/izitoast/css/iziToast.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<script src="~/Content/modules/moment.min.js"></script>
+<script src="~/Content/modules/jquery.min.js"></script>
+<script src="~/Content/modules/datatables/datatables.min.js"></script>
+<script src="~/Content/modules/izitoast/js/iziToast.min.js"></script>
+<script src="~/Content/modules/sweetalert/sweetalert.min.js"></script>
+<script src="~/Content/modules/bootstrap-daterangepicker/daterangepicker.js"></script>
+
+<!-- Export Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        // Initialize global variable for selected rows
+        window.selectedWorkerRows = new Set();
+        window.currentStatusFilter = 'Paid';
+        window.currentRoleFilter = 'Paid';
+
+        initDateRangePicker();
+        initRoleFilterDropdown();
+        initStatusFilterTabs();
+        initWorkerPaymentTable();
+        initExportButtons();
+    });
+
+    function initRoleFilterDropdown() {
+        // Extract unique roles from table
+        var roles = new Set();
+        $('#workerPaymentTableDD tbody tr').each(function () {
+            var role = $(this).data('role');
+            if (role && role.trim() !== '') {
+                roles.add(role.trim());
+            }
+        });
+
+        // Convert to array and sort
+        var rolesArray = Array.from(roles).sort();
+
+        // Populate dropdown
+        var roleFilter = $('#roleFilter');
+        rolesArray.forEach(function (role) {
+            // Capitalize first letter of each word
+            var displayRole = role.split(' ').map(function (word) {
+                return word.charAt(0).toUpperCase() + word.slice(1);
+            }).join(' ');
+
+            roleFilter.append('<option value="' + role.toLowerCase() + '">' + displayRole + '</option>');
+        });
+
+        // Add event listener
+        roleFilter.on('change', function () {
+            var selectedRole = $(this).val();
+            window.currentRoleFilter = selectedRole;
+            applyRoleFilter(selectedRole);
+        });
+    }
+
+    function applyRoleFilter(role) {
+        var table = $('#workerPaymentTableDD').DataTable();
+
+        // Remove existing role filter if any
+        $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(function (fn) {
+            return fn.name !== 'roleFilter';
+        });
+
+        if (role === 'Paid') {
+            // No filter needed, just redraw
+            table.draw();
+            return;
+        }
+
+        function roleFilter(settings, data, dataIndex) {
+            var row = $(settings.aoData[dataIndex].nTr);
+            var rowRole = row.data('role');
+            return rowRole === role;
+        }
+
+        roleFilter.name = 'roleFilter';
+        $.fn.dataTable.ext.search.push(roleFilter);
+        table.draw();
+    }
+
+    function initDateRangePicker() {
+        // Get current month start and end dates
+        var startOfMonth = moment().startOf('month');
+        var endOfMonth = moment().endOf('month');
+
+        // Initialize date range picker with current month as default
+        $('#dateRangePicker').daterangepicker({
+            startDate: startOfMonth,
+            endDate: endOfMonth,
+            opens: 'Right',
+            locale: {
+                cancelLabel: 'Clear',
+                format: 'DD-MM-YYYY',
+                applyLabel: 'Apply'
+            },
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        });
+
+        // Set the initial value to show current month
+        $('#dateRangePicker').val(startOfMonth.format('DD-MM-YYYY') + ' to ' + endOfMonth.format('DD-MM-YYYY'));
+
+        // Store the default dates for filtering
+        window.fromDate = startOfMonth;
+        window.toDate = endOfMonth;
+
+        // Apply default filter (will be applied after table initialization)
+        setTimeout(function () {
+            filterByDateRange(startOfMonth, endOfMonth);
+        }, 100);
+
+        $('#dateRangePicker').on('apply.daterangepicker', function (ev, picker) {
+            $(this).val(picker.startDate.format('DD-MM-YYYY') + ' to ' + picker.endDate.format('DD-MM-YYYY'));
+
+            // Store the dates for filtering
+            window.fromDate = picker.startDate;
+            window.toDate = picker.endDate;
+
+            filterByDateRange(picker.startDate, picker.endDate);
+        });
+
+        $('#dateRangePicker').on('cancel.daterangepicker', function () {
+            $(this).val('');
+            clearDateFilter();
+        });
+
+        $('#clearDateFilter').on('click', function () {
+            $('#dateRangePicker').val('');
+            clearDateFilter();
+        });
+    }
+
+    function initStatusFilterTabs() {
+        $('#statusFilterTabs .status-tab').off('click').on('click', function () {
+            // Remove active class from all tabs
+            $('#statusFilterTabs .status-tab').removeClass('active');
+
+            // Add active class to clicked tab
+            $(this).addClass('active');
+
+            // Get the status to filter
+            var status = $(this).data('status');
+            window.currentStatusFilter = status;
+
+            // Apply status filter
+            applyStatusFilter(status);
+        });
+    }
+
+    function applyStatusFilter(status) {
+        var table = $('#workerPaymentTableDD').DataTable();
+
+        // Remove existing status filter if any
+        $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(function (fn) {
+            return fn.name !== 'statusFilter';
+        });
+
+        if (status === 'Paid') {
+            // No filter needed, just redraw
+            table.draw();
+            return;
+        }
+
+        function statusFilter(settings, data, dataIndex) {
+            var row = $(settings.aoData[dataIndex].nTr);
+            var rowStatus = row.data('status');
+            return status === rowStatus;
+        }
+
+        statusFilter.name = 'statusFilter';
+        $.fn.dataTable.ext.search.push(statusFilter);
+        table.draw();
+    }
+
+    function filterByDateRange(startDate, endDate) {
+        var table = $('#workerPaymentTableDD').DataTable();
+
+        // Remove existing date filter if any
+        $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(function (fn) {
+            return fn.name !== 'dateRangeFilter';
+        });
+
+        function dateRangeFilter(settings, data, dataIndex) {
+            var row = $(settings.aoData[dataIndex].nTr);
+            var paidDateStr = row.data('payment-date');
+
+            if (paidDateStr === '-' || !paidDateStr) return true;
+
+            try {
+                var datePart = paidDateStr.split(' ')[0];
+                var parts = datePart.split('-');
+                var paidDate = moment(new Date(parts[2], parts[1] - 1, parts[0]));
+
+                return paidDate.isSameOrAfter(startDate, 'day') &&
+                    paidDate.isSameOrBefore(endDate, 'day');
+            } catch (e) {
+                return true;
+            }
+        }
+
+        dateRangeFilter.name = 'dateRangeFilter';
+        $.fn.dataTable.ext.search.push(dateRangeFilter);
+
+        // Re-apply other filters
+        applyRoleFilter(window.currentRoleFilter);
+        applyStatusFilter(window.currentStatusFilter);
+    }
+
+    function clearDateFilter() {
+        var table = $('#workerPaymentTableDD').DataTable();
+
+        $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(function (fn) {
+            return fn.name !== 'dateRangeFilter';
+        });
+
+        // Reset to current month
+        var startOfMonth = moment().startOf('month');
+        var endOfMonth = moment().endOf('month');
+
+        $('#dateRangePicker').val(startOfMonth.format('DD-MM-YYYY') + ' to ' + endOfMonth.format('DD-MM-YYYY'));
+        window.fromDate = startOfMonth;
+        window.toDate = endOfMonth;
+
+        // Re-apply current month filter
+        filterByDateRange(startOfMonth, endOfMonth);
+    }
+
+    function initWorkerPaymentTable() {
+        if ($.fn.DataTable.isDataTable('#workerPaymentTableDD')) {
+            $('#workerPaymentTableDD').DataTable().destroy();
+        }
+
+        var table = $('#workerPaymentTableDD').DataTable({
+            dom: "<'row mb-2'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+                "<'row'<'col-sm-12'tr>>" +
+                "<'row mt-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            ordering: true,
+            order: [[1, 'asc']],
+            pageLength: 10,
+            responsive: false,
+            scrollX: false,
+            stateSave: true,
+
+            columnDefs: [
+                {
+                    orderable: false,
+                    targets: 0
+                },
+                {
+                    targets: [4, 7], // Salary and Amount columns
+                    render: function (data, type, row) {
+                        if (type === 'sort' || type === 'filter') {
+                            return data.replace('₹', '').replace(/,/g, '');
+                        }
+                        return data;
+                    }
+                },
+                {
+                    targets: 8, // Paid Date column
+                    render: function (data, type, row) {
+                        if (type === 'sort') {
+                            if (data === '-') return 0;
+                            var parts = data.split(' ')[0].split('-');
+                            return moment(parts[2] + '-' + parts[1] + '-' + parts[0], 'YYYY-MM-DD').unix();
+                        }
+                        return data;
+                    }
+                },
+                {
+                    targets: 6, // Month column
+                    render: function (data, type, row) {
+                        if (type === 'sort') {
+                            // Convert month name back to sortable format
+                            if (!data) return 0;
+                            try {
+                                var parts = data.split(' ');
+                                if (parts.length === 2) {
+                                    var monthName = parts[0];
+                                    var year = parts[1];
+                                    var monthNum = moment().month(monthName).format('MM');
+                                    return year + monthNum;
+                                }
+                            } catch (e) {
+                                return data;
+                            }
+                        }
+                        return data;
+                    }
+                },
+                {
+                    targets: 5, // Worker Role column
+                    render: function (data, type, row) {
+                        if (type === 'sort' || type === 'filter') {
+                            return data.toLowerCase();
+                        }
+                        return data;
+                    }
+                }
+            ],
+
+            language: {
+                search: "Search : _INPUT_",
+                searchPlaceholder: "Search...",
+                infoFiltered: ""
+            },
+
+            footerCallback: function (row, data, start, end, display) {
+                var api = this.api();
+
+                var parseCurrency = function (value) {
+                    return typeof value === 'string'
+                        ? parseFloat(value.replace(/[^\d.-]/g, ''))
+                        : typeof value === 'number'
+                            ? value
+                            : 0;
+                };
+
+                // Calculate Salary Total (col 4)
+                var salaryTotal = api
+                    .column(4, { filter: 'applied' })
+                    .data()
+                    .reduce(function (sum, val) {
+                        return sum + parseCurrency(val);
+                    }, 0);
+
+                // Calculate Amount To Pay Total (col 7)
+                var amountTotal = api
+                    .column(7, { filter: 'applied' })
+                    .data()
+                    .reduce(function (sum, val) {
+                        return sum + parseCurrency(val);
+                    }, 0);
+
+                // Update footer cells
+                $(api.column(4).footer()).html(
+                    '₹' + salaryTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                );
+
+                $(api.column(7).footer()).html(
+                    '₹' + amountTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                );
+            },
+
+            drawCallback: function (settings) {
+                var api = this.api();
+                var pageInfo = api.page.info();
+                var startIndex = pageInfo.start;
+
+                // Update Sr.No based on pagination
+                api.column(1, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = startIndex + i + 1;
+                });
+
+                // Restore checkbox states
+                $('.row-checkbox').each(function () {
+                    var uniqueId = $(this).data('unique-id');
+                    $(this).prop('checked', window.selectedWorkerRows.has(uniqueId));
+                });
+
+                // Update "Select All" checkbox
+                var totalRows = api.rows({ filter: 'applied' }).nodes().length;
+                var selectedCount = window.selectedWorkerRows.size;
+
+                // Check if all filtered rows are selected
+                var allFilteredSelected = true;
+                if (totalRows > 0) {
+                    api.rows({ filter: 'applied' }).every(function () {
+                        var uniqueId = $(this.node()).find('.row-checkbox').data('unique-id');
+                        if (!window.selectedWorkerRows.has(uniqueId)) {
+                            allFilteredSelected = false;
+                            return false;
+                        }
+                    });
+                }
+
+                $('#selectAllWorkers').prop('checked', totalRows > 0 && allFilteredSelected);
+            }
+        });
+
+        // SELECT ALL CHECKBOX - Select ALL FILTERED records
+        $('#selectAllWorkers').off('click').on('click', function () {
+            var isChecked = $(this).prop('checked');
+            var table = $('#workerPaymentTableDD').DataTable();
+
+            if (isChecked) {
+                // Select all filtered rows
+                table.rows({ filter: 'applied' }).every(function () {
+                    var $checkbox = $(this.node()).find('.row-checkbox');
+                    var uniqueId = $checkbox.data('unique-id');
+                    window.selectedWorkerRows.add(uniqueId);
+                    $checkbox.prop('checked', true);
+                });
+            } else {
+                // Deselect all filtered rows
+                table.rows({ filter: 'applied' }).every(function () {
+                    var $checkbox = $(this.node()).find('.row-checkbox');
+                    var uniqueId = $checkbox.data('unique-id');
+                    window.selectedWorkerRows.delete(uniqueId);
+                    $checkbox.prop('checked', false);
+                });
+            }
+        });
+
+        // INDIVIDUAL CHECKBOX
+        $(document).off('click', '.row-checkbox').on('click', '.row-checkbox', function (e) {
+            e.stopPropagation();
+
+            var uniqueId = $(this).data('unique-id');
+            var isChecked = $(this).prop('checked');
+
+            if (isChecked) {
+                window.selectedWorkerRows.add(uniqueId);
+            } else {
+                window.selectedWorkerRows.delete(uniqueId);
+                $('#selectAllWorkers').prop('checked', false);
+            }
+        });
+
+        // ROW CLICK TO TOGGLE CHECKBOX
+        $(document).off('click', '#workerPaymentTableDD tbody tr').on('click', '#workerPaymentTableDD tbody tr', function (e) {
+            if (!$(e.target).is('input[type="checkbox"]') && !$(e.target).is('a') && !$(e.target).is('button')) {
+                var checkbox = $(this).find('.row-checkbox');
+                checkbox.prop('checked', !checkbox.prop('checked')).trigger('click');
+            }
+        });
+
+        // Apply initial filter after table is initialized
+        if (window.fromDate && window.toDate) {
+            setTimeout(function () {
+                filterByDateRange(window.fromDate, window.toDate);
+            }, 100);
+        }
+
+        return table;
+    }
+
+    function initExportButtons() {
+        // CSV Export
+        $('#btnExportCSV').off('click').on('click', function () {
+            exportToCSV();
+        });
+
+        // Excel Export
+        $('#btnExportExcel').off('click').on('click', function () {
+            exportToExcel();
+        });
+
+        // PDF Export
+        $('#btnExportPDF').off('click').on('click', function () {
+            exportToPDF();
+        });
+
+        // Print
+        $('#btnPrint').off('click').on('click', function () {
+            printTable();
+        });
+    }
+
+    function getSelectedRowsData() {
+        var selectedData = [];
+        var table = $('#workerPaymentTableDD').DataTable();
+        var srNo = 1;
+
+        // Get all rows from the original data
+        table.rows().every(function () {
+            var $row = $(this.node());
+            var uniqueId = $row.find('.row-checkbox').data('unique-id');
+
+            if (window.selectedWorkerRows.has(uniqueId)) {
+                var rowData = [];
+
+                // Collect all columns except checkbox
+                $row.find('td').each(function (j) {
+                    if (j > 0) { // Skip checkbox column
+                        rowData.push($(this).text().trim());
+                    }
+                });
+
+                // Update Sr.No
+                rowData[0] = srNo++;
+
+                selectedData.push(rowData);
+            }
+        });
+
+        return selectedData;
+    }
+
+    function exportToCSV() {
+        var selectedData = getSelectedRowsData();
+
+        if (selectedData.length === 0) {
+            iziToast.warning({
+                title: 'No selection',
+                message: 'Please select at least one row to export CSV.',
+                position: 'topCenter'
+            });
+            return;
+        }
+
+        // Get table headers
+        var headers = [];
+        $('#workerPaymentTableDD thead th').each(function (i) {
+            if (i > 0) {
+                headers.push($(this).text().trim());
+            }
+        });
+
+        // Create CSV content
+        var csvRows = [];
+
+        // Add header rows
+        csvRows.push('Worker Payment Report');
+        csvRows.push('Generated on: ' + moment().format('DD-MM-YYYY HH:mm'));
+        csvRows.push('Total Records: ' + selectedData.length);
+        csvRows.push('');
+        csvRows.push(headers.join(','));
+
+        // Add data rows
+        selectedData.forEach(function (rowData) {
+            var csvRow = rowData.map(function (cell) {
+                cell = cell.replace(/"/g, '""');
+                if (cell.includes(',') || cell.includes('"') || cell.includes('\n')) {
+                    cell = '"' + cell + '"';
+                }
+                return cell;
+            }).join(',');
+
+            csvRows.push(csvRow);
+        });
+
+        var csvContent = csvRows.join('\n');
+
+        // Create download link
+        var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        var link = document.createElement('a');
+        var url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'Worker_Payment_Report_' + moment().format('DD-MM-YYYY') + '.csv');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        swal({
+            icon: 'success',
+            title: 'CSV Exported',
+            text: 'CSV file has been downloaded successfully!',
+            timer: 2000,
+            buttons: false
+        });
+    }
+
+    function exportToExcel() {
+        var selectedData = getSelectedRowsData();
+
+        if (selectedData.length === 0) {
+            iziToast.warning({
+                title: 'No selection',
+                message: 'Please select at least one row to export Excel.',
+                position: 'topCenter'
+            });
+            return;
+        }
+
+        // Get table headers
+        var headers = [];
+        $('#workerPaymentTableDD thead th').each(function (i) {
+            if (i > 0) {
+                headers.push($(this).text().trim());
+            }
+        });
+
+        // Prepare Excel data
+        var excelData = [];
+
+        // Add header information
+        excelData.push(['Worker Payment Report']);
+        excelData.push(['Generated on: ' + moment().format('DD-MM-YYYY HH:mm')]);
+        excelData.push(['Total Records: ' + selectedData.length]);
+        excelData.push([]);
+        excelData.push(headers);
+
+        // Add data rows
+        selectedData.forEach(function (rowData) {
+            // Clean numeric values
+            rowData[3] = rowData[3].replace('₹', '').replace(/,/g, ''); // Salary
+            rowData[6] = rowData[6].replace('₹', '').replace(/,/g, ''); // Amount
+
+            excelData.push(rowData);
+        });
+
+        // Create worksheet
+        var ws = XLSX.utils.aoa_to_sheet(excelData);
+
+        // Merge header cells
+        var mergeRange = [
+            { s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } },
+            { s: { r: 1, c: 0 }, e: { r: 1, c: headers.length - 1 } },
+            { s: { r: 2, c: 0 }, e: { r: 2, c: headers.length - 1 } }
+        ];
+        ws['!merges'] = mergeRange;
+
+        // Set column widths
+        var wscols = [
+            { wch: 8 },  // Sr.No
+            { wch: 25 }, // Worker Name
+            { wch: 15 }, // Contact
+            { wch: 12 }, // Salary
+            { wch: 15 }, // Worker Role
+            { wch: 15 }, // Month
+            { wch: 15 }, // Amount To Pay
+            { wch: 15 }, // Paid Date
+            { wch: 10 }  // Status
+        ];
+        ws['!cols'] = wscols;
+
+        // Create workbook
+        var wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Worker Payments');
+
+        // Save file
+        XLSX.writeFile(wb, 'Worker_Payment_Report_' + moment().format('DD-MM-YYYY') + '.xlsx');
+
+        swal({
+            icon: 'success',
+            title: 'Excel Exported',
+            text: 'Excel file has been downloaded successfully!',
+            timer: 2000,
+            buttons: false
+        });
+    }
+
+    function exportToPDF() {
+        var selectedData = getSelectedRowsData();
+
+        if (selectedData.length === 0) {
+            iziToast.warning({
+                title: 'No selection',
+                message: 'Please select at least one row to export PDF.',
+                position: 'topCenter'
+            });
+            return;
+        }
+
+        // Get table headers
+        var headers = [];
+        $('#workerPaymentTableDD thead th').each(function (i) {
+            if (i > 0) {
+                headers.push($(this).text().trim());
+            }
+        });
+
+        // Prepare data for PDF
+        var bodyData = [];
+        selectedData.forEach(function (rowData) {
+            // Clean numeric values
+            rowData[3] = rowData[3].replace('₹', '');
+            rowData[6] = rowData[6].replace('₹', '');
+
+            bodyData.push(rowData);
+        });
+
+        // Create PDF
+        if (typeof jspdf === 'undefined' || typeof jspdf.jsPDF === 'undefined') {
+            iziToast.error({
+                title: 'PDF Error',
+                message: 'jspdf library is not loaded properly',
+                position: 'topCenter'
+            });
+            return;
+        }
+
+        try {
+            var doc = new jspdf.jsPDF('landscape', 'mm', 'a4');
+
+            // Add title
+            doc.setFontSize(18);
+            doc.setTextColor(40);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Worker Payment Report', doc.internal.pageSize.width / 2, 15, { align: 'center' });
+
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text('Generated on: ' + moment().format('DD-MM-YYYY HH:mm'), doc.internal.pageSize.width / 2, 22, { align: 'center' });
+            doc.text('Total Records: ' + selectedData.length, doc.internal.pageSize.width / 2, 27, { align: 'center' });
+
+            // Create table
+            doc.autoTable({
+                head: [headers],
+                body: bodyData,
+                startY: 35,
+                theme: 'grid',
+                styles: {
+                    fontSize: 9,
+                    cellPadding: 3,
+                    overflow: 'linebreak',
+                    textColor: [0, 0, 0],
+                    font: 'helvetica'
+                },
+                headStyles: {
+                    fillColor: [97, 86, 119], // #615677
+                    textColor: [255, 255, 255],
+                    fontSize: 10,
+                    fontStyle: 'bold',
+                    halign: 'center'
+                },
+                bodyStyles: {
+                    halign: 'center'
+                },
+                columnStyles: {
+                    0: { cellWidth: 12, halign: 'center' },  // Sr.No
+                    1: { cellWidth: 40, halign: 'center' },  // Worker Name
+                    2: { cellWidth: 20, halign: 'center' },  // Contact
+                    3: { cellWidth: 25, halign: 'center' },  // Salary
+                    4: { cellWidth: 25, halign: 'center' },  // Worker Role
+                    5: { cellWidth: 30, halign: 'center' },  // Month
+                    6: { cellWidth: 25, halign: 'center' },  // Amount To Pay
+                    7: { cellWidth: 25, halign: 'center' },  // Paid Date
+                    8: { cellWidth: 20, halign: 'center' }   // Status
+                },
+                margin: { top: 35, left: 10, right: 10 },
+                pageBreak: 'auto',
+                tableWidth: 'wrap'
+            });
+
+            // Save PDF
+            doc.save('Worker_Payment_Report_' + moment().format('DD-MM-YYYY') + '.pdf');
+
+            swal({
+                icon: 'success',
+                title: 'PDF Exported',
+                text: 'PDF file has been downloaded successfully!',
+                timer: 2000,
+                buttons: false
+            });
+        } catch (error) {
+            console.error('PDF Export Error:', error);
+            iziToast.error({
+                title: 'PDF Error',
+                message: 'Failed to generate PDF: ' + error.message,
+                position: 'topCenter'
+            });
+        }
+    }
+
+    function printTable() {
+        var selectedData = getSelectedRowsData();
+
+        if (selectedData.length === 0) {
+            iziToast.warning({
+                title: 'No selection',
+                message: 'Please select at least one row to print.',
+                position: 'topCenter'
+            });
+            return;
+        }
+
+        // Get table headers
+        var headers = [];
+        $('#workerPaymentTableDD thead th').each(function (i) {
+            if (i > 0) {
+                headers.push($(this).text().trim());
+            }
+        });
+
+        var printWindow = window.open('', '_blank', 'width=800,height=600');
+        printWindow.document.open();
+
+        // Build table rows HTML
+        var tableRowsHtml = '';
+        selectedData.forEach(function (rowData, index) {
+            var status = rowData[8]; // Status column index
+            var statusClass = status === 'Paid' ? 'status-paid' :
+                status === 'Pending' ? 'status-pending' : 'status-unpaid';
+
+            tableRowsHtml += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${rowData[1]}</td>
+                    <td>${rowData[2]}</td>
+                    <td>${rowData[3]}</td>
+                    <td>${rowData[4]}</td>
+                    <td>${rowData[5]}</td>
+                    <td>${rowData[6]}</td>
+                    <td>${rowData[7]}</td>
+                    <td class="${statusClass}">${status}</td>
+                </tr>
+            `;
+        });
+
+        // Create print content
+        var printContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Worker Payment Report</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    h2 { text-align: center; color: #333; }
+                    .print-info { text-align: center; margin-bottom: 20px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    th { background-color: #615677; color: white; padding: 10px; text-align: center; }
+                    td { padding: 8px; border: 1px solid #ddd; text-align: center; }
+                    tr:nth-child(even) { background-color: #f9f9f9; }
+                    .status-paid { color: green; font-weight: bold; }
+                    .status-pending { color: #007bff; font-weight: bold; }
+                    .status-unpaid { color: red; font-weight: bold; }
+                    @@media print {
+                        body { margin: 0; }
+                        .no-print { display: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                <h2>Worker Payment Report</h2>
+                <div class="print-info">
+                    <p>Generated on: ${moment().format('DD-MM-YYYY HH:mm')}</p>
+                    <p>Total Records: ${selectedData.length}</p>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sr.No</th>
+                            <th>Worker Name</th>
+                            <th>Contact</th>
+                            <th>Salary (₹)</th>
+                            <th>Worker Role</th>
+                            <th>Month</th>
+                            <th>Amount To Pay (₹)</th>
+                            <th>Paid Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRowsHtml}
+                    </tbody>
+                </table>
+                <div class="no-print" style="margin-top: 20px; text-align: center;">
+                    <button onclick="window.print()" style="padding: 10px 20px; background: #615677; color: white; border: none; cursor: pointer;">
+                        Print Now
+                    </button>
+                    <button onclick="window.close()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; cursor: pointer; margin-left: 10px;">
+                        Close
+                    </button>
+                </div>
+                <script>
+                    setTimeout(function() { window.print(); }, 500);
+                <\/script>
+            </body>
+            </html>
+        `;
+
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+    }
+</script>
+
+<style>
+    .table-responsive {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    #workerPaymentTableDD thead th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        color: white !important;
+    }
+
+    #workerPaymentTableDD tbody tr {
+        cursor: pointer;
+    }
+
+    .row-checkbox {
+        cursor: pointer;
+    }
+
+    #selectAllWorkers {
+        cursor: pointer;
+    }
+
+    #dateRangePicker {
+        color: white !important;
+    }
+
+        #dateRangePicker::-webkit-input-placeholder {
+            color: white !important;
+        }
+
+        #dateRangePicker:-moz-placeholder {
+            color: white !important;
+        }
+
+        #dateRangePicker::-moz-placeholder {
+            color: white !important;
+        }
+
+        #dateRangePicker:-ms-input-placeholder {
+            color: white !important;
+        }
+
+    .dataTables_length {
+        visibility: hidden;
+    }
+
+    .role-filter-dropdown {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right .75rem center;
+        background-size: 16px 12px;
+        padding-right: 2.5rem;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+    }
+</style>

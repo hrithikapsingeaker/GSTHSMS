@@ -1,0 +1,96 @@
+﻿@model GSTSMSLibrary.Account.Account
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Login - Housing Society</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/Content/css/custom.css" />
+
+    <!-- Strict cache prevention -->
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+</head>
+<body>
+    <img src="~/Content/img/Backgroundimg/Mateo-Cities-gif.gif" class="background-video" alt="Housing Society" />
+
+    <div class="login-container">
+        <h2>Login</h2>
+
+        @using (Html.BeginForm("LoginRK", "Account", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+            <div class="form-group">
+                @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "Email" })
+                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="form-group">
+                @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "Password" })
+                @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn-primary" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> <span id="loginText">Login</span>
+                    <span id="spinner" style="display:none;"><i class="fa fa-spinner fa-spin"></i></span>
+                </button>
+            </div>
+        }
+
+        @if (ViewBag.Message != null)
+        {
+            <div class="text-danger text-center mt-2">
+                <i class="fa fa-exclamation-triangle"></i> @ViewBag.Message
+            </div>
+        }
+
+        <div class="forgot-password">
+            <a href="@Url.Action("RequestOtpRK", "Account")">Forgot Password?</a>
+        </div>
+    </div>
+
+    <script>
+    // Disable login button on form submit
+    document.querySelector("form").addEventListener("submit", function () {
+        const loginBtn = document.getElementById("loginBtn");
+        const loginText = document.getElementById("loginText");
+        const spinner = document.getElementById("spinner");
+
+        if (loginBtn && loginText && spinner) {
+            loginBtn.disabled = true;
+            loginText.style.display = "none";
+            spinner.style.display = "inline-block";
+        }
+    });
+
+    // Prevent navigating back to this page after logout
+    (function () {
+        if (window.history && window.history.pushState) {
+            window.history.pushState(null, null, window.location.href);
+            window.onpopstate = function () {
+                // Force redirect to login on back
+                location.replace('@Url.Action("LoginRK", "Account")');
+            };
+        }
+
+        // Handle Safari/Firefox back-forward cache (bfcache)
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || performance.getEntriesByType("navigation")[0]?.type === "back_forward") {
+                location.reload();
+            }
+        });
+    })();
+    </script>
+
+
+</body>
+</html>

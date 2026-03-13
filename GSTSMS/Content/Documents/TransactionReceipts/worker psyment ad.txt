@@ -1,0 +1,484 @@
+@model System.Data.DataRow
+
+
+@*Cdn in project *@
+<link href="~/Content/css/WorkerPaymentAD.css" rel="stylesheet" />
+<script src="~/Content/modules/datatables/Buttons-1.5.1/js/buttons.bootstrap4.min.js"></script>
+<script src="~/Content/modules/izitoast/js/iziToast.min.js"></script>
+<script src="~/Content/modules/sweetalert/sweetalert.min.js"></script>
+@*Cdn in project End *@
+
+
+
+
+
+
+
+
+
+<div class="modal-header">
+    <h6 class="modal-title m-0">
+        <i class="modal-title m-0"></i>Worker Payment
+    </h6>
+    <button type="button" class="btn btn-danger btn-sm ifsc-close-btn position-absolute" style="top: 10px; right: 15px;" onclick="closeModal()">
+        <i class="fa fa-times"></i>
+    </button>
+
+
+</div>
+
+<div class="modal-body">
+    <input type="hidden" id="workerCode" value="@Model["WorkerCode"]" />
+    <input type="hidden" id="joiningDate" value="@Model["Date"]" />
+    <input type="hidden" id="baseSalary" value="@Model["BaseSalary"]" />
+    <input type="hidden" id="daysPresent" value="@Model["DaysPresent"]" />
+    <input type="hidden" id="accountNo" value="@Model["AccountNo"]" />
+
+    <div class="container-fluid">
+        <div class="section-title"> Worker Information</div>
+        <div class="row g-2">
+            <div class="col-6"><strong>Name:</strong> @Model["WorkerName"]</div>
+            <div class="col-6"><strong>Contact:</strong> @Model["Contact"]</div>
+            <div class="col-6"><strong>Role:</strong> @Model["Role"]</div>
+            @*<div class="col-6"><strong>Joining Date:</strong> @Model["Date"]</div>*@
+
+
+
+
+
+            <div class="col-6">
+                <strong>UPI ID:</strong>
+                <span id="WorkerUPI">@Model["Worker UPI"]</span>
+
+                <i class="far fa-copy ml-0 text-primary"
+                   title="Copy UPI ID"
+                   onclick="copyToClipboard('WorkerUPI')"
+                   style="margin-left: 6px; cursor: pointer;">
+                </i>
+
+                <span id="lblCopied" class="ml-2" style="display:none; font-size: 14px;">Copied</span>
+            </div>
+
+
+
+
+
+            <div class="col-6"><strong>Base Salary:</strong> ₹@Model["BaseSalary"]</div>
+
+            @{
+                var monthText = DateTime.ParseExact(Model["AttendanceMonth"].ToString(), "yyyy-MM", null).ToString("MMMM - yyyy");
+            }
+            <div class="col-6"><strong>Month:</strong> @monthText</div>
+            <div class="col-6"><strong>Total Pay:</strong> ₹<span id="amountToPay">@Model["AmountToBePaid"]</span></div>
+            <div class="col-6"><strong>IFSC:</strong> @Model["IFSC Code"]</div>
+            <div class="col-6"><strong>Bank:</strong> <span id="bankName">–</span></div>
+            <div class="col-6">
+                <strong class="me-2">Cash In  Amount :</strong>
+             
+                <span id="cashInHandDisplay" style="margin-right: 20px";>Loading...</span>
+
+            </div>
+
+        </div>
+
+        <div class="section-title mt-4"> Accountant Bank Info</div>
+        <div class="row g-2">
+            <div class="col-12">
+                <label for="bankSelect" class="form-label" style="font-weight: bold; color: #000000;">Select Bank:</label>
+                <select id="bankSelect" class="form-select mt-1" style="border-radius: 4px;">
+                    <option value="" style="font-size: 1rem; font-weight: bold;">-- Select Bank --</option>
+                </select>
+            </div>
+            <div class="col-md-4 col-sm-6"><strong>Bank Balance:</strong> ₹<span id="bankBalance">–</span></div>
+
+
+            <div class="modal-footer">
+                <button id="rzp-confirm" class="btn btn-primary btn-action pay-btn">
+                    <i class="bi bi-credit-card me-2"></i> Confirm & Pay
+                </button>
+
+                <button id="cash-pay" class="btn btn-action cash-btn" onclick="redirectToCash()">
+                    <i class="fas fa-plus-circle"></i> Pay By Cash
+                </button>
+            </div>
+
+
+
+        </div>
+    </div>
+
+    <!-- This div must exist for loading partial view -->
+    <div id="paymentModal" class="modal fade" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" id="modalContent">
+                <!-- Partial view HTML will load here -->
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+    /*//open pay bycashModal*/
+
+$(document).on('click', '#cash-pay', function () {
+    const workerCode = $('#workerCode').val();
+    const month = "@Model["AttendanceMonth"]";
+
+    // 🔴 CLOSE the current open modal (Worker Payment modal)
+    const existingModal = bootstrap.Modal.getInstance(document.getElementById('paymentModal'));
+    if (existingModal) {
+        existingModal.hide();
+    }
+
+    // ✨ Wait a bit and open the new modal
+    setTimeout(() => {
+        $.get('@Url.Action("FetchSingleWorkerForCashAD", "AccountManager")', {
+            workerCode: workerCode,
+            attendanceMonth: month
+        }, function (html) {
+            if (html.trim() !== "") {
+                $('#modalContent').html(html);
+                const newModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+                newModal.show();
+            } else {
+                iziToast.error({
+                    title: 'Error',
+                    message: 'Something Went Wrong Check your Fteching code ',
+                    position: 'topCenter'
+                });
+            }
+        });
+    }, 400); // Wait for modal to hide smoothly
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    $(document).on('shown.bs.modal', '#paymentModal', function () {
+        fetchIfsc("@Model["IFSC Code"]");
+        loadBankDropdown(this);
+    });
+
+    //let globalUniqueAccounts = new Set(); // 👈 Move outside
+
+
+    /////IFSC Started From this line using
+    function maskAccountNo(accNo) {
+        if (!accNo || accNo.length <= 4) {
+            return accNo || '';
+        }
+        let maskedLength = accNo.length - 4;
+        return '*'.repeat(maskedLength) + accNo.substr(maskedLength);
+    }
+
+
+    let globalUniqueAccounts = new Set(); // ✅ Global scope
+
+    $(document).ready(function () {
+        $('.payBtn').on('click', function () {
+            let workerCode = $(this).data('worker');
+            let month = $(this).data('month');
+            let modal = $('#paymentModal');
+
+            $('#modalContent').html('<div class="text-center my-3"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>');
+
+            // ✅ Reset the set each time modal opens
+            globalUniqueAccounts.clear();
+
+            $.get('/AccountManager/GetWorkerPaymentDetailsAD', { workerCode: workerCode, attendanceMonth: month })
+                .done(function (data) {
+                    $('#modalContent').html(data);
+                    loadBankDropdown(); // ✅ Load banks once HTML is injected
+                    modal.modal('show');
+                })
+
+        });
+    });
+
+    function loadBankDropdown() {
+        const $dropdown = $('#bankSelect');
+
+        $.get("/AccountManager/GetAccountantBankListAD")
+            .done(function (banks) {
+                let fetchPromises = banks.map(bank => {
+                    return $.getJSON(`https://ifsc.razorpay.com/${bank.IFSCCode}`)
+                        .then(d => {
+                            bank.label = d.BANK || "Unknown Bank";
+                            return bank;
+                        })
+                        .catch(() => {
+                            bank.label = "Unknown Bank";
+                            return bank;
+                        });
+                });
+
+                Promise.all(fetchPromises).then(results => {
+                    results.forEach(bank => {
+                        if (globalUniqueAccounts.has(bank.AccountNo)) return; // 🔄 Fix here
+                        globalUniqueAccounts.add(bank.AccountNo);             // 🔄 Fix here
+
+                        let maskedAccNo = maskAccountNo(bank.AccountNo);
+                        //let optionText = `${bank.label} (${bank.IFSCCode}) - ${maskedAccNo} [${bank.AccountTypeName}]`;
+                        let optionText = `${bank.label} - ${maskedAccNo} [${bank.AccountTypeName}]`;
+
+                        $dropdown.append(`
+            <option value="${bank.BankCode}"
+                    data-accountno="${bank.AccountNo}"
+                    data-accounttype="${bank.AccountTypeName}"
+                    data-balance="${bank.OpeningBalance}">
+                ${optionText}
+            </option>`);
+                    });
+                });
+
+            })
+
+    }
+
+
+    function maskAccountNo(accNo) {
+        if (!accNo || accNo.length < 4) return accNo;
+        return 'xxxxxx' + accNo.slice(-4);
+    }
+
+    /*Dropdown END HERE */
+
+
+
+
+    $(document).on('change', '#bankSelect', function () {
+        let selected = $(this).find(':selected');
+        let balance = parseFloat(selected.data('balance')) || 0;
+        $('#bankBalance').text(balance);
+        $('#bankBalance').css('color', balance < 1000 ? 'red' : '#198754');
+    });
+
+    /* Bank color end if it is small*/
+
+
+    function fetchIfsc(code) {
+        if (!code) return;
+        $.getJSON(`https://ifsc.razorpay.com/${code}`)
+            .done(d => {
+                $('#bankName').text(d.BANK);
+            })
+            .fail(() => {
+                $('#bankName').text('Invalid IFSC');
+            });
+    }
+
+    /*////fetch bank name or branch name end here */
+
+
+
+    $(document).on('click', '#rzp-confirm', function (e) {
+        e.preventDefault();
+
+        let amountInRupees = parseFloat($('#amountToPay').text());
+        let bankBalance = parseFloat($('#bankBalance').text());
+        let selectedBank = $('#bankSelect').val();
+
+        if (!selectedBank) {
+            if (document.querySelector('.iziToast')) return;
+            $('#rzp-confirm').prop('disabled', true);
+            iziToast.warning({
+                title: 'Oops!',
+                message: 'Please select a bank 🏦 before proceeding.',
+                position: 'topCenter',
+                timeout: 3000,
+                icon: 'fa fa-university',
+                onClosing: function () {
+                    $('#rzp-confirm').prop('disabled', false);
+                }
+            });
+            return;
+        }
+
+
+
+        if (bankBalance < amountInRupees) {
+            if (document.querySelector('.iziToast')) return;
+            iziToast.error({
+                title: 'Insufficient Balance',
+                message: 'Bank balance is less than payable amount 💸',
+                position: 'topCenter'
+            });
+            return;
+        }
+
+        let amountInPaise = Math.round(amountInRupees * 100);
+
+
+        let selectedBankText = $('#bankSelect option:selected').text().trim(); // ✅ Add this line just before options object
+
+            let options = {
+                key: "rzp_test_tnu8pNChRc5VBE",
+                amount: amountInPaise,
+                currency: "INR",
+                name: "Green Valley Society",
+                description: "Salary for @Model["WorkerName"] (@Model["AttendanceMonth"])",
+                prefill: {
+                    name: "@Model["WorkerName"]",
+                    contact: "@Model["Contact"]"
+                },
+                notes: {
+                    ifsc: "@Model["IFSC Code"]",
+                    upi: "@Model["Worker UPI"]",
+                            bank_selected: selectedBankText  // ✅ Add this line
+
+                },
+                handler: function (response) {
+                    $.post("@Url.Action("ProcessPaymentUsingUPIAD", "AccountManager")", {
+                        WorkerCode: $('#workerCode').val(),
+                        AttendanceMonth: "@Model["AttendanceMonth"]",
+                        Amount: amountInRupees,
+                        TransactionId_ChequeId: response.razorpay_payment_id,
+                        IFSCCode: "@Model["IFSC Code"]",
+                        WorkerUPI: "@Model["Worker UPI"]",
+                        Contact: "@Model["Contact"]",
+                        RoleName: "@Model["Role"]",
+                        DateOfJoining: $('#joiningDate').val(),
+                        BaseSalary: $('#baseSalary').val(),
+                        DaysPresent: $('#daysPresent').val(),
+                        AccountNumber: $('#accountNo').val(),
+                        PaymentMode: 1,
+                        PaidTo: $('#workerCode').val(),
+                        UPIId: "@Model["Worker UPI"]",
+                        PaymentPurpose: "Monthly Salary",
+                        EntityCode: $('#bankSelect option:selected').text().trim(),
+                        BankName_Code: selectedBank,
+                        TransactionType: 27,
+                        PaymentBy: "STF002"
+                    }).done(function (res) {
+                        if (res.success) {
+                            iziToast.success({
+                                title: 'Payment successful 🎉',
+                                Sucessmessage: 'Payment successful 🎉',
+                                position: 'topCenter'
+                            });
+                            setTimeout(() => location.reload(), 2000);
+
+                            let workerCode = $('#workerCode').val();
+                            let month = "@Model["AttendanceMonth"]";
+                            $('#workerTable tbody tr').each(function () {
+                                let row = $(this);
+                                let rowWorker = row.find('.payBtn').data('worker');
+                                let rowMonth = row.find('.payBtn').data('month');
+                                if (rowWorker === workerCode && rowMonth === month) {
+                                    row.find('td:last').html(`
+                                        <button class="btn btn-info btn-sm viewBtn" data-worker="${workerCode}" data-month="${month}">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    `);
+                                    row.addClass("table-success");
+                                }
+                            });
+
+                            $('#paymentModal').modal('hide');
+                            $('body').removeClass('modal-open');
+                            $('.modal-backdrop').remove();
+                        } else {
+                            iziToast.error({
+                                title: 'Error',
+                                SuccessMessage: 'Payment failed. Please try again.',
+                                position: 'topCenter'
+                            });
+                        }
+                    }).fail(function () {
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Server error occurred 😵',
+                            position: 'topCenter'
+                        });
+                    });
+                }
+            };
+
+        let rzp = new Razorpay(options);
+        rzp.open();
+    });
+
+
+    $(document).on('hide.bs.modal', '#paymentModal', function () {
+        $('#bankSelect').empty().append('<option value="">-- Select Bank --</option>');
+        $('#bankBalance').text('-').css('color', '');
+    });
+
+    $(document).ready(function () {
+        $('#paymentModal').on('hidden.bs.modal', function () {
+            $('#modalContent').html('');
+        });
+    });
+
+    $.get("/AccountManager/GetAccountantBankListAD")
+        .done(function (banks) {
+            console.log("Banks from server:", banks);  // याने बँक डेटा console मध्ये दिसेल
+            // पुढचा code
+        })
+
+
+
+
+    /*--------------------------------------------------Modal Hide  --------------------------------------------------------------------*/
+
+    function closeModal() {
+        $('#paymentModal').modal('hide');
+    }
+
+
+    /*--------------------------------------------------Copy Upi Code For Raxorpay  ------------------------------------------------------*/
+    function copyToClipboard(elementId) {
+        const text = document.getElementById(elementId)?.innerText;
+        const copiedLabel = document.getElementById("lblCopied");
+
+        if (!text) return;
+
+        navigator.clipboard.writeText(text).then(() => {
+            if (copiedLabel) {
+                copiedLabel.style.display = "inline";
+                copiedLabel.innerText = "Copied";
+
+                // Hide after 2 seconds
+                setTimeout(() => {
+                    copiedLabel.style.display = "none";
+                }, 2000);
+            }
+        });
+    }
+
+
+    /*--------------------------------------------------Get cash amunt using Ajax ------------------------------------------------------*/
+   $('#paymentModal').on('shown.bs.modal', function () {
+    $.ajax({
+        url: '@Url.Action("GetAmountCashinHandAD", "AccountManager")',
+        type: 'GET',
+        success: function (data) {
+            if (data && data.cash) {
+                $('#cashInHandDisplay').text('₹ ' + parseFloat(data.cash).toFixed(2));
+            } else {
+                $('#cashInHandDisplay').text('₹ 0.00');
+            }
+        },
+        error: function (err) {
+            console.error("Error fetching Cash Amount:", err);
+            $('#cashInHandDisplay').text('Error!');
+        }
+    });
+});
+
+
+
+
+
+
+</script>

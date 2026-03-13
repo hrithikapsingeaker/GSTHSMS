@@ -1,0 +1,236 @@
+﻿@model List<GSTSMSLibrary.AccountManager.AccountManager>
+
+@{
+    // Set the modal title based on the first item's type
+    var modalTitle = Model != null && Model.Any() ?
+        (Model.First().MeetingCode != null ? "Meeting Details" : "Event Details") :
+        "Event Details";
+}
+
+
+
+<script>
+    // Update the modal title when this partial view loads
+    $(document).ready(function() {
+        $('#eventDetailsModal .modal-title').text('@modalTitle');
+        // Center the modal header text
+        $('#eventDetailsModal .modal-header').addClass('justify-content-center');
+    });
+</script>
+
+@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+{
+    <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal" aria-label="Close">×</button>
+}
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-warning text-center">
+        No details found.
+    </div>
+}
+else
+{
+    foreach (var item in Model)
+    {
+        <div class="event-details border rounded shadow-sm p-4 mb-4 bg-white">
+            <div class="detail-item mb-2 text-center">
+                <strong class="detail-main-title d-block fs-5 text-dark">
+                    @(item.MeetingName ?? item.EventName)
+                </strong>
+            </div>
+
+
+
+            @{
+                var displayDate = item.MeetingCode != null ?
+                    (item.ScheduledDate != DateTime.MinValue ? item.ScheduledDate : item.EventDate) :
+                    item.EventDate;
+
+                var displayTime = item.MeetingCode != null ?
+                    item.MeetingTime : item.EventTime;
+
+                var dateTimeForDisplay = displayDate.Date + displayTime;
+            }
+
+            <div class="info-pair-row">
+                <div class="info-group">
+                    <div class="info-label">Date</div>
+                    <div class="info-value"><span class="colon">:</span> @displayDate.ToString("dd-MMM-yyyy")</div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">Time</div>
+                    <div class="info-value"><span class="colon">:</span> @dateTimeForDisplay.ToString("hh:mm tt")</div>
+                </div>
+            </div>
+
+            <div class="info-pair-row">
+                <div class="info-group">
+                    <div class="info-label">Location</div>
+                    <div class="info-value"><span class="colon">:</span> @item.LocationName</div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">Status</div>
+                    <div class="info-value"><span class="colon">:</span> @item.StatusName</div>
+                </div>
+            </div>
+
+            <div class="info-pair-row">
+                <div class="info-group" style="min-width: 100%;">
+                    <div class="info-label">@(item.MeetingCode != null ? "Agenda" : "Description")</div>
+                    <div class="info-value"><span class="colon">:</span> @Html.Raw(item.MeetingCode != null ? item.Agenda : item.Description)</div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+<style>
+    #eventDetailsModal .modal-content {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(5px);
+        border: none;
+    }
+
+    /* Updated modal header styling */
+    #eventDetailsModal .modal-header {
+        position: relative;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    #eventDetailsModal .modal-title {
+        width: 100%;
+        text-align: center;
+        margin: -8px;
+        margin-left: 36px;
+        padding-right: 1.5rem; /* Space for the close button */
+    }
+
+    #eventDetailsModal .btn-close {
+        position: absolute;
+        right: 1.5rem;
+        top: 1rem;
+        margin: 0;
+        padding: 0.5rem;
+    }
+
+    .event-details {
+        background-color: #f9f9f9;
+        border-left: 5px solid #615677;
+        padding: 20px;
+        border-radius: 6px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .detail-item {
+        margin-bottom: 12px;
+    }
+
+    strong.detail-main-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+    }
+
+    /* New: Separator styling added here */
+    .separator {
+        border: 0;
+        border-top: 1px solid #eee;
+        margin: 1.5rem 0;
+    }
+
+    .event-details {
+        margin: -12px;
+    }
+
+    .alert {
+        margin-bottom: 20px;
+        padding: 12px 20px;
+        border-radius: 4px;
+    }
+
+    .info-pair-row {
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 5px;
+    }
+
+    .info-group {
+        flex: 1 1 50%;
+        display: flex;
+        min-width: 300px;
+        margin-bottom: 6px;
+        align-items: center;
+    }
+
+    .info-label {
+        width: 140px;
+        font-weight: bold;
+        color: #333;
+        flex-shrink: 0;
+        padding-right: 5px;
+    }
+
+    .info-value {
+        flex: 1;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
+        font-weight: normal;
+        word-break: break-word;
+        display: flex;
+        align-items: center;
+    }
+
+    .colon {
+        color: #333;
+        font-weight: bold;
+        margin-right: 8px; /* Adds space after the colon */
+    }
+
+    @@media (max-width: 992px) {
+        .modal-dialog {
+            max-width: 95%;
+            margin: 10px auto;
+        }
+
+        .info-group {
+            min-width: 100%;
+        }
+
+        .info-label {
+            width: 120px; /* Adjust label width for smaller screens */
+        }
+
+        #eventDetailsModal .btn-close {
+            right: 1rem;
+            top: 1rem;
+        }
+    }
+
+    .btn.btn-sm {
+        padding: .10rem 0.4rem;
+        font-size: 14px;
+        margin-top: -6px;
+        margin-right: -12px;
+    }
+
+    .mb-4, .my-4 {
+        margin-bottom: -0.5rem !important;
+    }
+
+    strong.detail-main-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        margin-top: -13px;
+    }
+
+    .event-color {
+        background: #ff9933;
+        border-left: none;
+    }
+</style>

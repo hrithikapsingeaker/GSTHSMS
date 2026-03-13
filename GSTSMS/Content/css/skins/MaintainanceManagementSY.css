@@ -1,0 +1,328 @@
+﻿/* 1. Table Row Height */
+/* === MaintainanceManagementSY.css === */
+
+
+
+
+.modal-content {
+    max-height: 90vh;
+    overflow: hidden !important;
+    border-radius: 10px;
+}
+
+
+.modal-body {
+    overflow: visible !important;
+}
+
+.scrollable-charges {
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+
+
+/* FIT TO CONTENT - Optional smaller card height */
+.card.card-primary {
+    margin-bottom: 0 !important;
+    border-top: 2px solid #615677;
+}
+
+/* Ensure no scrollbar in modal */
+body.modal-open {
+    overflow: hidden !important;
+}
+
+.main-content {
+    padding-left: 280px;
+    padding-right: 30px;
+    padding-top: 0px;
+    width: 100%;
+    position: relative;
+    margin-top: -92px;
+    overflow-y: hidden !important; /* Hide vertical scroll */
+    height: auto !important; /* Let content expand naturally */
+}
+
+#maintenanceTable {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+/* Header Styling */
+thead.custom-expense-header th {
+    background-color: #615677 !important;
+    color: white !important;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 0px !important;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    line-height: 30px !important;
+}
+
+/* Table cell borders */
+table.dataTable thead th {
+    font-size: 14px !important;
+}
+
+table.dataTable tbody td {
+    border: 2px solid white !important;
+}
+
+.table td {
+    padding: 0px !important;
+}
+/* Remove top border from first row */
+#maintenanceTable tbody tr:first-child td {
+    border-top: none !important;
+}
+
+/* Table Body Cell Styling */
+#maintenanceTable tbody td {
+    text-align: center;
+    vertical-align: middle;
+    font-size: 13px;
+    line-height: 25px;
+}
+
+/* Hover effect */
+#maintenanceTable tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+
+/* 🔵 Export buttons spacing */
+.dataTables_wrapper .dt-buttons {
+    margin-bottom: 10px;
+}
+/* Label spacing and weight */
+#moveSearchBoxHere label {
+    margin-right: 4px;
+    margin-bottom: 0;
+}
+
+/* Input box styling (height + width) */
+#moveSearchBoxHere input[type="search"] {
+    width: 180px;
+    height: 32px;
+    padding: 4px 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-right: -6px;
+}
+
+#moveSearchBoxHere {
+    margin-right: -86px !important;
+}
+
+
+.export-buttons.icon-only-btn {
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+}
+
+    .export-buttons.icon-only-btn:hover {
+        background: none !important;
+        box-shadow: none !important;
+    }
+/* 🔍 Search bar style */
+.dataTables_filter label {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+
+/* ⬇ Universal font for consistency */
+body, html, table, th, td, .btn, input, select, textarea, label, .modal, .nav, .card, .form-control, .dataTables_wrapper, .dataTables_info, .dataTables_paginate {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+/* 🔘 Common style for both tabs */
+.section-header-tabs .btn-group .btn {
+    padding: 10px 20px;
+    font-size: 15px;
+    min-width: 100px;
+    border-radius: 5px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border: 2px solid #087070;
+    color: #087070;
+    background-color: white !important;
+    transition: none !important;
+    box-shadow: none !important;
+}
+
+    /* ✅ Active Tab */
+    .section-header-tabs .btn-group .btn.active {
+        background-color: #087070 !important;
+        color: white !important;
+        border-color: #087070 !important;
+    }
+
+    /* 🚫 Inactive hover effect */
+    .section-header-tabs .btn-group .btn:not(.active):hover {
+        background-color: white !important;
+        color: #087070 !important;
+        border-color: #087070 !important;
+        box-shadow: none !important;
+    }
+
+
+
+
+.mainbody {
+    margin-top: -39px;
+}
+
+/* Teal Dashed Divider */
+.sec-divider {
+    border: none;
+    border-top: 2px dotted #615677;
+    margin-top: 0px;
+    margin-bottom: 15px;
+}
+
+
+/* Row Labels */
+.card-body .row > div {
+    /*margin-bottom: 8px;
+    font-size: 14px;
+    color: black;*/
+}
+
+.card .card-body {
+    /* padding-top: 46px;*/
+    padding-bottom: 0px;
+}
+
+.card-body .row span.text-label {
+    /* font-size: 16px;
+    color: black;*/
+}
+
+.card-body .row > div b {
+    display: inline-block;
+    min-width: 130px;
+    font-weight: 600;
+    color: black;
+}
+
+/* List Items */
+.list-group-item {
+    background-color: #f9f9f9;
+    border: none;
+    border-bottom: 1px solid #eee;
+}
+
+/* Universal Text Styling */
+.card-body,
+.title,
+.list-group-item,
+.fw-semibold,
+.fs-6,
+.text-muted,
+.text-dark {
+    color: #333 !important;
+}
+
+.text-success-custom {
+    color: #000 !important;
+    font-weight: bold;
+    text-align: right;
+}
+
+.text-bold-dark {
+    font-weight: bold;
+    color: #000;
+}
+
+/* Optional: center the export buttons */
+#exportButtons {
+    text-align: left;
+}
+
+
+/* Expandable Section Blue Styling */
+.expandable-section {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: #e7f2ff; /* Light blue background */
+    border-radius: 6px;
+    margin: 8px 0;
+    padding: 10px 15px;
+    border: 1px solid #b8d4ff; /* Light blue border */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+    .expandable-section:hover {
+        background-color: #d6e7ff; /* Slightly darker blue on hover */
+        border-color: #9cc2ff;
+    }
+
+    .expandable-section .fa-plus {
+        transition: all 0.3s ease;
+        margin-right: 10px;
+        font-size: 14px;
+        color: #1976d2; /* Primary blue color */
+    }
+
+    .expandable-section.expanded .fa-plus {
+        color: #0d5cb6; /* Darker blue when expanded */
+    }
+
+    .expandable-section .fw-semibold {
+        font-weight: 600;
+        color: #1565c0 !important; /* Dark blue text */
+    }
+
+    .expandable-section .text-muted {
+        color: #5d9cec !important; /* Lighter blue for count */
+    }
+
+
+
+
+/* Animation for expansion */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.expanded + .hidden-details {
+    display: block;
+    animation: slideDown 0.3s ease-out;
+}
+
+img {
+    vertical-align: middle;
+    border-style: none;
+    padding-right: 10px;
+}
+
+
+.rotate-refresh {
+    animation: spin 0.7s linear infinite;
+    transform-origin: center center;
+    transform-box: fill-box;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
